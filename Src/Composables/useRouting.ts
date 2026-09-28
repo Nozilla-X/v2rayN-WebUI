@@ -1,5 +1,6 @@
 import { computed, reactive, ref } from 'vue'
 import type { ApiServices, Dict, ErrorHandler, Notice, Translate } from './types'
+import { createUuid } from './uuid.mjs'
 
 export function useRouting(options: ApiServices & {
   t: Translate
@@ -26,6 +27,11 @@ export function useRouting(options: ApiServices & {
   const ruleModalError = ref('')
   const showRouteForm = ref(false)
   const showRuleForm = ref(false)
+  const applyingPreset = ref('')
+  const deletingSelectedRules = ref(false)
+  const deletingSelectedRoutes = ref(false)
+  const deletingRuleId = ref('')
+  const savingRoutingRule = ref(false)
   const editingRouteId = ref('')
   const editingRuleId = ref('')
   let rulesLoadSequence = 0
@@ -115,7 +121,8 @@ export function useRouting(options: ApiServices & {
   }
 
   async function deleteSelectedRoutes() {
-    if (!selectedRouteIds.value.length || !await options.confirm(t('common.confirmDelete'))) return
+    if (deletingSelectedRoutes.value || !selectedRouteIds.value.length || !await options.confirm(t('common.confirmDelete'))) return
+    deletingSelectedRoutes.value = true
     try {
       for (const id of [...selectedRouteIds.value]) {
         await options.request(`/api/settings/routing-profiles/${encodeURIComponent(id)}`, { method: 'DELETE' })
@@ -124,6 +131,7 @@ export function useRouting(options: ApiServices & {
       options.showNotice(t('common.deleted'))
       await loadRouting()
     } catch (error) { options.showError(error) }
+    finally { deletingSelectedRoutes.value = false }
   }
 
   async function importRoutingProfiles() {
@@ -191,7 +199,7 @@ export function useRouting(options: ApiServices & {
   function addRoutingRule() {
     editingRuleId.value = ''
     ruleModalError.value = ''
-    ruleForm.value = { id: crypto.randomUUID(), enabled: true, type: 'field', remarks: '', ruleType: null, outboundTag: 'proxy', port: '', network: '', inboundTagText: '', protocolText: '', domainText: '', ipText: '', processText: '' }
+    ruleForm.value = { id: createUuid(), enabled: true, type: 'field', remarks: '', ruleType: null, outboundTag: 'proxy', port: '', network: '', inboundTagText: '', protocolText: '', domainText: '', ipText: '', processText: '' }
     ruleAdvancedJson.value = JSON.stringify({ id: '', type: 'field', port: '', network: '', inboundTag: [], outboundTag: 'proxy', ip: [], domain: [], protocol: [], process: [], enabled: true, remarks: '', ruleType: null }, null, 2)
     showRuleForm.value = true
   }
@@ -216,12 +224,14 @@ export function useRouting(options: ApiServices & {
   }
 
   async function saveRoutingRule() {
+    if (savingRoutingRule.value) return
+    savingRoutingRule.value = true
     try {
       const advanced = JSON.parse(ruleAdvancedJson.value || '{}')
       const rule = {
         ...advanced,
         ...ruleForm.value,
-        id: editingRuleId.value || ruleForm.value.id || crypto.randomUUID(),
+        id: editingRuleId.value || ruleForm.value.id || createUuid(),
         inboundTag: listFromText(ruleForm.value.inboundTagText || ''),
         protocol: listFromText(ruleForm.value.protocolText || ''),
         domain: listFromText(ruleForm.value.domainText || ''),
@@ -250,6 +260,7 @@ export function useRouting(options: ApiServices & {
       if (error instanceof SyntaxError) ruleModalError.value = t('common.invalidJson')
       else options.showError(error)
     }
+    finally { savingRoutingRule.value = false }
   }
 
   function toggleAllRules() {
@@ -257,15 +268,17 @@ export function useRouting(options: ApiServices & {
   }
 
   async function deleteSelectedRules() {
-    if (!await options.confirm(t('common.confirmDelete'))) return
+    if (deletingSelectedRules.value || !selectedRuleIds.value.length) return
+    deletingSelectedRules.value = true
     try {
-      for (const id of [...selectedRuleIds.value]) {
-        await options.request(`/api/settings/routing-profiles/${encodeURIComponent(selectedRoutingId.value)}/rules/${encodeURIComponent(id)}`, { method: 'DELETE' })
-      }
+      const selected = new Set(selectedRuleIds.value)
+      const remainingRules = routingRules.value.filter((rule) => !selected.has(rule.id))
+      const result = await options.request(`/api/settings/routing-profiles/${encodeURIComponent(selectedRoutingId.value)}/rules`, { method: 'PUT', body: remainingRules })
       selectedRuleIds.value = []
-      options.showNotice(t('common.deleted'))
+      options.showNotice(options.operationMessage(result))
       await loadRules()
     } catch (error) { options.showError(error) }
+    finally { deletingSelectedRules.value = false }
   }
 
   async function exportSelectedRules() {
@@ -303,11 +316,14 @@ export function useRouting(options: ApiServices & {
   }
 
   async function removeRoutingRule(rule: Dict) {
+    if (deletingRuleId.value || deletingSelectedRules.value) return
+    deletingRuleId.value = rule.id
     try {
       const result = await options.request(`/api/settings/routing-profiles/${encodeURIComponent(selectedRoutingId.value)}/rules/${encodeURIComponent(rule.id)}`, { method: 'DELETE' })
       options.showNotice(options.operationMessage(result))
       await loadRules()
     } catch (error) { options.showError(error) }
+    finally { deletingRuleId.value = '' }
   }
 
   async function copyRoutingRules() {
@@ -325,16 +341,19 @@ export function useRouting(options: ApiServices & {
   }
 
   async function applyPreset(preset: string) {
+    if (applyingPreset.value) return
+    applyingPreset.value = preset
     try {
       const result = await options.request(`/api/settings/regional-presets/${preset}`, { method: 'POST' })
       options.showNotice(options.operationMessage(result))
       await loadRouting()
     } catch (error) { options.showError(error) }
+    finally { applyingPreset.value = '' }
   }
 
-  const routingPageState = reactive({ routes, activeRoutingId, selectedRoutingId, currentRoute, selectedRoute, routingForm, routingRules, rulesRaw, ruleImportText, appendRules, selectedRouteIds, selectedRuleIds, routingOptions })
+  const routingPageState = reactive({ routes, activeRoutingId, selectedRoutingId, currentRoute, selectedRoute, routingForm, routingRules, rulesRaw, ruleImportText, appendRules, selectedRouteIds, selectedRuleIds, routingOptions, applyingPreset, deletingSelectedRules, deletingSelectedRoutes, deletingRuleId })
   const routeModalState = reactive({ showRouteForm, routeForm, editingRouteId, routingOptions })
-  const ruleModalState = reactive({ showRuleForm, ruleForm, ruleAdvancedJson, ruleModalError, editingRuleId })
+  const ruleModalState = reactive({ showRuleForm, ruleForm, ruleAdvancedJson, ruleModalError, editingRuleId, savingRoutingRule })
 
   return {
     activeRoutingId, selectedRoutingId, routes, routingForm, routingOptions, showRouteForm, loadRouting, loadRules, routingPageState, routeModalState, ruleModalState,

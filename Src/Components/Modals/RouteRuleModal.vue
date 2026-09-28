@@ -17,7 +17,7 @@ const { onModalKeydown } = useModalFocus(dialog)
 <template>
   <div v-if="state.showRuleForm" class="modal-shade" @click.self="state.showRuleForm = false">
     <form ref="dialog" class="modal-panel wide-modal modal-form" role="dialog" aria-modal="true" :aria-label="t(state.editingRuleId ? 'routing.editRule' : 'routing.addRule')" tabindex="-1" @keydown="onModalKeydown" @submit.prevent="actions.saveRoutingRule">
-      <header class="modal-head"><div><h2>{{ t(state.editingRuleId ? 'routing.editRule' : 'routing.addRule') }}</h2><small>{{ t('routing.ruleEditorHint') }}</small></div><button class="tool-button" type="button" :aria-label="t('common.close')" @click="state.showRuleForm = false"><UiIcon name="close" /></button></header>
+      <header class="modal-head"><div><h2>{{ t(state.editingRuleId ? 'routing.editRule' : 'routing.addRule') }}</h2><small>{{ t('routing.ruleEditorHint') }}</small></div><button class="tool-button" type="button" :disabled="state.savingRoutingRule" :aria-label="t('common.close')" @click="state.showRuleForm = false"><UiIcon name="close" /></button></header>
       <div class="modal-content">
         <fieldset class="editor-section"><legend>{{ t('routing.ruleType') }}</legend>
           <div class="form-grid three-col">
@@ -37,7 +37,7 @@ const { onModalKeydown } = useModalFocus(dialog)
         <details class="advanced-editor"><summary>{{ t('common.rawJson') }}</summary><p class="field-hint">{{ t('routing.ruleJsonHint') }}</p><textarea v-model="state.ruleAdvancedJson" class="code-area advanced-profile-json" spellcheck="false" /></details>
         <p v-if="state.ruleModalError" class="inline-error" role="alert">{{ state.ruleModalError }}</p>
       </div>
-      <footer class="modal-actions"><button class="button" type="button" @click="state.showRuleForm = false">{{ t('common.cancel') }}</button><button class="button primary" type="submit">{{ t('common.save') }}</button></footer>
+      <footer class="modal-actions"><button class="button" type="button" :disabled="state.savingRoutingRule" @click="state.showRuleForm = false">{{ t('common.cancel') }}</button><button class="button primary" type="submit" :disabled="state.savingRoutingRule">{{ state.savingRoutingRule ? t('common.loading') : t('common.save') }}</button></footer>
     </form>
   </div>
 </template>
