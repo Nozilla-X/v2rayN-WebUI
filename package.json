@@ -1,0 +1,24 @@
+{
+  "name": "v2rayn-webui",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "check-locales": "node Scripts/check-locales.mjs",
+    "check:locales": "node Scripts/check-locales.mjs",
+    "test": "node --test Tests/*.test.mjs",
+    "build": "npm run check:locales && vue-tsc --noEmit && vite build",
+    "preview": "vite preview --host 0.0.0.0"
+  },
+  "dependencies": {
+    "vue": "^3.5.13",
+    "vue-i18n": "^11.4.12"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.1",
+    "typescript": "^5.9.3",
+    "vite": "^6.0.7",
+    "vue-tsc": "^3.3.11"
+  }
+}
