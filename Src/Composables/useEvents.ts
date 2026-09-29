@@ -23,6 +23,7 @@ export function useEvents(options: {
   onCoreUpdateProgress: (progress: Dict) => void
   onCoreUpdateBatchComplete: (result: Dict) => void
   onGeoUpdateComplete: (result: Dict) => void
+  onSpeedTestResult: (result: Dict) => void
   onLogsCleared: (generation: number) => void
 }) {
   const t = options.t
@@ -138,6 +139,9 @@ export function useEvents(options: {
       source.addEventListener('traffic', (event) => {
       if (options.status.value) options.status.value.traffic = JSON.parse((event as MessageEvent).data)
       })
+      source.addEventListener('speedtest-result', (event) => {
+        options.onSpeedTestResult(JSON.parse((event as MessageEvent).data) as Dict)
+      })
       source.addEventListener('core-update-progress', (event) => {
         const progress = JSON.parse((event as MessageEvent).data) as Dict
         options.onCoreUpdateProgress(progress)
@@ -155,7 +159,7 @@ export function useEvents(options: {
         clearPendingLogQueue(generation)
         options.onLogsCleared(generation)
       })
-      for (const eventName of ['profiles-changed', 'subscription-progress', 'speedtest-result', 'settings-changed', 'core-state', 'geo-update-progress', 'geo-update-completed', 'xray-update-completed']) {
+      for (const eventName of ['profiles-changed', 'subscription-progress', 'settings-changed', 'core-state', 'geo-update-progress', 'geo-update-completed', 'xray-update-completed']) {
         source.addEventListener(eventName, (event) => {
         if (eventName === 'core-state') {
           const state = JSON.parse((event as MessageEvent).data) as Dict

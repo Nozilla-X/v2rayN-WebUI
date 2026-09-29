@@ -5,6 +5,7 @@ import ActionDropdown from '../ActionDropdown.vue'
 import UiIcon from '../UiIcon.vue'
 import UiCheckbox from '../UiCheckbox.vue'
 import type { UiProps } from '../types'
+import { shouldRenderIpInfoColumn } from '../../Composables/ipInfoColumn.js'
 
 const { t } = useI18n()
 const props = defineProps<UiProps>()
@@ -12,6 +13,7 @@ const state = props.state
 const actions = props.actions
 const selectedSubscription = computed(() => state.subscriptions.find((item: Record<string, any>) => item.id === state.selectedGroup) || null)
 const autoFitColumns = ref(false)
+const showIpInfoColumn = computed(() => shouldRenderIpInfoColumn(state.showIpInfoColumn))
 </script>
 
 <template>
@@ -49,7 +51,7 @@ const autoFitColumns = ref(false)
         <th><button class="sort-button" @click="actions.sortProfiles('SubRemarks')">{{ t('nodes.groupColumn') }}</button></th>
         <th class="number-header"><button class="sort-button" @click="actions.sortProfiles('DelayVal')">{{ t('nodes.delay') }}</button></th>
         <th class="number-header"><button class="sort-button" @click="actions.sortProfiles('SpeedVal')">{{ t('nodes.speed') }}</button></th>
-        <th>{{ t('nodes.ip') }}</th>
+        <th v-if="showIpInfoColumn">{{ t('nodes.ip') }}</th>
         <th class="number-header"><button class="sort-button" @click="actions.sortProfiles('TodayUp')"><UiIcon name="arrow-up" :size="11" /> {{ t('nodes.todayUp') }}</button></th>
         <th class="number-header"><button class="sort-button" @click="actions.sortProfiles('TodayDown')"><UiIcon name="arrow-down" :size="11" /> {{ t('nodes.todayDown') }}</button></th>
         <th class="number-header"><button class="sort-button" @click="actions.sortProfiles('TotalUp')"><UiIcon name="arrow-up" :size="11" /> {{ t('nodes.totalUp') }}</button></th>
@@ -57,7 +59,7 @@ const autoFitColumns = ref(false)
         <th class="actions-cell">{{ t('nodes.actions') }}</th>
       </tr></thead>
       <tbody>
-        <tr v-for="profile in state.filteredProfiles" :key="profile.indexId" :data-profile-id="profile.indexId" :tabindex="state.focusedProfileId === profile.indexId ? 0 : -1" :aria-current="profile.isCurrent ? 'true' : undefined" :aria-selected="state.selectedIds.includes(profile.indexId)" :class="{ current: profile.isCurrent, selected: state.selectedIds.includes(profile.indexId) }" @focus="actions.setFocusedProfile(profile.indexId)" @click="actions.focusProfile($event, profile)" @keydown="actions.handleRowKeydown($event, profile)" @dblclick="actions.selectProfile(profile)" @contextmenu="actions.openContext($event, profile)">
+        <tr v-for="profile in state.filteredProfiles" :key="profile.indexId" :data-profile-id="profile.indexId" :tabindex="state.focusedProfileId === profile.indexId ? 0 : -1" :aria-current="profile.isCurrent ? 'true' : undefined" :aria-selected="state.selectedIds.includes(profile.indexId)" :class="{ current: profile.isCurrent, selected: state.selectedIds.includes(profile.indexId) }" @focus="actions.setFocusedProfile(profile.indexId)" @click="actions.focusProfile($event, profile)" @keydown="actions.handleRowKeydown($event, profile)" @dblclick="actions.selectProfile(profile)" @contextmenu.stop.prevent="actions.openContext($event, profile)">
           <td class="check-cell"><UiCheckbox :model-value="state.selectedIds.includes(profile.indexId)" :aria-label="profile.remarks || profile.address" @change="actions.toggleProfile(profile.indexId)" @click.stop /></td>
           <td :data-label="t('nodes.type')"><span class="protocol-code">{{ profile.protocol }}</span></td>
           <td class="remark-cell" :data-label="t('nodes.remarks')"><UiIcon v-if="profile.isCurrent" class="current-marker" name="check" :size="12" :title="t('nodes.current')" /><span class="remark-text" :title="profile.remarks">{{ profile.remarks || '—' }}</span></td>
@@ -68,12 +70,12 @@ const autoFitColumns = ref(false)
           <td class="group-cell" :data-label="t('nodes.groupColumn')" :title="profile.subscriptionName">{{ profile.subscriptionName || t('common.none') }}</td>
           <td :data-label="t('nodes.delay')" :class="['number-cell', 'delay-cell', { bad: profile.delay < 0 }]">{{ actions.formatDelay(profile.delay) }}</td>
           <td class="number-cell" :data-label="t('nodes.speed')">{{ profile.speed ? `${profile.speed} MB/s` : '—' }}</td>
-          <td class="ip-cell" :data-label="t('nodes.ip')" :title="profile.ipInfo">{{ profile.ipInfo || '—' }}</td>
+          <td v-if="showIpInfoColumn" class="ip-cell" :data-label="t('nodes.ip')" :title="profile.ipInfo">{{ profile.ipInfo || '—' }}</td>
           <td class="number-cell" :data-label="t('nodes.todayUp')">{{ actions.formatBytes(profile.todayUp) }}</td><td class="number-cell" :data-label="t('nodes.todayDown')">{{ actions.formatBytes(profile.todayDown) }}</td>
           <td class="number-cell" :data-label="t('nodes.totalUp')">{{ actions.formatBytes(profile.totalUp) }}</td><td class="number-cell" :data-label="t('nodes.totalDown')">{{ actions.formatBytes(profile.totalDown) }}</td>
           <td class="row-actions" :data-label="t('nodes.actions')"><button class="tool-button row-more" :aria-label="t('nodes.actions')" :title="t('nodes.actions')" @click.stop="actions.openContext($event, profile)"><UiIcon name="more" /></button></td>
         </tr>
-        <tr v-if="!state.filteredProfiles.length"><td colspan="16" class="empty-row">{{ state.profiles.length ? t('common.noResults') : t('nodes.noProfile') }}</td></tr>
+        <tr v-if="!state.filteredProfiles.length"><td :colspan="showIpInfoColumn ? 16 : 15" class="empty-row">{{ state.profiles.length ? t('common.noResults') : t('nodes.noProfile') }}</td></tr>
       </tbody>
     </table>
   </div>

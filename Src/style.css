@@ -492,8 +492,8 @@ input[type="checkbox"] { width: 16px; height: 16px; flex: 0 0 16px; }
 .routing-raw-editor .rules-json { min-height: 230px; }
 .routing-raw-editor .button-row { margin-top: 5px; }
 
-.dns-page .settings-section { max-width: 1180px; }
-.dns-core-section { max-width: 860px; }
+.dns-page .settings-section { width: 100%; max-width: none; }
+.dns-core-section { width: 100%; }
 .dns-core-section .section-heading { margin-bottom: 11px; }
 .dns-core-section .section-heading h2 { margin: 0; font-size: 13px; }
 .page-footnote { margin: 10px 0 0; color: var(--text-dim); font-size: 9px; }

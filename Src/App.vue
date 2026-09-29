@@ -36,6 +36,7 @@ import { useTemplates } from './Composables/useTemplates'
 import { useTheme } from './Composables/useTheme'
 import type { ApiError, Dict, NoticeKind } from './Composables/types'
 import { navigateMenu } from './Components/menuContext'
+import { preventNativeContextMenu } from './Components/contextMenu'
 
 const { t, locale } = useI18n()
 const theme = useTheme()
@@ -167,6 +168,7 @@ const events = useEvents({
   onCoreUpdateProgress: maintenance.recordCoreUpdateProgress,
   onCoreUpdateBatchComplete: maintenance.notifyCoreUpdateBatchComplete,
   onGeoUpdateComplete: maintenance.notifyGeoUpdateComplete,
+  onSpeedTestResult: profiles.nodesPageActions.applySpeedTestResult,
   onLogsCleared: logs.clearLogsState,
 })
 clearRealtimeLogQueue = events.clearPendingLogQueue
@@ -291,7 +293,10 @@ const runtimeStripState = reactive({ status: runtime.status, currentProfile, act
 const runtimeStripActions = { activateRoute, coreAction: runtime.coreAction }
 const connectionStripState = runtime.connectionStripState
 const connectionStripActions = { listenerDescription: runtime.listenerDescription, formatBytes }
-const nodesPageState = Object.assign(profiles.nodesPageState, { subscriptions: subscriptions.subscriptions })
+const nodesPageState = Object.assign(profiles.nodesPageState, {
+  subscriptions: subscriptions.subscriptions,
+  showIpInfoColumn: computed(() => settings.settings.value.showIpInfoColumn === true),
+})
 const nodesPageActions = {
   ...profiles.nodesPageActions,
   updateSubscriptions: subscriptions.subscriptionsPageActions.updateSubscriptions,
@@ -593,7 +598,7 @@ function positionOpenContextMenu() {
           <LogsPage v-else-if="activePage === 'logs'" :state="logsPageState" :actions="logsPageActions" />
         </main>
       </template>
-    <div v-if="contextMenu" ref="contextMenuElement" class="context-menu" :style="contextMenuPlacement" role="menu" @keydown="navigateMenu($event, contextMenuElement)" @click="contextMenu = null">
+    <div v-if="contextMenu" ref="contextMenuElement" class="context-menu" :style="contextMenuPlacement" role="menu" @keydown="navigateMenu($event, contextMenuElement)" @click="contextMenu = null" @contextmenu="preventNativeContextMenu">
       <button role="menuitem" :disabled="contextMenu.profile.isCurrent" @click="selectContextProfile">{{ contextMenu.profile.isCurrent ? t('nodes.current') : t('nodes.switch') }}<span class="menu-shortcut">Enter</span></button>
       <button role="menuitem" @click="editContextProfile">{{ t('common.edit') }}<span class="menu-shortcut">Ctrl+D</span></button>
       <button role="menuitem" :disabled="!nodesPageState.selectedIds.length" @click="copySelectedNodes">{{ t('nodes.copySelected') }}</button>

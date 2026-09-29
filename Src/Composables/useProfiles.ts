@@ -2,6 +2,7 @@ import { computed, reactive, ref, type Ref } from 'vue'
 import type { ApiError, ApiServices, Dict, ErrorHandler, Notice, Translate } from './types'
 import { canonicalNetwork, profileEditorOptions } from '../profileEditorOptions'
 import { normalizeNullableNumbers } from './settingsPayloads.js'
+import { mergeSpeedTestResult as mergeSpeedTestResultIntoRows } from './speedtestResults.js'
 
 const groupIncompatibleProfileFields = [
   'address', 'port', 'password', 'username', 'network', 'headerType', 'requestHost', 'path',
@@ -110,6 +111,10 @@ export function useProfiles(options: ApiServices & {
       options.showNotice(options.operationMessage(result))
       await options.loadOperations()
     } catch (error) { options.showError(error) }
+  }
+
+  function applySpeedTestResult(result: Dict) {
+    return mergeSpeedTestResultIntoRows(profiles.value, result)
   }
 
   function toggleProfile(id: string) {
@@ -468,7 +473,7 @@ export function useProfiles(options: ApiServices & {
     profiles, groups, selectedGroup, selectedIds, protocolTypes, coreTypes, showProfileForm, showImportForm, showExportDialog, loadGroups, loadProfiles,
     openEditProfile, selectProfile, startSpeedTest, runProfileAction,
     nodesPageState, profileModalState, importProfilesModalState, exportModalState,
-    nodesPageActions: { openAddProfile, openImportProfiles, startSpeedTest, runProfileAction, stopSpeedTests, changeGroup, generateGroups, loadProfiles, toggleAllVisible, toggleProfile, sortProfiles, selectProfile, formatDelay, moveSelectedToGroup, moveSelected, moveSelectedPosition, exportSelected, openContext, focusProfile, setFocusedProfile, handleRowKeydown },
+    nodesPageActions: { openAddProfile, openImportProfiles, startSpeedTest, runProfileAction, stopSpeedTests, applySpeedTestResult, changeGroup, generateGroups, loadProfiles, toggleAllVisible, toggleProfile, sortProfiles, selectProfile, formatDelay, moveSelectedToGroup, moveSelected, moveSelectedPosition, exportSelected, openContext, focusProfile, setFocusedProfile, handleRowKeydown },
     profileModalActions: { saveProfile, toggleGroupChild, moveGroupChild },
     importProfilesModalActions: { importProfiles, readImportFile, pasteImport },
     exportModalActions: { exportSelected, copyExport, downloadExport },

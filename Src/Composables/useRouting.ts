@@ -1,5 +1,6 @@
 import { computed, reactive, ref } from 'vue'
 import type { ApiServices, Dict, ErrorHandler, Notice, Translate } from './types'
+import { deleteSelectedRoutingRules as runBatchRuleDeletion } from './batchRuleDeletion.js'
 import { createUuid } from './uuid.mjs'
 
 export function useRouting(options: ApiServices & {
@@ -268,17 +269,21 @@ export function useRouting(options: ApiServices & {
   }
 
   async function deleteSelectedRules() {
-    if (deletingSelectedRules.value || !selectedRuleIds.value.length) return
-    deletingSelectedRules.value = true
-    try {
-      const selected = new Set(selectedRuleIds.value)
-      const remainingRules = routingRules.value.filter((rule) => !selected.has(rule.id))
-      const result = await options.request(`/api/settings/routing-profiles/${encodeURIComponent(selectedRoutingId.value)}/rules`, { method: 'PUT', body: remainingRules })
-      selectedRuleIds.value = []
-      options.showNotice(options.operationMessage(result))
-      await loadRules()
-    } catch (error) { options.showError(error) }
-    finally { deletingSelectedRules.value = false }
+    await runBatchRuleDeletion({
+      selectedRuleIds: selectedRuleIds.value,
+      routingRules: routingRules.value,
+      routingId: selectedRoutingId.value,
+      isDeleting: () => deletingSelectedRules.value,
+      setDeleting: (value) => { deletingSelectedRules.value = value },
+      confirm: options.confirm,
+      confirmMessage: t('common.confirmDelete'),
+      request: options.request,
+      operationMessage: options.operationMessage,
+      showNotice: options.showNotice,
+      showError: options.showError,
+      clearSelection: () => { selectedRuleIds.value = [] },
+      loadRules,
+    })
   }
 
   async function exportSelectedRules() {

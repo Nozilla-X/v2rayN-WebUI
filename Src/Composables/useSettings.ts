@@ -105,7 +105,7 @@ export function useSettings(options: ApiServices & {
         routing: options.routingForm.value,
       })
       const result = await options.request('/api/settings/apply', { method: 'PUT', body })
-      await options.loadStatus()
+      await Promise.all([options.loadStatus(), loadSettings()])
       options.showNotice(options.operationMessage(result, 'settings.allSaved'))
       return { completed: ['settings.allSaved'], failed: null }
     } catch (error) {

@@ -129,6 +129,7 @@ onUnmounted(() => {
         @keydown="onPanelKeydown"
         @menu-escape.stop="onMenuEscape"
         @click.stop="onPanelClick"
+        @contextmenu.prevent.stop
       >
         <slot />
       </div>
