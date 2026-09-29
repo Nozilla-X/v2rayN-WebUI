@@ -2,6 +2,7 @@ import { reactive, ref, type Ref } from 'vue'
 import type { ApiServices, Dict, ErrorHandler, Notice } from './types'
 import type { Translate } from './types'
 import { buildApplicationSettingsBody, buildCoreSettingsBody, buildSettingsApplyBody, buildSpeedSettingsBody } from './settingsPayloads.js'
+import { saveSettingsAndReload } from './settingsSaveFlow.js'
 
 export function useSettings(options: ApiServices & {
   t: Translate
@@ -50,7 +51,7 @@ export function useSettings(options: ApiServices & {
 
   async function saveInbound() {
     try {
-      const result = await options.request('/api/settings/inbound', {
+      const result = await saveSettingsAndReload(options.request, '/api/settings/inbound', {
         method: 'PUT', body: {
           localPort: Number(inboundForm.value.localPort), secondLocalPortEnabled: inboundForm.value.secondLocalPortEnabled,
           udpEnabled: inboundForm.value.udpEnabled, sniffingEnabled: inboundForm.value.sniffingEnabled,
@@ -58,38 +59,37 @@ export function useSettings(options: ApiServices & {
           allowLANConn: inboundForm.value.allowLANConn, newPort4LAN: inboundForm.value.newPort4LAN,
           user: inboundForm.value.user, pass: inboundForm.value.pass,
         },
-      })
+      }, loadSettings, options.loadStatus)
       options.showNotice(options.operationMessage(result))
-      await options.loadStatus()
     } catch (error) { options.showError(error) }
   }
 
   async function saveCoreSettings() {
     try {
-      const result = await options.request('/api/settings/core', {
+      const result = await saveSettingsAndReload(options.request, '/api/settings/core', {
         method: 'PUT', body: buildCoreSettingsBody(coreForm.value),
-      })
+      }, loadSettings)
       options.showNotice(options.operationMessage(result))
     } catch (error) { options.showError(error) }
   }
 
   async function saveAppSettings() {
     try {
-      const result = await options.request('/api/settings/application', { method: 'PUT', body: buildApplicationSettingsBody(appForm.value) })
+      const result = await saveSettingsAndReload(options.request, '/api/settings/application', { method: 'PUT', body: buildApplicationSettingsBody(appForm.value) }, loadSettings)
       options.showNotice(options.operationMessage(result))
     } catch (error) { options.showError(error) }
   }
 
   async function saveSpeedSettings() {
     try {
-      const result = await options.request('/api/settings/speedtest', { method: 'PUT', body: buildSpeedSettingsBody(speedForm.value) })
+      const result = await saveSettingsAndReload(options.request, '/api/settings/speedtest', { method: 'PUT', body: buildSpeedSettingsBody(speedForm.value) }, loadSettings)
       options.showNotice(options.operationMessage(result))
     } catch (error) { options.showError(error) }
   }
 
   async function saveCoreTypes() {
     try {
-      const result = await options.request('/api/settings/core-types', { method: 'PUT', body: { mappings: settings.value.coreTypes || [] } })
+      const result = await saveSettingsAndReload(options.request, '/api/settings/core-types', { method: 'PUT', body: { mappings: settings.value.coreTypes || [] } }, loadSettings)
       options.showNotice(options.operationMessage(result))
     } catch (error) { options.showError(error) }
   }
@@ -104,8 +104,7 @@ export function useSettings(options: ApiServices & {
         coreTypes: settings.value.coreTypes || [],
         routing: options.routingForm.value,
       })
-      const result = await options.request('/api/settings/apply', { method: 'PUT', body })
-      await Promise.all([options.loadStatus(), loadSettings()])
+      const result = await saveSettingsAndReload(options.request, '/api/settings/apply', { method: 'PUT', body }, loadSettings, options.loadStatus)
       options.showNotice(options.operationMessage(result, 'settings.allSaved'))
       return { completed: ['settings.allSaved'], failed: null }
     } catch (error) {
