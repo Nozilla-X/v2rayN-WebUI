@@ -39,17 +39,20 @@ test('nullable protocol and transport numeric fields preserve empty/null and rea
   assert.throws(() => normalizeNullableNumbers({ kcpMtu: 'invalid' }, ['kcpMtu']), TypeError)
 })
 
-test('single speed-test save preserves nullable values and validates real zero', () => {
+test('speed-test save matches Desktop editor fields and does not add non-Desktop settings', () => {
   const unchanged = {
     speedTestTimeout: 10000,
     mixedConcurrencyCount: 4,
-    speedTestPageSize: null,
-    speedTestDelayInterval: null,
+    speedTestUrl: 'https://speed.example/file',
+    speedPingTestUrl: 'https://ping.example/check',
+    ipapiUrl: '',
+    udpTestTarget: '',
   }
   assert.deepEqual(buildSpeedSettingsBody(unchanged), unchanged)
-  assert.equal(buildSpeedSettingsBody({ ...unchanged, speedTestPageSize: '' }).speedTestPageSize, null)
-  assert.equal(buildSpeedSettingsBody({ ...unchanged, speedTestDelayInterval: 0 }).speedTestDelayInterval, 0)
-  assert.throws(() => buildSpeedSettingsBody({ ...unchanged, speedTestPageSize: 'invalid' }), TypeError)
+  const withLegacyExtras = buildSpeedSettingsBody({ ...unchanged, speedTestPageSize: 20, speedTestDelayInterval: 0 })
+  assert.equal('speedTestPageSize' in withLegacyExtras, false)
+  assert.equal('speedTestDelayInterval' in withLegacyExtras, false)
+  assert.throws(() => buildSpeedSettingsBody({ ...unchanged, speedTestTimeout: 'invalid' }), TypeError)
 })
 
 test('atomic settings apply carries all sections and preserves nullable fields', () => {
@@ -57,14 +60,13 @@ test('atomic settings apply carries all sections and preserves nullable fields',
     inbound: { localPort: '10808', destOverride: ['http'] },
     core: { mux4RayConcurrency: null, mux4RayXudpConcurrency: '', fragmentLengthsText: '', fragmentDelaysText: '' },
     app: { geoAutoUpdateInterval: 0 },
-    speed: { speedTestTimeout: 10000, mixedConcurrencyCount: 4, speedTestPageSize: null, speedTestDelayInterval: '' },
+    speed: { speedTestTimeout: 10000, mixedConcurrencyCount: 4, speedTestUrl: 'https://speed.example/file' },
     coreTypes: [{ configType: 0, coreType: 'Xray' }],
     routing: { domainStrategy: 'AsIs', domainStrategy4Singbox: 'prefer_ipv4' },
   })
 
   assert.equal(body.inbound.localPort, 10808)
-  assert.equal(body.speedTest.speedTestPageSize, null)
-  assert.equal(body.speedTest.speedTestDelayInterval, null)
+  assert.equal(body.speedTest.speedTestUrl, 'https://speed.example/file')
   assert.equal(body.core.mux4RayConcurrency, null)
   assert.deepEqual(body.coreTypes, [{ configType: 0, coreType: 'Xray' }])
   assert.equal(body.domainStrategy, 'AsIs')

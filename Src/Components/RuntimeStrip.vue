@@ -24,6 +24,7 @@ function changeActiveRoute(event: Event) {
       ? (state.status.coreType || t('nodes.core'))
       : t(`core.runtime.${state.status?.runtimeState || 'stopped'}`) }}</strong>
     <span v-if="state.status?.runtimeFailure" class="danger-note" :title="state.status.runtimeFailure">{{ t('status.runtimeFault') }}</span>
+    <span v-if="state.status?.sniffingEnabled" class="runtime-setting-status">{{ t('status.sniffing', { types: (state.status.destOverride || []).join(' / ') }) }}</span>
     <span v-if="state.status?.configuredProxyPort && state.status?.runningProxyPort && state.status.configuredProxyPort !== state.status.runningProxyPort" class="warning-note">
       {{ t('status.portMismatch', { configured: state.status.configuredProxyPort, running: state.status.runningProxyPort }) }}
     </span>

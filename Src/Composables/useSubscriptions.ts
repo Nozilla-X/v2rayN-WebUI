@@ -1,7 +1,6 @@
 import { reactive, ref, type Ref } from 'vue'
 import type { ApiServices, Dict, ErrorHandler, Notice, Translate } from './types'
 import { nullableNumber } from './settingsPayloads.js'
-import { subscriptionEditorOptions } from '../subscriptionEditorOptions'
 
 export function useSubscriptions(options: ApiServices & {
   t: Translate
@@ -20,8 +19,8 @@ export function useSubscriptions(options: ApiServices & {
   const subscriptionUseProxy = ref(false)
   const subscriptionForm = ref<Dict>({})
   const profileOptions = ref<Dict[]>([])
-  const coreTypes: string[] = [...subscriptionEditorOptions.customCoreTypes]
-  const convertTargets: string[] = [...subscriptionEditorOptions.convertTargets]
+  const coreTypes = ref<string[]>([])
+  const convertTargets = ref<string[]>([])
   const showSubscriptionForm = ref(false)
   const editingSubscriptionId = ref('')
 
@@ -29,13 +28,19 @@ export function useSubscriptions(options: ApiServices & {
     subscriptions.value = await options.data('/api/subscriptions') || []
   }
 
+  async function loadEditorOptions() {
+    const result = await options.data('/api/editor-options')
+    coreTypes.value = result?.subscriptions?.customCoreTypes || []
+    convertTargets.value = result?.subscriptions?.convertTargets || []
+  }
+
   function subscriptionUpdateMessageKey(subscriptionId: string | null, useProxy: boolean): string {
     const scope = subscriptionId ? 'Group' : 'All'
     return `subscriptions.update${scope}${useProxy ? 'ViaProxy' : ''}`
   }
 
-  function openAddSubscription() {
-    void loadProfileOptions()
+  async function openAddSubscription() {
+    await Promise.all([loadEditorOptions(), loadProfileOptions()])
     editingSubscriptionId.value = ''
     subscriptionForm.value = {
       remarks: '', url: '', moreUrl: '', enabled: true, userAgent: '', requestHeaders: '', filter: '',
@@ -44,15 +49,13 @@ export function useSubscriptions(options: ApiServices & {
     showSubscriptionForm.value = true
   }
 
-  function openEditSubscription(item: Dict) {
-    void loadProfileOptions()
+  async function openEditSubscription(item: Dict) {
+    await Promise.all([loadEditorOptions(), loadProfileOptions()])
     editingSubscriptionId.value = item.id
-    const customCoreType = options.canonicalCode(item.customCoreType, coreTypes)
-    const convertTarget = String(item.convertTarget ?? '')
     subscriptionForm.value = {
       ...item,
-      customCoreType: coreTypes.includes(customCoreType) ? customCoreType : null,
-      convertTarget: convertTargets.includes(convertTarget) ? convertTarget : '',
+      customCoreType: item.customCoreType ?? null,
+      convertTarget: item.convertTarget ?? '',
     }
     showSubscriptionForm.value = true
   }
@@ -71,8 +74,8 @@ export function useSubscriptions(options: ApiServices & {
     const preSocksPort = nullableNumber(subscriptionForm.value.preSocksPort)
       const body = {
         ...subscriptionForm.value,
-        autoUpdateInterval: Number(subscriptionForm.value.autoUpdateInterval || 0),
-        sort: Number(subscriptionForm.value.sort || 0),
+        autoUpdateInterval: Number(subscriptionForm.value.autoUpdateInterval ?? 0),
+        sort: Number(subscriptionForm.value.sort ?? 0),
         preSocksPort,
       }
       const result = await options.request(editingSubscriptionId.value ? `/api/subscriptions/${encodeURIComponent(editingSubscriptionId.value)}` : '/api/subscriptions', {
@@ -129,7 +132,7 @@ export function useSubscriptions(options: ApiServices & {
   const subscriptionModalState = reactive({ showSubscriptionForm, subscriptionForm, editingSubscriptionId, coreTypes, convertTargets, profileOptions })
 
   return {
-    subscriptions, subscriptionUseProxy, showSubscriptionForm, loadSubscriptions, subscriptionsPageState, subscriptionModalState,
+    subscriptions, subscriptionUseProxy, showSubscriptionForm, loadSubscriptions, loadEditorOptions, subscriptionsPageState, subscriptionModalState,
     subscriptionUpdateMessageKey,
     subscriptionsPageActions: { formatDate, subscriptionUpdateMessageKey, updateSubscriptions, openAddSubscription, updateSubscription, shareSubscription, openEditSubscription, deleteSubscription },
     subscriptionModalActions: { saveSubscription },

@@ -38,12 +38,11 @@ function parseLines(value) {
 }
 
 export function buildSpeedSettingsBody(speedForm) {
+  const { speedTestPageSize: _pageSize, speedTestDelayInterval: _delayInterval, ...desktopFields } = speedForm
   return {
-    ...speedForm,
-    speedTestTimeout: requiredNumber(speedForm.speedTestTimeout),
-    mixedConcurrencyCount: requiredNumber(speedForm.mixedConcurrencyCount),
-    speedTestPageSize: nullableNumber(speedForm.speedTestPageSize),
-    speedTestDelayInterval: nullableNumber(speedForm.speedTestDelayInterval),
+    ...desktopFields,
+    speedTestTimeout: requiredNumber(desktopFields.speedTestTimeout),
+    mixedConcurrencyCount: requiredNumber(desktopFields.mixedConcurrencyCount),
   }
 }
 
@@ -55,7 +54,6 @@ export function buildCoreSettingsBody(core) {
     fragmentDelays: parseLines(fragmentDelaysText),
     mux4RayConcurrency: nullableNumber(coreSettings.mux4RayConcurrency),
     mux4RayXudpConcurrency: nullableNumber(coreSettings.mux4RayXudpConcurrency),
-    mux4SboxMaxConnections: defaultedNumber(coreSettings.mux4SboxMaxConnections),
     hy2UpMbps: defaultedNumber(coreSettings.hy2UpMbps),
     hy2DownMbps: defaultedNumber(coreSettings.hy2DownMbps),
   }

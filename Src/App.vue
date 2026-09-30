@@ -183,6 +183,7 @@ async function loadPageData() {
 }
 
 async function loadConnectedData() {
+  await profiles.loadEditorOptions()
   await Promise.all([settings.loadSettings(), routing.loadRouting(), loadPageData()])
   await logs.loadLogs()
 }
@@ -299,6 +300,7 @@ const nodesPageState = Object.assign(profiles.nodesPageState, {
 })
 const nodesPageActions = {
   ...profiles.nodesPageActions,
+  deleteSubscriptionGroup: subscriptions.subscriptionsPageActions.deleteSubscription,
   updateSubscriptions: subscriptions.subscriptionsPageActions.updateSubscriptions,
   subscriptionUpdateMessageKey: subscriptions.subscriptionUpdateMessageKey,
   openAddSubscription: subscriptions.subscriptionsPageActions.openAddSubscription,
@@ -340,6 +342,25 @@ function ensureNodeSelection() {
 function selectContextProfile() {
   const profile = nodeProfileForAction()
   if (profile) void nodesPageActions.selectProfile(profile)
+}
+
+function addSubscriptionFromContext() {
+  contextMenu.value = null
+  void subscriptions.subscriptionsPageActions.openAddSubscription()
+}
+
+function editSubscriptionFromContext() {
+  const group = contextMenu.value?.group
+  const subscription = subscriptions.subscriptions.value.find((item) => item.id === group?.id)
+  contextMenu.value = null
+  if (subscription) void subscriptions.subscriptionsPageActions.openEditSubscription(subscription)
+}
+
+function deleteSubscriptionFromContext() {
+  const group = contextMenu.value?.group
+  const subscription = subscriptions.subscriptions.value.find((item) => item.id === group?.id)
+  contextMenu.value = null
+  if (subscription) void subscriptions.subscriptionsPageActions.deleteSubscription(subscription)
 }
 
 function editContextProfile() {
@@ -599,6 +620,12 @@ function positionOpenContextMenu() {
         </main>
       </template>
     <div v-if="contextMenu" ref="contextMenuElement" class="context-menu" :style="contextMenuPlacement" role="menu" @keydown="navigateMenu($event, contextMenuElement)" @click="contextMenu = null" @contextmenu="preventNativeContextMenu">
+      <template v-if="contextMenu.type === 'subscription'">
+        <button role="menuitem" :disabled="!contextMenu.group.id" @click="editSubscriptionFromContext">{{ t('nodes.groupEdit') }}</button>
+        <button role="menuitem" @click="addSubscriptionFromContext">{{ t('nodes.groupAdd') }}</button>
+        <button role="menuitem" class="danger-text" :disabled="!contextMenu.group.id" @click="deleteSubscriptionFromContext">{{ t('nodes.groupDelete') }}</button>
+      </template>
+      <template v-else>
       <button role="menuitem" :disabled="contextMenu.profile.isCurrent" @click="selectContextProfile">{{ contextMenu.profile.isCurrent ? t('nodes.current') : t('nodes.switch') }}<span class="menu-shortcut">Enter</span></button>
       <button role="menuitem" @click="editContextProfile">{{ t('common.edit') }}<span class="menu-shortcut">Ctrl+D</span></button>
       <button role="menuitem" :disabled="!nodesPageState.selectedIds.length" @click="copySelectedNodes">{{ t('nodes.copySelected') }}</button>
@@ -642,6 +669,7 @@ function positionOpenContextMenu() {
       <button role="menuitem" :disabled="!nodesPageState.selectedIds.length" @click="nodesPageActions.moveSelectedPosition">{{ t('nodes.position') }}…</button>
       <button role="menuitem" :disabled="!nodesPageState.operations.includes('speedtest')" @click="nodesPageActions.stopSpeedTests">{{ t('nodes.stopTest') }}</button>
       <button role="menuitem" :disabled="!nodesPageState.selectedIds.length" @click="nodesPageActions.exportSelected">{{ t('nodes.customExport') }}…</button>
+      </template>
     </div>
     <ProfileModal v-if="showProfileForm" :state="profileModalState" :actions="profileModalActions" :core-type-mappings="profileCoreTypeMappings" />
     <ImportProfilesModal v-if="showImportForm" :state="importProfilesModalState" :actions="importProfilesModalActions" />

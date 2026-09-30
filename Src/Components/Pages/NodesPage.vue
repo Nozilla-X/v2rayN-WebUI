@@ -21,9 +21,12 @@ const showIpInfoColumn = computed(() => shouldRenderIpInfoColumn(state.showIpInf
   <div class="group-toolbar toolbar">
     <span class="toolbar-label">{{ t('nodes.group') }}</span>
     <div class="group-chips">
-      <button v-for="group in state.groups" :key="group.id || 'all'" :class="['group-chip', { selected: state.selectedGroup === group.id }]" @click="actions.changeGroup(group.id)">
-        {{ group.name || t('common.allGroups') }}<small>{{ group.profileCount }}</small>
-      </button>
+       <span v-for="group in state.groups" :key="group.id || 'all'" class="group-chip-wrap" @contextmenu.prevent.stop="actions.openSubscriptionContext($event, group)">
+         <button :class="['group-chip', { selected: state.selectedGroup === group.id }]" @click="actions.changeGroup(group.id)">
+           {{ group.name || t('common.allGroups') }}<small>{{ group.profileCount }}</small>
+         </button>
+         <button class="tool-button group-chip-more" :aria-label="t('common.more')" :title="t('common.more')" @click.stop="actions.openSubscriptionContext($event, group)"><UiIcon name="more" /></button>
+       </span>
     </div>
     <button class="tool-button node-toolbar-action" :disabled="!selectedSubscription" :aria-label="t('subscriptions.editSubscription')" :title="t('subscriptions.editSubscription')" @click="selectedSubscription && actions.openEditSubscription(selectedSubscription)"><UiIcon name="edit" /></button>
     <button class="tool-button node-toolbar-action" :aria-label="t('subscriptions.addSubscription')" :title="t('subscriptions.addSubscription')" @click="actions.openAddSubscription"><UiIcon name="plus" /></button>

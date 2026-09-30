@@ -7,16 +7,20 @@ export function useDns(options: ApiServices & { t: Translate; showNotice: Notice
   const simpleDnsAdvancedRaw = ref('{}')
   const initialSimpleDns = ref<Dict>({})
   const dnsProfiles = ref<Dict[]>([])
+  const dnsOptions = ref<Dict>({})
 
   async function loadDns() {
-    const [simple, profilesResult] = await Promise.all([
+    const [simple, profilesResult, editorOptions] = await Promise.all([
       options.data('/api/settings/dns/simple'),
       options.data('/api/settings/dns/profiles'),
+      options.data('/api/settings/dns/editor-options'),
     ])
     simpleDnsForm.value = { ...(simple || {}) }
     initialSimpleDns.value = { ...(simple || {}) }
     simpleDnsAdvancedRaw.value = JSON.stringify(simple || {}, null, 2)
-    dnsProfiles.value = (profilesResult || []).filter((profile: Dict) => ['Xray', 'sing_box', 'sing-box'].includes(String(profile.coreType)))
+    dnsOptions.value = editorOptions || {}
+    dnsProfiles.value = (profilesResult || []).filter((profile: Dict) =>
+      dnsOptions.value.coreTypes?.some((core: string) => core.toLowerCase() === String(profile.coreType).toLowerCase()))
   }
 
   async function saveSimpleDns() {
@@ -41,15 +45,27 @@ export function useDns(options: ApiServices & { t: Translate; showNotice: Notice
         method: 'PUT',
         body: {
           remarks: profile.remarks, enabled: profile.enabled, useSystemHosts: profile.useSystemHosts,
-          normalDNS: profile.normalDNS, domainStrategy4Freedom: profile.domainStrategy4Freedom,
+          normalDNS: profile.normalDNS, tunDNS: profile.tunDNS, domainStrategy4Freedom: profile.domainStrategy4Freedom,
           domainDNSAddress: profile.domainDNSAddress,
         },
       })
       options.showNotice(options.operationMessage(result))
+      await loadDns()
     } catch (error) { options.showError(error) }
   }
 
-  const dnsPageState = reactive({ simpleDnsForm, simpleDnsAdvancedRaw, dnsProfiles })
+  async function importDefaultDns(profile: Dict) {
+    try {
+      const defaults = await options.data('/api/settings/dns/defaults') || []
+      const coreType = options.coreTypeRoute(profile.coreType).replace('-', '_')
+      const selected = defaults.find((item: Dict) => String(item.coreType).toLowerCase() === coreType.toLowerCase())
+      if (!selected) return options.showNotice(t('dns.coreProfileUnavailable'), 'error')
+      profile.normalDNS = selected.normalDNS
+      profile.tunDNS = selected.tunDNS
+    } catch (error) { options.showError(error) }
+  }
 
-  return { simpleDnsForm, simpleDnsAdvancedRaw, dnsProfiles, loadDns, dnsPageState, dnsPageActions: { loadDns, saveSimpleDns, saveDnsProfile } }
+  const dnsPageState = reactive({ simpleDnsForm, simpleDnsAdvancedRaw, dnsProfiles, dnsOptions })
+
+  return { simpleDnsForm, simpleDnsAdvancedRaw, dnsProfiles, loadDns, dnsPageState, dnsPageActions: { loadDns, saveSimpleDns, saveDnsProfile, importDefaultDns } }
 }

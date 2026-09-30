@@ -21,6 +21,13 @@ test('every settings save uses one canonical settings reload after successful pe
   assert.match(source, /settings\.value = await options\.data\('\/api\/settings'\)/)
 })
 
+test('settings option controls use Backend-provided ServiceLib candidates', async () => {
+  const page = await readFile(path.resolve(path.dirname(sourcePath), '../Components/Pages/SettingsPage.vue'), 'utf8')
+  assert.match(page, /state\.settings\.options\?\.logLevels/)
+  assert.match(page, /state\.settings\.options\?\.rootCertProviders/)
+  assert.doesNotMatch(page, /\['debug',\s*'info',\s*'warning',\s*'error',\s*'none'\]/)
+})
+
 test('settings save reloads once, after PUT succeeds, then optionally refreshes status', async () => {
   const calls = []
   const result = await saveSettingsAndReload(

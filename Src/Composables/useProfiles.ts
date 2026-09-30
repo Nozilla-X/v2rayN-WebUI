@@ -1,6 +1,7 @@
 import { computed, reactive, ref, type Ref } from 'vue'
 import type { ApiError, ApiServices, Dict, ErrorHandler, Notice, Translate } from './types'
-import { canonicalNetwork, profileEditorOptions } from '../profileEditorOptions'
+import { canonicalNetwork } from '../profileEditorOptions'
+import { normalizeProfileProtocolExtra, normalizeProfileTransportExtra } from './profilePayloads.js'
 import { normalizeNullableNumbers } from './settingsPayloads.js'
 import { mergeSpeedTestResult as mergeSpeedTestResultIntoRows } from './speedtestResults.js'
 
@@ -9,6 +10,12 @@ const groupIncompatibleProfileFields = [
   'streamSecurity', 'allowInsecure', 'sni', 'alpn', 'fingerprint', 'publicKey', 'shortId', 'spiderX',
   'mldsa65Verify', 'muxEnabled', 'cert', 'certSha', 'echConfigList', 'verifyPeerCertByName', 'finalmask',
   'extra', 'transportExtra', 'ports', 'alterId', 'flow', 'id', 'security',
+]
+const customFileIncompatibleProfileFields = [
+  'port', 'password', 'username', 'network', 'headerType', 'requestHost', 'path', 'streamSecurity',
+  'allowInsecure', 'sni', 'alpn', 'fingerprint', 'publicKey', 'shortId', 'spiderX', 'mldsa65Verify',
+  'muxEnabled', 'cert', 'certSha', 'echConfigList', 'verifyPeerCertByName', 'finalmask', 'extra',
+  'transportExtra', 'ports', 'alterId', 'flow', 'id', 'security',
 ]
 
 export function useProfiles(options: ApiServices & {
@@ -33,6 +40,7 @@ export function useProfiles(options: ApiServices & {
   const importForm = ref<Dict>({ content: '', subscriptionId: '', isSubscription: false })
   const profileForm = ref<Dict>({})
   const profileAdvancedJson = ref('')
+  const editorOptions = ref<Dict>({})
   const profileCatalog = ref<Dict[]>([])
   const groupChildIds = ref<string[]>([])
   const exportOptions = ref({ includeShareUris: true, base64ShareUris: false, includeInnerUri: true, includeClientConfig: true })
@@ -43,8 +51,8 @@ export function useProfiles(options: ApiServices & {
   const editingProfileId = ref('')
   const profileModalError = ref('')
 
-  const protocolTypes = ['VMess', 'VLESS', 'Shadowsocks', 'SOCKS', 'Trojan', 'Hysteria2', 'TUIC', 'WireGuard', 'HTTP', 'Anytls', 'Naive']
-  const coreTypes = [...profileEditorOptions.coreTypes]
+  const protocolTypes = ref<string[]>([])
+  const coreTypes = ref<string[]>([])
   const testActions = [
     { id: 'tcping', key: 'nodes.tcping' },
     { id: 'realping', key: 'nodes.realping' },
@@ -58,6 +66,15 @@ export function useProfiles(options: ApiServices & {
   const filteredProfiles = computed(() => profiles.value)
   const selectedProfiles = computed(() => profiles.value.filter((profile) => selectedIds.value.includes(profile.indexId)))
   const allVisibleSelected = computed(() => filteredProfiles.value.length > 0 && filteredProfiles.value.every((profile) => selectedIds.value.includes(profile.indexId)))
+
+  async function loadEditorOptions() {
+    try {
+      const result = await options.data('/api/editor-options')
+      editorOptions.value = result?.profiles || {}
+      protocolTypes.value = editorOptions.value.configTypes || []
+      coreTypes.value = editorOptions.value.coreTypes || []
+    } catch (error) { options.showError(error) }
+  }
 
   async function loadGroups() {
     groups.value = await options.data('/api/profile-groups') || []
@@ -280,21 +297,35 @@ export function useProfiles(options: ApiServices & {
     openContextAt(event.clientX, event.clientY, profile)
   }
 
+  function openSubscriptionContext(event: MouseEvent, group: Dict) {
+    event.preventDefault()
+    event.stopPropagation()
+    options.contextMenu.value = {
+      type: 'subscription',
+      group,
+      x: Math.min(event.clientX, window.innerWidth - 250),
+      y: Math.min(event.clientY, window.innerHeight - 180),
+    }
+  }
+
   async function openAddProfile() {
-    await loadProfileCatalog()
+    await Promise.all([loadEditorOptions(), loadProfileCatalog()])
     editingProfileId.value = ''
     profileModalError.value = ''
     profileForm.value = {
-      configType: 'VMess', coreType: 'Xray', remarks: '', address: '', port: 443,
-      password: '', username: '', network: profileEditorOptions.defaultNetwork, streamSecurity: 'tls', allowInsecure: '', sni: '',
-      alpn: '', fingerprint: '', publicKey: '', shortId: '', spiderX: '', muxEnabled: null,
-      protoExtra: { vmessSecurity: 'auto' },
-      transportExtra: { rawHeaderType: 'none', xhttpMode: 'auto', kcpHeaderType: 'none', grpcMode: 'gun' },
+      configType: 'VMess', coreType: '', remarks: '', address: '', port: 0,
+      password: '', username: '', network: editorOptions.value.defaultNetwork, streamSecurity: editorOptions.value.defaultStreamSecurity, allowInsecure: false, sni: '',
+      alpn: '', fingerprint: '', publicKey: '', shortId: '', spiderX: '', muxEnabled: false, displayLog: true, preSocksPort: null,
+      protoExtra: {
+        vmessSecurity: editorOptions.value.defaultSecurity,
+        vlessEncryption: editorOptions.value.defaultVlessEncryption,
+      },
+      transportExtra: { rawHeaderType: editorOptions.value.rawHeaderTypes?.[0], xhttpMode: editorOptions.value.defaultXhttpMode, kcpHeaderType: editorOptions.value.rawHeaderTypes?.[0], grpcMode: editorOptions.value.defaultGrpcMode },
     }
     groupChildIds.value = []
     profileAdvancedJson.value = JSON.stringify({
       indexId: '', configType: 'VMess', coreType: 'Xray', subid: '', isSub: false,
-      remarks: '', address: '', port: 443, password: '', username: '', network: profileEditorOptions.defaultNetwork, streamSecurity: 'tls',
+      remarks: '', address: '', port: 0, password: '', username: '', network: editorOptions.value.defaultNetwork, streamSecurity: editorOptions.value.defaultStreamSecurity, displayLog: true, preSocksPort: null,
       allowInsecure: '', sni: '', alpn: '', fingerprint: '', publicKey: '', shortId: '', spiderX: '',
       protoExtra: '{}', transportExtra: '{}',
     }, null, 2)
@@ -305,15 +336,20 @@ export function useProfiles(options: ApiServices & {
     editingProfileId.value = profile.indexId
     profileModalError.value = ''
     try {
+      await loadEditorOptions()
       const details = await options.data(`/api/profiles/${encodeURIComponent(profile.indexId)}`)
       await loadProfileCatalog()
+      const configType = options.canonicalCode(details.configType, protocolTypes.value)
       const protoExtra = parseObject(details.protoExtra)
+      if (configType === 'VMess' && !protoExtra.vmessSecurity) protoExtra.vmessSecurity = editorOptions.value.defaultSecurity
+      if (configType === 'VLESS' && !protoExtra.vlessEncryption) protoExtra.vlessEncryption = editorOptions.value.defaultVlessEncryption
+      if (configType === 'WireGuard' && protoExtra.wgMtu == null) protoExtra.wgMtu = editorOptions.value.defaultWireGuardMtu
       const transportExtra = parseObject(details.transportExtra)
       profileForm.value = {
         ...details,
-        configType: options.canonicalCode(details.configType, [...protocolTypes, 'PolicyGroup', 'ProxyChain']),
-        coreType: details.coreType ? options.canonicalCode(details.coreType, coreTypes) : '',
-        network: canonicalNetwork(details.network),
+        configType,
+        coreType: details.coreType ? options.canonicalCode(details.coreType, coreTypes.value) : '',
+        network: canonicalNetwork(details.network, editorOptions.value.networks || [], editorOptions.value.defaultNetwork),
         allowInsecure: details.allowInsecure === 'true',
         protoExtra: { ...protoExtra, childItems: parseList(protoExtra.childItems) },
         transportExtra,
@@ -331,11 +367,11 @@ export function useProfiles(options: ApiServices & {
         { ...parseObject(advanced.protoExtra), ...profileForm.value.protoExtra },
         ['upMbps', 'downMbps', 'wgMtu', 'insecureConcurrency'],
       )
-      const transportExtra = normalizeNullableNumbers(
+      const transportExtra = normalizeProfileTransportExtra(
         { ...parseObject(advanced.transportExtra), ...profileForm.value.transportExtra },
-        ['kcpMtu'],
       )
       const isGroupProfile = ['PolicyGroup', 'ProxyChain'].includes(profileForm.value.configType)
+      const isCustomFileProfile = ['Custom', 'Outbound'].includes(profileForm.value.configType)
       if (isGroupProfile) {
         if (!groupChildIds.value.length && !protoExtra.subChildItems) {
           profileModalError.value = t('nodes.groupChildRequired')
@@ -351,18 +387,21 @@ export function useProfiles(options: ApiServices & {
       } else {
         for (const field of ['groupType', 'childItems', 'subChildItems', 'filter', 'multipleLoad']) delete protoExtra[field]
       }
+      const normalizedProtoExtra = normalizeProfileProtocolExtra(protoExtra, profileForm.value.configType)
       const body: Dict = {
         ...advanced,
         configType: profileForm.value.configType,
         coreType: profileForm.value.coreType || null,
-        ...(!isGroupProfile ? {
+        ...(!isGroupProfile && !isCustomFileProfile ? {
           address: profileForm.value.address,
           port: Number(profileForm.value.port || 0),
+          preSocksPort: profileForm.value.preSocksPort === '' || profileForm.value.preSocksPort == null ? null : Number(profileForm.value.preSocksPort),
+          displayLog: profileForm.value.displayLog !== false,
           password: profileForm.value.password || '',
           username: profileForm.value.username || '',
-          network: canonicalNetwork(profileForm.value.network),
+          network: canonicalNetwork(profileForm.value.network, editorOptions.value.networks || [], editorOptions.value.defaultNetwork),
           streamSecurity: profileForm.value.streamSecurity || '',
-          allowInsecure: profileForm.value.allowInsecure ? 'true' : '',
+          allowInsecure: profileForm.value.allowInsecure ? 'true' : 'false',
           sni: profileForm.value.sni || '',
           alpn: profileForm.value.alpn || '',
           fingerprint: profileForm.value.fingerprint || '',
@@ -375,14 +414,22 @@ export function useProfiles(options: ApiServices & {
           echConfigList: profileForm.value.echConfigList || '',
           verifyPeerCertByName: profileForm.value.verifyPeerCertByName || '',
           finalmask: profileForm.value.finalmask || '',
-          muxEnabled: profileForm.value.muxEnabled,
+          muxEnabled: Boolean(profileForm.value.muxEnabled),
           transportExtra: JSON.stringify(transportExtra),
         } : {}),
+        ...(isCustomFileProfile ? {
+          address: profileForm.value.address,
+          displayLog: profileForm.value.displayLog !== false,
+          preSocksPort: profileForm.value.preSocksPort === '' || profileForm.value.preSocksPort == null ? null : Number(profileForm.value.preSocksPort),
+        } : {}),
         remarks: profileForm.value.remarks,
-        protoExtra: JSON.stringify(protoExtra),
+        protoExtra: JSON.stringify(normalizedProtoExtra),
       }
       if (isGroupProfile) {
         for (const field of groupIncompatibleProfileFields) delete body[field]
+      }
+      if (isCustomFileProfile) {
+        for (const field of customFileIncompatibleProfileFields) delete body[field]
       }
       delete body.configVersion
       const result = await options.request(editingProfileId.value ? `/api/profiles/${encodeURIComponent(editingProfileId.value)}` : '/api/profiles', {
@@ -465,15 +512,15 @@ export function useProfiles(options: ApiServices & {
   }
 
   const nodesPageState = reactive({ filteredProfiles, profiles, selectedGroup, groups, filter, selectedIds, focusedProfileId, allVisibleSelected, operations: options.operations, testActions })
-  const profileModalState = reactive({ showProfileForm, profileForm, profileAdvancedJson, profileModalError, editingProfileId, protocolTypes, coreTypes, profileCatalog, groupChildIds, groups, networks: profileEditorOptions.networks })
+  const profileModalState = reactive({ showProfileForm, profileForm, profileAdvancedJson, profileModalError, editingProfileId, protocolTypes, coreTypes, profileCatalog, groupChildIds, groups, editorOptions })
   const importProfilesModalState = reactive({ showImportForm, importForm, groups })
   const exportModalState = reactive({ showExportDialog, exportOptions, exportContent })
 
   return {
-    profiles, groups, selectedGroup, selectedIds, protocolTypes, coreTypes, showProfileForm, showImportForm, showExportDialog, loadGroups, loadProfiles,
+    profiles, groups, selectedGroup, selectedIds, protocolTypes, coreTypes, showProfileForm, showImportForm, showExportDialog, loadEditorOptions, loadGroups, loadProfiles,
     openEditProfile, selectProfile, startSpeedTest, runProfileAction,
     nodesPageState, profileModalState, importProfilesModalState, exportModalState,
-    nodesPageActions: { openAddProfile, openImportProfiles, startSpeedTest, runProfileAction, stopSpeedTests, applySpeedTestResult, changeGroup, generateGroups, loadProfiles, toggleAllVisible, toggleProfile, sortProfiles, selectProfile, formatDelay, moveSelectedToGroup, moveSelected, moveSelectedPosition, exportSelected, openContext, focusProfile, setFocusedProfile, handleRowKeydown },
+    nodesPageActions: { openAddProfile, openImportProfiles, startSpeedTest, runProfileAction, stopSpeedTests, applySpeedTestResult, changeGroup, generateGroups, loadProfiles, toggleAllVisible, toggleProfile, sortProfiles, selectProfile, formatDelay, moveSelectedToGroup, moveSelected, moveSelectedPosition, exportSelected, openContext, openSubscriptionContext, focusProfile, setFocusedProfile, handleRowKeydown },
     profileModalActions: { saveProfile, toggleGroupChild, moveGroupChild },
     importProfilesModalActions: { importProfiles, readImportFile, pasteImport },
     exportModalActions: { exportSelected, copyExport, downloadExport },

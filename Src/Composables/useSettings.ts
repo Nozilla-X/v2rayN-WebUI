@@ -9,7 +9,7 @@ export function useSettings(options: ApiServices & {
   showNotice: Notice
   showError: ErrorHandler
   loadStatus: () => Promise<void>
-  coreTypes: string[]
+  coreTypes: Ref<string[]>
   routingForm: Ref<Dict>
   routingOptions: Ref<Dict>
 }) {
@@ -24,7 +24,7 @@ export function useSettings(options: ApiServices & {
     options.routingOptions.value = settings.value.options || {}
     settings.value.coreTypes = (settings.value.coreTypes || []).map((mapping: Dict) => ({
       ...mapping,
-      coreType: options.canonicalCode(mapping.coreType, options.coreTypes),
+      coreType: options.canonicalCode(mapping.coreType, options.coreTypes.value),
     }))
     const inb = settings.value.inbound || {}
     inboundForm.value = { ...inb, destOverride: inb.destOverride || [] }

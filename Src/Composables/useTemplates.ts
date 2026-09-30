@@ -12,7 +12,7 @@ export function useTemplates(options: ApiServices & { showNotice: Notice; showEr
     try {
       const result = await options.request(`/api/settings/core-templates/${encodeURIComponent(options.coreTypeRoute(template.coreType))}`, {
         method: 'PUT', body: {
-          remarks: template.remarks, enabled: template.enabled, config: template.config,
+          remarks: template.remarks, enabled: template.enabled, config: template.config, tunConfig: template.tunConfig,
           addProxyOnly: template.addProxyOnly, proxyDetour: template.proxyDetour,
         },
       })

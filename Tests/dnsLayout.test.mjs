@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 
 const stylePath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../Src/style.css')
+const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../Src')
 
 test('DNS settings use full workspace width without removing the workspace cap or responsive form grids', async () => {
   const css = await readFile(stylePath, 'utf8')
@@ -15,4 +16,21 @@ test('DNS settings use full workspace width without removing the workspace cap o
   assert.match(css, /\.form-grid\.three-col\s*\{\s*grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\)/)
   assert.match(css, /@media\s*\(max-width:\s*760px\)[\s\S]*?\.form-grid\.two-col, \.form-grid\.three-col\s*\{\s*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/)
   assert.match(css, /\.form-grid input, \.form-grid select, \.form-grid textarea\s*\{[^}]*min-width:\s*0/)
+})
+
+test('Core DNS editor exposes and round-trips normal and TUN data with embedded-default import', async () => {
+  const [page, composable, contracts, runtime] = await Promise.all([
+    readFile(path.join(sourceRoot, 'Components/Pages/DnsPage.vue'), 'utf8'),
+    readFile(path.join(sourceRoot, 'Composables/useDns.ts'), 'utf8'),
+    readFile(path.resolve(sourceRoot, '../../Contracts/ApiModels.cs'), 'utf8'),
+    readFile(path.resolve(sourceRoot, '../../Services/V2rayRuntime.Settings.cs'), 'utf8'),
+  ])
+  assert.match(page, /v-model="activeDnsProfile\.normalDNS"/)
+  assert.match(page, /v-model="activeDnsProfile\.tunDNS"/)
+  assert.match(page, /actions\.importDefaultDns\(activeDnsProfile\)/)
+  assert.match(composable, /tunDNS: profile\.tunDNS/)
+  assert.match(composable, /\/api\/settings\/dns\/defaults/)
+  assert.match(contracts, /string\? TunDNS/)
+  assert.match(runtime, /EmbedUtils\.GetEmbedText\(Global\.TunSingboxDNSFileName\)/)
+  assert.doesNotMatch(page, /TUN DNS.*hidden|TunDNS.*preserve/i)
 })

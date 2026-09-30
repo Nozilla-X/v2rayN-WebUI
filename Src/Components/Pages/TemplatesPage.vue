@@ -19,6 +19,7 @@ const currentTemplate = computed(() => state.templates.find((template: Record<st
     <form v-if="currentTemplate" class="template-editor panel" @submit.prevent="actions.saveTemplate(currentTemplate)">
       <div class="template-options"><label class="check-inline"><UiCheckbox v-model="currentTemplate.enabled" />{{ t('templates.enabled') }}</label><label>{{ t('templates.remarks') }}<input v-model="currentTemplate.remarks" /></label><label class="check-inline"><UiCheckbox v-model="currentTemplate.addProxyOnly" />{{ t('templates.addProxyOnly') }}</label><label>{{ t('templates.proxyDetour') }}<input v-model="currentTemplate.proxyDetour" /></label></div>
       <label class="template-code-label">{{ t('templates.config') }}<textarea v-model="currentTemplate.config" class="code-area template-code" spellcheck="false" /></label>
+      <label class="template-code-label">{{ t('templates.tunConfig') }}<textarea v-model="currentTemplate.tunConfig" class="code-area template-code" spellcheck="false" /></label>
       <footer class="footer-actions settings-footer"><span class="muted">{{ t('templates.templateHint') }}</span><button class="button primary" type="submit">{{ t('common.save') }}</button></footer>
     </form>
     <p v-else class="muted empty-inline">{{ t('templates.coreUnavailable') }}</p>
