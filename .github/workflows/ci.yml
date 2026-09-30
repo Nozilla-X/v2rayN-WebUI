@@ -15,8 +15,8 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: npm
@@ -35,7 +35,7 @@ jobs:
           unzip -Z1 v2rayN-WebUI.zip | grep -Fxq index.html
           unzip -Z1 v2rayN-WebUI.zip | grep -Eq '^assets/.+'
           ! unzip -Z1 v2rayN-WebUI.zip | grep -Eq '^dist/'
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: v2rayN-WebUI
           path: v2rayN-WebUI.zip
@@ -47,8 +47,8 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: npm
