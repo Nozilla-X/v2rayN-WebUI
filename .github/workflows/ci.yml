@@ -1,0 +1,64 @@
+name: WebUI CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run typecheck
+      - run: npm run build
+      - name: Check and package deployable artifact
+        run: |
+          set -euo pipefail
+          test -s dist/index.html
+          test -d dist/assets
+          test -n "$(find dist/assets -type f -print -quit)"
+          ! grep -R -E 'https?://(localhost|127\\.0\\.0\\.1)(:5080)?' dist
+          (cd dist && zip -qr ../v2rayN-WebUI.zip .)
+          unzip -Z1 v2rayN-WebUI.zip | grep -Fxq index.html
+          unzip -Z1 v2rayN-WebUI.zip | grep -Eq '^assets/.+'
+          ! unzip -Z1 v2rayN-WebUI.zip | grep -Eq '^dist/'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v2rayN-WebUI
+          path: v2rayN-WebUI.zip
+
+  attach-release:
+    if: github.event_name == 'release'
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run typecheck
+      - run: npm run build
+      - name: Create WebUI release archive
+        run: (cd dist && zip -qr ../v2rayN-WebUI.zip .)
+      - name: Attach v2rayN-WebUI.zip
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "$GITHUB_REF_NAME" v2rayN-WebUI.zip
