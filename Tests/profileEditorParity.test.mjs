@@ -8,21 +8,16 @@ import { normalizeProfileProtocolExtra, normalizeProfileTransportExtra } from '.
 const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../Src')
 
 test('profile editor option values come from the Web API and profile fields remain editable', async () => {
-  const [options, composable, modal, contracts, runtime] = await Promise.all([
+  const [options, composable, modal] = await Promise.all([
     readFile(path.join(sourceRoot, 'profileEditorOptions.ts'), 'utf8'),
     readFile(path.join(sourceRoot, 'Composables/useProfiles.ts'), 'utf8'),
     readFile(path.join(sourceRoot, 'Components/Modals/ProfileModal.vue'), 'utf8'),
-    readFile(path.resolve(sourceRoot, '../../Contracts/ApiModels.cs'), 'utf8'),
-    readFile(path.resolve(sourceRoot, '../../Services/V2rayRuntime.Settings.cs'), 'utf8'),
   ])
 
   assert.match(composable, /options\.data\('\/api\/editor-options'\)/)
   assert.match(composable, /editorOptions\.value\.configTypes/)
   assert.match(composable, /editorOptions\.value\.coreTypes/)
   assert.doesNotMatch(options, /\[['"](?:Xray|sing_box|raw|xhttp|mixed|v2ray)['"]\s*,/)
-  assert.match(contracts, /ProfileEditorOptionsView\(/)
-  assert.match(runtime, /Global\.ProtocolTypes\.Keys|Enum\.GetValues<EConfigType>/)
-  assert.match(runtime, /Enum\.GetValues<ECoreType>\(\)\.Where\(coreType => coreType != ECoreType\.v2rayN\)/)
 
   for (const field of [
     'configType', 'coreType', 'remarks', 'address', 'port', 'password', 'username', 'network',
@@ -40,14 +35,11 @@ test('profile editor option values come from the Web API and profile fields rema
 })
 
 test('Core sniffing status is canonical and absent when sniffing is disabled', async () => {
-  const [statusDto, runtime, strip] = await Promise.all([
-    readFile(path.resolve(sourceRoot, '../../Contracts/ApiModels.cs'), 'utf8'),
-    readFile(path.resolve(sourceRoot, '../../Services/V2rayRuntime.cs'), 'utf8'),
+  const [runtime, strip] = await Promise.all([
+    readFile(path.join(sourceRoot, 'Composables/useRuntime.ts'), 'utf8'),
     readFile(path.join(sourceRoot, 'Components/RuntimeStrip.vue'), 'utf8'),
   ])
-  assert.match(statusDto, /bool SniffingEnabled = false/)
-  assert.match(statusDto, /string\[\]\? DestOverride = null/)
-  assert.match(runtime, /NormalizeDestOverride\(sniffingEnabled, inbound\?\.DestOverride\)/)
+  assert.match(runtime, /options\.data\('\/api\/status'\)/)
   assert.match(strip, /v-if="state\.status\?\.sniffingEnabled"[\s\S]*?destOverride[\s\S]*?join\(' \/ '\)/)
 })
 

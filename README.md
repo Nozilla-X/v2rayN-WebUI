@@ -54,17 +54,19 @@ self-update packages do not contain or modify that directory.
 
 ## API compatibility
 
-Compatible with the v2rayN Web API capabilities used by this implementation, including
-Management Key setup/login, session and SSE-ticket authentication, runtime events, profiles,
-subscriptions, routing, DNS, settings, backup/restore, and core/Web updates. The UI reads
-authoritative editor option lists from the API; it does not import or vendor ServiceLib enums.
-Use `/api/status` after authentication to inspect the running Backend's version, commit, and
-runtime capabilities. The UI does not require a special Backend version endpoint or private
-UI manifest.
+This WebUI is developed against the v2rayN Web API contract in **Backend 7.25.4** and requires
+the API capabilities `auth.sessions`, `events.sse`, `editor.options`, `profiles`,
+`subscriptions`, `routing`, `dns`, `settings`, `backup.restore`, `core.runtime`, `core.updates`,
+`web.self-update`, and `static-webui`.
 
-The independently versioned WebUI may not be compatible with every historical Backend build.
-Pair it with a Backend that exposes the documented endpoints and fields above; the Backend
-version and capabilities returned by `/api/status` are the compatibility source of truth.
+After authentication, `GET /api/status` returns `webVersion`, `gitCommit`, `runtimeIdentifier`,
+and `capabilities`; the UI keeps the status response as API data and can use these fields when
+checking compatibility. Dynamic protocol/Core/DNS/routing/editor choices come from Backend
+option endpoints. The UI does not import or vendor ServiceLib enums, and it does not require a
+private WebUI manifest or a separate API version endpoint.
+
+The independently versioned WebUI may not work with every historical Backend build. Pair it
+with an API that reports the required capability identifiers and exposes the endpoints above.
 
 ## Screenshots
 

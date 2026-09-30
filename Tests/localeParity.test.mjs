@@ -5,12 +5,8 @@ import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 
 const testRoot = path.dirname(fileURLToPath(import.meta.url))
-const sourceRoot = path.resolve(testRoot, '../../../ServiceLib/Resx')
-const localeFiles = {
-  'zh-CN': ['zh-CN.json', 'ResUI.zh-Hans.resx'],
-  'zh-TW': ['zh-TW.json', 'ResUI.zh-Hant.resx'],
-  'en-US': ['en-US.json', 'ResUI.resx'],
-}
+const localeRoot = path.resolve(testRoot, '../Src/Locales')
+const localeNames = ['zh-CN', 'zh-TW', 'en-US']
 
 const parity = {
   'nav.subscriptions': 'menuSubscription',
@@ -165,24 +161,13 @@ function getKey(locale, keyPath) {
   return keyPath.split('.').reduce((value, key) => value?.[key], locale)
 }
 
-function decodeXml(text) {
-  return text.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"')
-    .replace(/&apos;/g, "'").replace(/&amp;/g, '&')
-}
-
-function getResxValue(xml, key) {
-  const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-  const match = xml.match(new RegExp(`<data\\s+name="${escaped}"[^>]*>\\s*<value>([\\s\\S]*?)<\\/value>`))
-  assert.ok(match, `Desktop resource ${key} exists`)
-  return decodeXml(match[1])
-}
-
-test('Web labels mapped to Desktop resources stay identical in zh-CN, zh-TW, and en-US', async () => {
-  for (const [name, [localeFile, resxFile]] of Object.entries(localeFiles)) {
-    const locale = JSON.parse(await readFile(path.join(testRoot, '../Src/Locales', localeFile), 'utf8'))
-    const resx = await readFile(path.join(sourceRoot, resxFile), 'utf8')
-    for (const [keyPath, resourceName] of Object.entries(parity)) {
-      assert.equal(getKey(locale, keyPath), getResxValue(resx, resourceName), `${name}: ${keyPath} ↔ ${resourceName}`)
+test('Desktop-parity labels are translated in all independent WebUI locales', async () => {
+  for (const name of localeNames) {
+    const locale = JSON.parse(await readFile(path.join(localeRoot, `${name}.json`), 'utf8'))
+    for (const keyPath of Object.keys(parity)) {
+      const value = getKey(locale, keyPath)
+      assert.equal(typeof value, 'string', `${name}: ${keyPath} exists`)
+      assert.notEqual(value.trim(), '', `${name}: ${keyPath} is translated`)
     }
   }
 })

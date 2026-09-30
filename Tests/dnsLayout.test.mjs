@@ -19,18 +19,15 @@ test('DNS settings use full workspace width without removing the workspace cap o
 })
 
 test('Core DNS editor exposes and round-trips normal and TUN data with embedded-default import', async () => {
-  const [page, composable, contracts, runtime] = await Promise.all([
+  const [page, composable] = await Promise.all([
     readFile(path.join(sourceRoot, 'Components/Pages/DnsPage.vue'), 'utf8'),
     readFile(path.join(sourceRoot, 'Composables/useDns.ts'), 'utf8'),
-    readFile(path.resolve(sourceRoot, '../../Contracts/ApiModels.cs'), 'utf8'),
-    readFile(path.resolve(sourceRoot, '../../Services/V2rayRuntime.Settings.cs'), 'utf8'),
   ])
   assert.match(page, /v-model="activeDnsProfile\.normalDNS"/)
   assert.match(page, /v-model="activeDnsProfile\.tunDNS"/)
   assert.match(page, /actions\.importDefaultDns\(activeDnsProfile\)/)
   assert.match(composable, /tunDNS: profile\.tunDNS/)
+  assert.match(composable, /options\.data\('\/api\/settings\/dns\/editor-options'\)/)
   assert.match(composable, /\/api\/settings\/dns\/defaults/)
-  assert.match(contracts, /string\? TunDNS/)
-  assert.match(runtime, /EmbedUtils\.GetEmbedText\(Global\.TunSingboxDNSFileName\)/)
   assert.doesNotMatch(page, /TUN DNS.*hidden|TunDNS.*preserve/i)
 })

@@ -50,9 +50,8 @@ for (const [source, content] of uiSources) {
   }
 }
 
-const contractsPath = path.resolve(webUiRoot, '..', 'Contracts', 'ApiModels.cs')
-const contracts = await readFile(contractsPath, 'utf8')
-const messageKeys = new Set([...contracts.matchAll(/public const string \w+ = "([^"]+)";/g)].map((match) => match[1]))
+const apiMessageKeys = JSON.parse(await readFile(path.join(webUiRoot, 'Tests', 'fixtures', 'api-message-keys.json'), 'utf8'))
+const messageKeys = new Set(apiMessageKeys)
 for (const key of messageKeys) {
   if (!baseKeys.has(key)) errors.push(`ApiMessageKeys references missing locale key: ${key}`)
 }

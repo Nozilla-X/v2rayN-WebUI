@@ -30,7 +30,7 @@ jobs:
           test -s dist/index.html
           test -d dist/assets
           test -n "$(find dist/assets -type f -print -quit)"
-          ! grep -R -E 'https?://(localhost|127\\.0\\.0\\.1)(:5080)?' dist
+          ! grep -R -E 'https?://(localhost|127[.]0[.]0[.]1)(:5080)?' dist
           (cd dist && zip -qr ../v2rayN-WebUI.zip .)
           unzip -Z1 v2rayN-WebUI.zip | grep -Fxq index.html
           unzip -Z1 v2rayN-WebUI.zip | grep -Eq '^assets/.+'
