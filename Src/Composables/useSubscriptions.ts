@@ -71,20 +71,22 @@ export function useSubscriptions(options: ApiServices & {
 
   async function saveSubscription() {
     try {
-    const preSocksPort = nullableNumber(subscriptionForm.value.preSocksPort)
+      const preSocksPort = nullableNumber(subscriptionForm.value.preSocksPort)
       const body = {
         ...subscriptionForm.value,
         autoUpdateInterval: Number(subscriptionForm.value.autoUpdateInterval ?? 0),
         sort: Number(subscriptionForm.value.sort ?? 0),
         preSocksPort,
       }
-      const result = await options.request(editingSubscriptionId.value ? `/api/subscriptions/${encodeURIComponent(editingSubscriptionId.value)}` : '/api/subscriptions', {
-        method: editingSubscriptionId.value ? 'PUT' : 'POST', body,
-      })
+      const editingId = editingSubscriptionId.value
+      const isEditing = Boolean(editingId)
+      const result = await options.request(
+        isEditing ? `/api/subscriptions/${encodeURIComponent(editingId)}` : '/api/subscriptions',
+        { method: isEditing ? 'PUT' : 'POST', body },
+      )
       showSubscriptionForm.value = false
-      options.showNotice(options.operationMessage(result, editingSubscriptionId.value ? 'subscriptions.saved' : 'subscriptions.added'))
+      options.showNotice(options.operationMessage(result, isEditing ? 'subscriptions.saved' : 'subscriptions.added'))
       await Promise.all([loadSubscriptions(), options.loadGroups()])
-      if (!editingSubscriptionId.value && result.data?.id) await updateSubscription(result.data.id, subscriptionUseProxy.value)
     } catch (error) { options.showError(error) }
   }
 
