@@ -317,13 +317,14 @@ input[type="checkbox"] { width: 16px; height: 16px; flex: 0 0 16px; align-self: 
 .code-area:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { border-color: var(--focus); }
 .rules-json { min-height: 180px; }
 .dns-code { min-height: 400px; }
-.form-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 7px; margin-bottom: 8px; }
+.form-grid { display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; gap: 7px; margin-bottom: 8px; }
 .form-grid.two-col { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .form-grid.three-col { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .form-grid label, .modal-panel > label { display: grid; gap: 4px; color: var(--text-muted); font-size: 10px; }
 .form-grid input, .form-grid select, .form-grid textarea, .modal-panel input:not([type="checkbox"]), .modal-panel select, .modal-panel textarea:not(.code-area) { width: 100%; min-width: 0; min-height: var(--control-height); padding: 3px 6px; color: var(--text); border: 1px solid var(--border-strong); border-radius: 2px; background: var(--surface-input); font-size: 11px; }
 .form-grid textarea:not(.code-area), .modal-panel textarea:not(.code-area) { min-height: 52px; resize: vertical; }
-.form-grid .check-inline { display: inline-flex; align-self: center; justify-self: start; align-items: center; width: max-content; max-width: 100%; min-height: 26px; gap: 6px; white-space: nowrap; }
+.form-grid > .button, .form-grid > .tool-button, .form-grid > .file-button { align-self: end; }
+.form-grid .check-inline { display: inline-flex; align-self: center; justify-self: start; align-items: center; width: max-content; max-width: 100%; min-height: var(--control-height); gap: 6px; white-space: nowrap; }
 .form-grid .check-inline input[type="checkbox"] { flex: 0 0 16px; width: 16px; height: 16px; min-height: 16px; padding: 0; border: 0; background: transparent; }
 .form-grid .wide-field { grid-column: 1 / -1; }
 .settings-multi-select { display: grid; align-content: start; gap: 5px; color: var(--text-muted); font-size: 10px; }
@@ -462,7 +463,7 @@ input[type="checkbox"] { width: 16px; height: 16px; flex: 0 0 16px; }
 .modal-form .modal-actions { min-height: 43px; flex: 0 0 auto; margin: 0; padding: 8px 12px; border-top: 1px solid var(--border); background: var(--surface-inset); }
 .modal-panel .form-grid .wide-field { grid-column: 1 / -1; }
 .profile-alias-input { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 5px; }
-.profile-alias-input .button { white-space: nowrap; }
+.profile-alias-input .button { min-height: var(--control-height); white-space: nowrap; }
 .dns-editable { min-width: 0; margin: 0; padding: 0; border: 0; }
 .dns-core-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin: 6px 0 12px; }
 .dns-core-toolbar a { color: var(--accent-text); font-size: 11px; }
@@ -513,6 +514,13 @@ input[type="checkbox"] { width: 16px; height: 16px; flex: 0 0 16px; }
 .dns-core-section { width: 100%; }
 .dns-core-section .section-heading { margin-bottom: 11px; }
 .dns-core-section .section-heading h2 { margin: 0; font-size: 13px; }
+.dns-core-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 12px; min-width: 0; margin-bottom: 8px; }
+.dns-core-column { display: grid; align-content: start; align-items: start; gap: 7px; min-width: 0; }
+.dns-core-column > label:not(.check-inline) { min-width: 0; display: grid; align-content: start; gap: 4px; color: var(--text-muted); font-size: 10px; }
+.dns-core-column input:not([type="checkbox"]), .dns-core-column select, .dns-core-column textarea { width: 100%; min-width: 0; max-width: 100%; }
+.dns-core-column input:not([type="checkbox"]), .dns-core-column select { min-height: var(--control-height); }
+.dns-core-column textarea.dns-code { min-height: 280px; resize: vertical; }
+.dns-core-column .check-inline { width: max-content; max-width: 100%; justify-self: start; align-self: start; white-space: normal; }
 .page-footnote { margin: 10px 0 0; color: var(--text-dim); font-size: 9px; }
 .dns-code { min-height: 280px; }
 
@@ -579,9 +587,12 @@ input[type="checkbox"] { width: 16px; height: 16px; flex: 0 0 16px; }
   .search-box { flex: 1; width: auto; }
   .split-workspace, .split-pane { grid-template-columns: minmax(0, 1fr); }
   .form-grid.two-col, .form-grid.three-col { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dns-core-grid { grid-template-columns: minmax(0, 1fr); }
+  .dns-core-column input:not([type="checkbox"]), .dns-core-column select { min-height: var(--control-height-touch); }
   .form-grid .wide-field { grid-column: 1 / -1; }
   .form-grid input:not([type="checkbox"]), .form-grid select, .form-label input, .form-label select, .mapping-row select { min-height: var(--control-height-touch); }
   .check-inline { min-height: var(--control-height-touch); }
+  .form-grid .check-inline { min-height: var(--control-height-touch); }
   .section-tabs button { min-height: var(--control-height-touch); }
   .page-title { min-height: 27px; }
   .selection-summary { margin-left: auto; }
@@ -632,6 +643,7 @@ input[type="checkbox"] { width: 16px; height: 16px; flex: 0 0 16px; }
   .modal-form .modal-content { padding-right: max(12px, env(safe-area-inset-right)); padding-left: max(12px, env(safe-area-inset-left)); }
   .modal-form .modal-actions { padding-right: max(12px, env(safe-area-inset-right)); padding-bottom: max(8px, env(safe-area-inset-bottom)); padding-left: max(12px, env(safe-area-inset-left)); }
   .modal-form .modal-actions .button { min-height: var(--control-height-touch); }
+  .profile-alias-input .button { min-height: var(--control-height-touch); }
   .modal-form .form-grid input:not([type="checkbox"]), .modal-form .form-grid select, .modal-form .form-grid textarea:not(.code-area), .form-label input, .form-label select { min-height: var(--control-height-touch); }
   .modal-form .check-inline { min-height: var(--control-height-touch); }
   .modal-form .tool-button { min-width: var(--control-height-touch); min-height: var(--control-height-touch); }

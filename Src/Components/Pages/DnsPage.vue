@@ -65,19 +65,24 @@ const tabs = [
 
     <section v-else class="settings-section form-section dns-core-section">
       <template v-if="activeDnsProfile">
-        <header class="section-heading"><div><h2>{{ activeTab === 'xray' ? t('dns.xrayTab') : t('dns.singboxTab') }}</h2></div><label class="check-inline"><UiCheckbox v-model="activeDnsProfile.enabled" />{{ t('dns.enabled') }}</label></header>
+        <header class="section-heading"><div><h2>{{ activeTab === 'xray' ? t('dns.xrayTab') : t('dns.singboxTab') }}</h2></div></header>
         <div class="dns-core-toolbar">
           <a v-if="activeTab === 'xray'" :href="'https://xtls.github.io/config/dns.html#dnsobject'" target="_blank" rel="noopener noreferrer">{{ t('dns.docsXray') }}</a>
           <a v-else :href="'https://sing-box.sagernet.org/zh/configuration/dns/'" target="_blank" rel="noopener noreferrer">{{ t('dns.docsSingbox') }}</a>
           <button class="button compact" @click="actions.importDefaultDns(activeDnsProfile)">{{ t('dns.importDefaultConfig') }}</button>
         </div>
-        <div class="form-grid two-col">
-          <label>{{ t('dns.remarks') }}<input v-model="activeDnsProfile.remarks" /></label>
-          <label>{{ t('dns.httpSocks') }}<textarea v-model="activeDnsProfile.normalDNS" class="code-area dns-code" spellcheck="false" /></label>
-          <label>{{ t('dns.tunDns') }}<textarea v-model="activeDnsProfile.tunDNS" class="code-area dns-code" spellcheck="false" /></label>
-          <label>{{ t(activeTab === 'xray' ? 'dns.domainStrategy' : 'dns.domainStrategy4Out') }}<select v-model="activeDnsProfile.domainStrategy4Freedom"><option v-for="value in (activeTab === 'xray' ? state.dnsOptions.domainStrategies4Freedom : state.dnsOptions.domainStrategies4Singbox)" :key="value || 'none'" :value="value">{{ value || t('common.none') }}</option><option v-if="activeDnsProfile.domainStrategy4Freedom && !(activeTab === 'xray' ? state.dnsOptions.domainStrategies4Freedom : state.dnsOptions.domainStrategies4Singbox).includes(activeDnsProfile.domainStrategy4Freedom)" :value="activeDnsProfile.domainStrategy4Freedom">{{ activeDnsProfile.domainStrategy4Freedom }}</option></select></label>
-          <label>{{ t('dns.domainDnsAddress') }}<input v-model="activeDnsProfile.domainDNSAddress" list="dns-core-addresses" /><datalist id="dns-core-addresses"><option v-for="value in state.dnsOptions.domainDnsAddresses" :key="value" :value="value" /></datalist></label>
-          <label v-if="activeTab === 'xray'" class="check-inline"><UiCheckbox v-model="activeDnsProfile.useSystemHosts" />{{ t('dns.useSystemHosts') }}</label>
+        <div class="dns-core-grid">
+          <div class="dns-core-column">
+            <label>{{ t('dns.remarks') }}<input v-model="activeDnsProfile.remarks" /></label>
+            <label class="check-inline"><UiCheckbox v-model="activeDnsProfile.enabled" />{{ t('dns.enabled') }}</label>
+            <label>{{ t('dns.httpSocks') }}<textarea v-model="activeDnsProfile.normalDNS" class="code-area dns-code" spellcheck="false" /></label>
+            <label>{{ t('dns.tunDns') }}<textarea v-model="activeDnsProfile.tunDNS" class="code-area dns-code" spellcheck="false" /></label>
+          </div>
+          <div class="dns-core-column">
+            <label>{{ t(activeTab === 'xray' ? 'dns.domainStrategy' : 'dns.domainStrategy4Out') }}<select v-model="activeDnsProfile.domainStrategy4Freedom"><option v-for="value in (activeTab === 'xray' ? state.dnsOptions.domainStrategies4Freedom : state.dnsOptions.domainStrategies4Singbox)" :key="value || 'none'" :value="value">{{ value || t('common.none') }}</option><option v-if="activeDnsProfile.domainStrategy4Freedom && !(activeTab === 'xray' ? state.dnsOptions.domainStrategies4Freedom : state.dnsOptions.domainStrategies4Singbox).includes(activeDnsProfile.domainStrategy4Freedom)" :value="activeDnsProfile.domainStrategy4Freedom">{{ activeDnsProfile.domainStrategy4Freedom }}</option></select></label>
+            <label>{{ t('dns.domainDnsAddress') }}<input v-model="activeDnsProfile.domainDNSAddress" list="dns-core-addresses" /><datalist id="dns-core-addresses"><option v-for="value in state.dnsOptions.domainDnsAddresses" :key="value" :value="value" /></datalist></label>
+            <label v-if="activeTab === 'xray'" class="check-inline"><UiCheckbox v-model="activeDnsProfile.useSystemHosts" />{{ t('dns.useSystemHosts') }}</label>
+          </div>
         </div>
         <div class="footer-actions settings-footer"><button class="button primary" @click="actions.saveDnsProfile(activeDnsProfile)">{{ t('common.save') }}</button></div>
       </template>
