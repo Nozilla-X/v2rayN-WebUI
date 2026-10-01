@@ -341,7 +341,7 @@
     "interval": "Automatic update interval (minutes)",
     "userAgent": "User Agent",
     "requestHeaders": "HTTP headers (JSON)",
-    "requestHeadersTip": "Optional. Example: {\"X-hwid\": \"my_device\"}. Values override default headers for all URLs in this group, including the subscription conversion service.",
+    "requestHeadersTip": "Optional. Example: {'{'}\"X-hwid\": \"my_device\"{'}'}. Values override default headers for all URLs in this group, including the subscription conversion service.",
     "filter": "Remarks regular filter",
     "convertTarget": "Convert target type",
     "memo": "Remarks Memo",

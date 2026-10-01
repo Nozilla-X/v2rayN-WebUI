@@ -335,7 +335,7 @@
     "interval": "自動更新間隔 (分鐘)",
     "userAgent": "User Agent (可選)",
     "requestHeaders": "HTTP 請求標頭 (JSON)",
-    "requestHeadersTip": "可選，範例：{\"X-hwid\": \"my_device\"}。自訂值會覆寫預設標頭，套用於本組所有訂閱位址（包括訂閱轉換服務）。",
+    "requestHeadersTip": "可選，範例：{'{'}\"X-hwid\": \"my_device\"{'}'}。自訂值會覆寫預設標頭，套用於本組所有訂閱位址（包括訂閱轉換服務）。",
     "filter": "別名正則過濾",
     "convertTarget": "訂閱轉換目標類型",
     "memo": "備註備忘",
