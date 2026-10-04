@@ -1,6 +1,8 @@
 import { reactive, ref, type Ref } from 'vue'
 import type { ApiError, ApiServices, Dict, ErrorHandler, Notice, Translate } from './types'
 
+const webUpdateTargetType = 'v2rayN.Web'
+
 export function useMaintenance(options: ApiServices & {
   t: Translate
   translateKey: (key?: string | null) => string
@@ -15,7 +17,7 @@ export function useMaintenance(options: ApiServices & {
 }) {
   const t = options.t
   const webdavForm = ref<Dict>({ url: '', userName: '', password: '', dirName: '' })
-  const updateSettings = ref<Dict>({ targets: [], geoFilesSelected: true, preRelease: false, useProxy: true })
+  const updateSettings = ref<Dict>({ targets: [], geoFilesSelected: true, checkPreReleaseCoreTypes: [], preRelease: false, useProxy: true })
   const updateResults = ref<Record<string, Dict>>({})
   const updateProgress = ref<Record<string, Dict>>({})
 
@@ -28,7 +30,24 @@ export function useMaintenance(options: ApiServices & {
       options.loadOperations(),
     ])
     webdavForm.value = { ...webdav, password: '' }
-    updateSettings.value = { ...updates, webTarget, webSelected: Boolean(webTarget?.selected) }
+    const targets = updates.targets || []
+    const supportedPreReleaseTargets = new Set([
+      ...targets.filter((target: Dict) => target.supportsPreRelease).map((target: Dict) => target.coreType),
+      webUpdateTargetType,
+    ])
+    const checkPreReleaseCoreTypes = [...new Set(
+      (Array.isArray(updates.checkPreReleaseCoreTypes) ? updates.checkPreReleaseCoreTypes : [])
+        .filter((coreType: string) => supportedPreReleaseTargets.has(coreType)),
+    )]
+    updateSettings.value = {
+      ...updates,
+      targets: targets.map((target: Dict) => ({ ...target })),
+      checkPreReleaseCoreTypes,
+      // The Backend's per-target list is authoritative; preRelease is only kept as a legacy alias.
+      preRelease: checkPreReleaseCoreTypes.includes(webUpdateTargetType),
+      webTarget,
+      webSelected: Boolean(webTarget?.selected),
+    }
     updateProgress.value = Object.fromEntries((progress || []).map((item: Dict) => [item.coreType, item]))
   }
 
@@ -68,12 +87,23 @@ export function useMaintenance(options: ApiServices & {
         .filter((target: Dict) => target.selected)
         .map((target: Dict) => target.coreType)
       if (updateSettings.value.geoFilesSelected) selectedCoreTypes.push('GeoFiles')
-      if (updateSettings.value.webSelected) selectedCoreTypes.push('v2rayN.Web')
+      if (updateSettings.value.webSelected) selectedCoreTypes.push(webUpdateTargetType)
+      const supportedPreReleaseTargets = new Set([
+        ...(updateSettings.value.targets || [])
+          .filter((target: Dict) => target.supportsPreRelease)
+          .map((target: Dict) => target.coreType),
+        webUpdateTargetType,
+      ])
+      const checkPreReleaseCoreTypes = [...new Set(
+        (updateSettings.value.checkPreReleaseCoreTypes || [])
+          .filter((coreType: string) => supportedPreReleaseTargets.has(coreType)),
+      )]
       const result = await options.request('/api/core-updates/settings', {
         method: 'PUT',
         body: {
           selectedCoreTypes,
-          preRelease: Boolean(updateSettings.value.preRelease),
+          checkPreReleaseCoreTypes,
+          preRelease: checkPreReleaseCoreTypes.includes(webUpdateTargetType),
           useProxy: Boolean(updateSettings.value.useProxy),
         },
       })
@@ -83,6 +113,18 @@ export function useMaintenance(options: ApiServices & {
       options.showError(error)
       return false
     }
+  }
+
+  function setPreReleaseTarget(coreType: string, enabled: boolean) {
+    const isSupported = coreType === webUpdateTargetType
+      || (updateSettings.value.targets || []).some((target: Dict) => target.coreType === coreType && target.supportsPreRelease)
+    if (!isSupported) return
+
+    const current: string[] = updateSettings.value.checkPreReleaseCoreTypes || []
+    updateSettings.value.checkPreReleaseCoreTypes = enabled
+      ? current.includes(coreType) ? current : [...current, coreType]
+      : current.filter((target: string) => target !== coreType)
+    updateSettings.value.preRelease = updateSettings.value.checkPreReleaseCoreTypes.includes(webUpdateTargetType)
   }
 
   async function saveUpdateSettings() {
@@ -221,7 +263,7 @@ export function useMaintenance(options: ApiServices & {
     webdavForm, updateSettings, updateResults, updateProgress, loadMaintenance, loadCoreUpdateProgress,
     recordCoreUpdateProgress, notifyCoreUpdateBatchComplete, notifyGeoUpdateComplete, maintenancePageState,
     maintenancePageActions: {
-      checkCoreUpdate, updateCore, checkWebUpdate, updateWeb, runSelectedUpdateBatch, saveUpdateSettings, updateGeo, clearStatistics, saveWebdav,
+      checkCoreUpdate, updateCore, checkWebUpdate, updateWeb, runSelectedUpdateBatch, saveUpdateSettings, setPreReleaseTarget, updateGeo, clearStatistics, saveWebdav,
       webdavAction, downloadBackup, uploadRestore, loadMaintenance, loadOperations: options.loadOperations,
     },
   }

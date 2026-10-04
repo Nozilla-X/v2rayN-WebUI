@@ -21,7 +21,6 @@ const activeTab = ref('updates')
       <div class="panel update-preferences">
         <div class="section-heading"><div><h2>{{ t('maintenance.updateSettings') }}</h2><small>{{ t('maintenance.updateSettingsHint') }}</small></div></div>
         <div class="settings-checks">
-          <label class="check-inline"><UiCheckbox v-model="state.updateSettings.preRelease" />{{ t('maintenance.preRelease') }}</label>
           <label class="check-inline"><UiCheckbox v-model="state.updateSettings.useProxy" />{{ t('maintenance.useProxy') }}</label>
           <button class="button" @click="actions.saveUpdateSettings">{{ t('maintenance.saveUpdateSettings') }}</button>
           <button class="button" :disabled="state.operations.includes('core-update-batch')" @click="actions.runSelectedUpdateBatch(false)">{{ t('maintenance.batchCheck') }}</button>
@@ -48,6 +47,7 @@ const activeTab = ref('updates')
         </div>
         <div class="update-core-row">
           <label class="check-inline"><UiCheckbox v-model="state.updateSettings.webSelected" :disabled="!state.updateSettings.webTarget?.isSupported" />{{ t('maintenance.includeWebUpdate') }}</label>
+          <label v-if="state.updateSettings.webTarget" class="check-inline"><UiCheckbox :model-value="state.updateSettings.checkPreReleaseCoreTypes.includes('v2rayN.Web')" @change="actions.setPreReleaseTarget('v2rayN.Web', $event)" />{{ t('maintenance.preRelease') }}</label>
           <span v-if="state.updateProgress['v2rayN.Web'] && !state.updateProgress['v2rayN.Web'].isComplete" class="update-state">{{ t(`maintenance.phase.${state.updateProgress['v2rayN.Web'].phase}`) }}</span>
           <span v-else-if="state.updateProgress['v2rayN.Web']?.isComplete" :class="state.updateProgress['v2rayN.Web'].success ? 'update-state' : 'danger-note'">{{ t(state.updateProgress['v2rayN.Web'].success ? 'maintenance.phase.completed' : 'maintenance.phase.failed') }}</span>
         </div>
@@ -68,6 +68,7 @@ const activeTab = ref('updates')
         </div>
         <div class="update-core-row">
           <label class="check-inline"><UiCheckbox v-model="target.selected" :disabled="!target.isSupported" />{{ t('maintenance.includeCoreUpdate') }}</label>
+          <label v-if="target.supportsPreRelease" class="check-inline"><UiCheckbox :model-value="state.updateSettings.checkPreReleaseCoreTypes.includes(target.coreType)" @change="actions.setPreReleaseTarget(target.coreType, $event)" />{{ t('maintenance.preRelease') }}</label>
           <span v-if="state.updateProgress[target.coreType] && !state.updateProgress[target.coreType].isComplete" class="update-state">{{ t(`maintenance.phase.${state.updateProgress[target.coreType].phase}`) }}</span>
           <span v-else-if="state.updateProgress[target.coreType]?.isComplete" :class="state.updateProgress[target.coreType].success ? 'update-state' : 'danger-note'">{{ t(state.updateProgress[target.coreType].success ? 'maintenance.phase.completed' : 'maintenance.phase.failed') }}</span>
         </div>
