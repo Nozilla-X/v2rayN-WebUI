@@ -109,3 +109,7 @@ Notes; missing notes or inconsistent versions fail the release.
 ## License
 
 This project follows the v2rayN repository's GPL-3.0-or-later license. See [LICENSE](LICENSE).
+
+The icon/image assets `Public/NotifyIcon1.ico`, `Public/NotifyIcon2.ico` and
+`Public/v2rayN.png` are reused from [v2rayN](https://github.com/2dust/v2rayN).
+Their original authors retain copyright; this WebUI does not claim original authorship.

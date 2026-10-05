@@ -672,3 +672,15 @@ may consider it more useful to permit linking proprietary applications with
 the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
+
+------------------------------------------------------------------------
+Icon asset attribution (separate from the GNU GPL license text above)
+
+This project reuses icon/image assets from the v2rayN project:
+https://github.com/2dust/v2rayN
+
+The reused files are Public/NotifyIcon1.ico, Public/NotifyIcon2.ico, and
+Public/v2rayN.png. These are not original artwork of v2rayN-WebUI. All rights
+in these assets remain with their original authors and copyright holders.
+
+This attribution notice does not modify the GNU GPL license terms above.

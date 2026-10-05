@@ -28,3 +28,13 @@ unzip v2rayN-WebUI.zip -d webui
 The ZIP root contains `index.html`, `assets/` and static images/icons, without an
 extra `dist/` or `v2rayN-WebUI/` directory. Node.js is needed only for building or
 developing the frontend, not for serving the installed static WebUI.
+
+### Icon asset attribution
+
+The icon/image assets `NotifyIcon1.ico`, `NotifyIcon2.ico` and `v2rayN.png` are
+reused from [v2rayN](https://github.com/2dust/v2rayN). Their original authors retain
+copyright; this WebUI does not claim original authorship. See the separately
+attached `LICENSE` file for the license text and asset attribution.
+
+This attribution was clarified in a documentation-only follow-up. The published
+`v1.0.0` tag and WebUI ZIP are unchanged.
