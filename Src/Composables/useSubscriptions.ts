@@ -40,7 +40,9 @@ export function useSubscriptions(options: ApiServices & {
   }
 
   async function openAddSubscription() {
-    await Promise.all([loadEditorOptions(), loadProfileOptions()])
+    try {
+      await Promise.all([loadEditorOptions(), loadProfileOptions()])
+    } catch (error) { options.showError(error); return }
     editingSubscriptionId.value = ''
     subscriptionForm.value = {
       remarks: '', url: '', moreUrl: '', enabled: true, userAgent: '', requestHeaders: '', filter: '',
@@ -50,7 +52,9 @@ export function useSubscriptions(options: ApiServices & {
   }
 
   async function openEditSubscription(item: Dict) {
-    await Promise.all([loadEditorOptions(), loadProfileOptions()])
+    try {
+      await Promise.all([loadEditorOptions(), loadProfileOptions()])
+    } catch (error) { options.showError(error); return }
     editingSubscriptionId.value = item.id
     subscriptionForm.value = {
       ...item,
@@ -61,12 +65,9 @@ export function useSubscriptions(options: ApiServices & {
   }
 
   async function loadProfileOptions() {
-    try {
-      const groupIds = [...new Set(['', ...options.groups.value.map((group) => group.id).filter(Boolean)])]
-      const lists = await Promise.all(groupIds.map((subscriptionId) => options.data(subscriptionId ? options.queryPath('/api/profiles', { subscriptionId }) : '/api/profiles?subscriptionId=')))
-      profileOptions.value = [...new Map(lists.flat().map((item: Dict) => [item.indexId, item])).values()]
-    }
-    catch (error) { options.showError(error) }
+    const groupIds = [...new Set(['', ...options.groups.value.map((group) => group.id).filter(Boolean)])]
+    const lists = await Promise.all(groupIds.map((subscriptionId) => options.data(subscriptionId ? options.queryPath('/api/profiles', { subscriptionId }) : '/api/profiles?subscriptionId=')))
+    profileOptions.value = [...new Map(lists.flat().map((item: Dict) => [item.indexId, item])).values()]
   }
 
   async function saveSubscription() {
@@ -130,12 +131,22 @@ export function useSubscriptions(options: ApiServices & {
     return new Intl.DateTimeFormat(options.locale.value, { dateStyle: 'short', timeStyle: 'short' }).format(new Date(epochSeconds * 1000))
   }
 
+  function reset() {
+    subscriptions.value = []
+    subscriptionForm.value = {}
+    profileOptions.value = []
+    coreTypes.value = []
+    convertTargets.value = []
+    showSubscriptionForm.value = false
+    editingSubscriptionId.value = ''
+  }
+
   const subscriptionsPageState = reactive({ subscriptions, subscriptionUseProxy, selectedGroup: options.selectedGroup })
   const subscriptionModalState = reactive({ showSubscriptionForm, subscriptionForm, editingSubscriptionId, coreTypes, convertTargets, profileOptions })
 
   return {
     subscriptions, subscriptionUseProxy, showSubscriptionForm, loadSubscriptions, loadEditorOptions, subscriptionsPageState, subscriptionModalState,
-    subscriptionUpdateMessageKey,
+    subscriptionUpdateMessageKey, reset,
     subscriptionsPageActions: { formatDate, subscriptionUpdateMessageKey, updateSubscriptions, openAddSubscription, updateSubscription, shareSubscription, openEditSubscription, deleteSubscription },
     subscriptionModalActions: { saveSubscription },
   }

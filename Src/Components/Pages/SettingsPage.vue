@@ -27,8 +27,10 @@ const tabs = [
         <label>{{ t('settings.localPort') }}<input v-model.number="state.inboundForm.localPort" type="number" min="1" max="65535" /></label>
         <label class="check-inline"><UiCheckbox v-model="state.inboundForm.secondLocalPortEnabled" />{{ t('settings.secondPort') }}</label>
         <label class="check-inline"><UiCheckbox v-model="state.inboundForm.udpEnabled" />{{ t('settings.udp') }}</label>
-        <label class="check-inline"><UiCheckbox v-model="state.inboundForm.sniffingEnabled" />{{ t('settings.sniffing') }}</label>
-        <div class="wide-field settings-multi-select"><span>{{ t('settings.destOverride') }}</span><div class="check-inline-group"><label v-for="protocol in state.settings.options?.destOverrideProtocols || []" :key="protocol" class="check-inline"><UiCheckbox :model-value="state.inboundForm.destOverride?.includes(protocol)" @change="actions.toggleDestOverride(protocol, $event)" />{{ protocol }}</label></div></div>
+        <div class="wide-field settings-sniffing-row">
+          <label class="check-inline"><UiCheckbox v-model="state.inboundForm.sniffingEnabled" />{{ t('settings.sniffing') }}</label>
+          <div class="settings-multi-select"><span>{{ t('settings.destOverride') }}</span><div class="check-inline-group"><label v-for="protocol in state.settings.options?.destOverrideProtocols || []" :key="protocol" class="check-inline"><UiCheckbox :model-value="state.inboundForm.destOverride?.includes(protocol)" @change="actions.toggleDestOverride(protocol, $event)" />{{ protocol }}</label></div></div>
+        </div>
         <label class="check-inline"><UiCheckbox v-model="state.inboundForm.routeOnly" />{{ t('settings.routeOnly') }}</label>
         <label class="check-inline"><UiCheckbox v-model="state.inboundForm.allowLANConn" />{{ t('settings.allowLan') }}</label>
         <label class="check-inline"><UiCheckbox v-model="state.inboundForm.newPort4LAN" />{{ t('settings.newLanPort') }}</label>

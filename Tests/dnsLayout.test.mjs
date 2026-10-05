@@ -49,7 +49,7 @@ test('Core DNS editor uses independent desktop columns and a mobile single-colum
   assert.match(css, /@media\s*\(max-width:\s*760px\)[\s\S]*?\.dns-core-column input:not\(\[type="checkbox"\]\), \.dns-core-column select\s*\{\s*min-height:\s*var\(--control-height-touch\)/)
 })
 
-test('shared form grids align mixed controls from the top without changing their order', async () => {
+test('shared form grids align checkbox and button rows with the neighboring controls', async () => {
   const css = await readFile(stylePath, 'utf8')
   assert.match(css, /\.form-grid\s*\{[^}]*align-items:\s*start/)
   assert.match(css, /\.button, \.tool-button, \.link-button\s*\{[^}]*min-height:\s*var\(--control-height\)/)
@@ -57,8 +57,20 @@ test('shared form grids align mixed controls from the top without changing their
   assert.match(css, /\.form-grid > \.button, \.form-grid > \.tool-button, \.form-grid > \.file-button\s*\{\s*align-self:\s*end/)
   assert.match(css, /\.profile-alias-input \.button\s*\{[^}]*min-height:\s*var\(--control-height\)/)
   assert.match(css, /@media\s*\(max-width:\s*760px\)[\s\S]*?\.profile-alias-input \.button\s*\{\s*min-height:\s*var\(--control-height-touch\)/)
-  assert.match(css, /\.form-grid \.check-inline\s*\{[^}]*min-height:\s*var\(--control-height\)/)
+  assert.match(css, /\.form-grid \.check-inline\s*\{[^}]*align-self:\s*end[^}]*min-height:\s*var\(--control-height\)[^}]*white-space:\s*normal/)
   assert.match(css, /@media\s*\(max-width:\s*760px\)[\s\S]*?\.form-grid \.check-inline\s*\{\s*min-height:\s*var\(--control-height-touch\)/)
+})
+
+test('sniffing options share one aligned row and routing selects use the standard control height', async () => {
+  const [page, css] = await Promise.all([
+    readFile(path.join(sourceRoot, 'Components/Pages/SettingsPage.vue'), 'utf8'),
+    readFile(stylePath, 'utf8'),
+  ])
+  assert.match(page, /class="wide-field settings-sniffing-row"[\s\S]*?state\.inboundForm\.sniffingEnabled[\s\S]*?class="settings-multi-select"/)
+  assert.match(css, /\.settings-sniffing-row\s*\{[^}]*grid-template-columns:\s*subgrid[^}]*align-items:\s*end/)
+  assert.match(css, /\.routing-strategy-bar input, \.routing-strategy-bar select\s*\{[^}]*min-height:\s*var\(--control-height\)/)
+  assert.match(css, /\.routing-strategy-bar > \.button\s*\{\s*min-height:\s*var\(--control-height\)/)
+  assert.match(css, /@media\s*\(max-width:\s*460px\)[\s\S]*?\.settings-sniffing-row \.settings-multi-select\s*\{\s*grid-column:\s*auto/)
 })
 
 test('Core DNS save retains all profile values and reloads the profile after PUT', async () => {

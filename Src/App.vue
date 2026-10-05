@@ -127,6 +127,7 @@ function showNotice(message: string, kind: NoticeKind = 'success') {
 
 function showError(error: unknown) {
   const issue = error as ApiError
+  if (issue.name === 'AbortError') return
   const baseMessage = issue.code === 'profile_group_empty'
     ? t('nodes.groupGenerationEmpty')
     : issue.messageKey ? translateKey(issue.messageKey) : issue.message || t('common.unknownError')
@@ -198,10 +199,25 @@ const session = useSession({
   },
   loadConnectedData,
   resetSessionData: () => {
-    runtime.status.value = null
-    profiles.profiles.value = []
-    profiles.groups.value = []
-    subscriptions.subscriptions.value = []
+    api.cancelPendingRequests()
+    runtime.reset()
+    profiles.reset()
+    subscriptions.reset()
+    routing.reset()
+    dns.reset()
+    settings.reset()
+    templates.reset()
+    maintenance.reset()
+    logs.reset()
+    contextMenu.value = null
+    activeConfirmation.value?.resolve(false)
+    activeConfirmation.value = null
+    for (const confirmation of confirmationQueue.splice(0)) confirmation.resolve(false)
+    confirmationOpen = false
+    for (const timer of toastTimers.values()) clearTimeout(timer)
+    toastTimers.clear()
+    toasts.value = []
+    activePage.value = 'nodes'
   },
   loadProfiles: profiles.loadProfiles,
 })
@@ -552,8 +568,7 @@ onMounted(async () => {
     await refreshBase()
     if (authenticated.value) {
       events.openEvents()
-      await Promise.all([settings.loadSettings(), routing.loadRouting(), loadPageData()])
-      await logs.loadLogs()
+      await loadConnectedData()
     }
   } catch (error) { showError(error) }
 })

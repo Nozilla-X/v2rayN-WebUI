@@ -4,6 +4,7 @@ import { canonicalNetwork } from '../profileEditorOptions'
 import { normalizeProfileProtocolExtra, normalizeProfileTransportExtra } from './profilePayloads.js'
 import { normalizeNullableNumbers } from './settingsPayloads.js'
 import { mergeSpeedTestResult as mergeSpeedTestResultIntoRows } from './speedtestResults.js'
+import { planSelectedMoves } from './movementOrder.js'
 
 const groupIncompatibleProfileFields = [
   'address', 'port', 'password', 'username', 'network', 'headerType', 'requestHost', 'path',
@@ -50,6 +51,7 @@ export function useProfiles(options: ApiServices & {
   const showExportDialog = ref(false)
   const editingProfileId = ref('')
   const profileModalError = ref('')
+  let profilesLoadSequence = 0
 
   const protocolTypes = ref<string[]>([])
   const coreTypes = ref<string[]>([])
@@ -68,12 +70,10 @@ export function useProfiles(options: ApiServices & {
   const allVisibleSelected = computed(() => filteredProfiles.value.length > 0 && filteredProfiles.value.every((profile) => selectedIds.value.includes(profile.indexId)))
 
   async function loadEditorOptions() {
-    try {
-      const result = await options.data('/api/editor-options')
-      editorOptions.value = result?.profiles || {}
-      protocolTypes.value = editorOptions.value.configTypes || []
-      coreTypes.value = editorOptions.value.coreTypes || []
-    } catch (error) { options.showError(error) }
+    const result = await options.data('/api/editor-options')
+    editorOptions.value = result?.profiles || {}
+    protocolTypes.value = editorOptions.value.configTypes || []
+    coreTypes.value = editorOptions.value.coreTypes || []
   }
 
   async function loadGroups() {
@@ -84,8 +84,13 @@ export function useProfiles(options: ApiServices & {
   }
 
   async function loadProfiles() {
-    const path = options.queryPath('/api/profiles', { subscriptionId: selectedGroup.value, filter: filter.value.trim() })
-    profiles.value = await options.data(path) || []
+    const sequence = ++profilesLoadSequence
+    const groupId = selectedGroup.value
+    const query = filter.value.trim()
+    const path = options.queryPath('/api/profiles', { subscriptionId: groupId, filter: query })
+    const rows = await options.data(path) || []
+    if (sequence !== profilesLoadSequence || groupId !== selectedGroup.value || query !== filter.value.trim()) return
+    profiles.value = rows
     selectedIds.value = selectedIds.value.filter((id) => profiles.value.some((profile) => profile.indexId === id))
     if (!profiles.value.some((profile) => profile.indexId === focusedProfileId.value)) {
       focusedProfileId.value = profiles.value.find((profile) => profile.isCurrent)?.indexId || profiles.value[0]?.indexId || ''
@@ -222,11 +227,12 @@ export function useProfiles(options: ApiServices & {
 
   async function moveSelected(direction: string) {
     if (!selectedIds.value.length) return options.showNotice(t('nodes.selectionRequired'), 'error')
-    const ordered = [...selectedProfiles.value]
-    if (direction === 'up' || direction === 'top') ordered.reverse()
+    const ids = [...selectedIds.value]
     try {
-      for (const profile of ordered) {
-        await options.request('/api/profiles/move', { method: 'POST', body: { profileId: profile.indexId, direction, position: -1 } })
+      // The move API uses the whole group, including rows hidden by the search filter.
+      const rows: Dict[] = await options.data(options.queryPath('/api/profiles', { subscriptionId: selectedGroup.value })) || []
+      for (const id of planSelectedMoves(rows.map((profile) => profile.indexId), ids, direction)) {
+        await options.request('/api/profiles/move', { method: 'POST', body: { profileId: id, direction, position: -1 } })
       }
       await loadProfiles()
     } catch (error) { options.showError(error) }
@@ -309,7 +315,9 @@ export function useProfiles(options: ApiServices & {
   }
 
   async function openAddProfile() {
-    await Promise.all([loadEditorOptions(), loadProfileCatalog()])
+    try {
+      await Promise.all([loadEditorOptions(), loadProfileCatalog()])
+    } catch (error) { options.showError(error); return }
     editingProfileId.value = ''
     profileModalError.value = ''
     profileForm.value = {
@@ -471,12 +479,9 @@ export function useProfiles(options: ApiServices & {
   }
 
   async function loadProfileCatalog() {
-    try {
-      const groupIds = [...new Set(['', ...groups.value.map((group) => group.id).filter(Boolean)])]
-      const lists = await Promise.all(groupIds.map((subscriptionId) => options.data(subscriptionId ? options.queryPath('/api/profiles', { subscriptionId }) : '/api/profiles?subscriptionId=')))
-      profileCatalog.value = [...new Map(lists.flat().map((item: Dict) => [item.indexId, item])).values()]
-    }
-    catch (error) { options.showError(error) }
+    const groupIds = [...new Set(['', ...groups.value.map((group) => group.id).filter(Boolean)])]
+    const lists = await Promise.all(groupIds.map((subscriptionId) => options.data(subscriptionId ? options.queryPath('/api/profiles', { subscriptionId }) : '/api/profiles?subscriptionId=')))
+    profileCatalog.value = [...new Map(lists.flat().map((item: Dict) => [item.indexId, item])).values()]
   }
 
   function openImportProfiles() {
@@ -511,6 +516,31 @@ export function useProfiles(options: ApiServices & {
     return `${value} ms`
   }
 
+  function reset() {
+    profilesLoadSequence += 1
+    profiles.value = []
+    groups.value = []
+    selectedGroup.value = ''
+    filter.value = ''
+    selectedIds.value = []
+    focusedProfileId.value = ''
+    sorting.value = { column: '', ascending: true }
+    importForm.value = { content: '', subscriptionId: '', isSubscription: false }
+    profileForm.value = {}
+    profileAdvancedJson.value = ''
+    editorOptions.value = {}
+    protocolTypes.value = []
+    coreTypes.value = []
+    profileCatalog.value = []
+    groupChildIds.value = []
+    exportContent.value = ''
+    showProfileForm.value = false
+    showImportForm.value = false
+    showExportDialog.value = false
+    editingProfileId.value = ''
+    profileModalError.value = ''
+  }
+
   const nodesPageState = reactive({ filteredProfiles, profiles, selectedGroup, groups, filter, selectedIds, focusedProfileId, allVisibleSelected, operations: options.operations, testActions })
   const profileModalState = reactive({ showProfileForm, profileForm, profileAdvancedJson, profileModalError, editingProfileId, protocolTypes, coreTypes, profileCatalog, groupChildIds, groups, editorOptions })
   const importProfilesModalState = reactive({ showImportForm, importForm, groups })
@@ -518,7 +548,7 @@ export function useProfiles(options: ApiServices & {
 
   return {
     profiles, groups, selectedGroup, selectedIds, protocolTypes, coreTypes, showProfileForm, showImportForm, showExportDialog, loadEditorOptions, loadGroups, loadProfiles,
-    openEditProfile, selectProfile, startSpeedTest, runProfileAction,
+    openEditProfile, selectProfile, startSpeedTest, runProfileAction, reset,
     nodesPageState, profileModalState, importProfilesModalState, exportModalState,
     nodesPageActions: { openAddProfile, openImportProfiles, startSpeedTest, runProfileAction, stopSpeedTests, applySpeedTestResult, changeGroup, generateGroups, loadProfiles, toggleAllVisible, toggleProfile, sortProfiles, selectProfile, formatDelay, moveSelectedToGroup, moveSelected, moveSelectedPosition, exportSelected, openContext, openSubscriptionContext, focusProfile, setFocusedProfile, handleRowKeydown },
     profileModalActions: { saveProfile, toggleGroupChild, moveGroupChild },

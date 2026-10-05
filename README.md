@@ -4,6 +4,9 @@ This repository contains one WebUI implementation for the v2rayN Web API. It is 
 independently developed Vue application; it is **not** part of the API contract and the API
 does not require Vue, Vite, Node.js, or this UI to start.
 
+The Backend is `v2rayN.Web` in [Nozilla-X/v2rayN](https://github.com/Nozilla-X/v2rayN).
+The frontend and Backend are independently versioned and released.
+
 ## Development
 
 Requirements: Node.js 22 or later and npm.
@@ -27,6 +30,21 @@ server proxies `/api` to the configured target; production builds do not embed a
 and need no CORS configuration.
 
 ## Build and install
+
+Download `v2rayN-WebUI.zip` from a [Release](https://github.com/Nozilla-X/v2rayN-WebUI/releases)
+and extract its contents into `webui/` beside the Backend executable, or into its configured
+WebUI directory:
+
+```sh
+mkdir -p webui
+unzip v2rayN-WebUI.zip -d webui
+```
+
+The ZIP has no enclosing `dist/` directory. The installed WebUI consists only of static files;
+**Node.js is needed for development/building, not at runtime**. You can replace or upgrade the
+WebUI independently without replacing the Backend.
+
+To build the same static site from source:
 
 ```sh
 npm run build
@@ -54,7 +72,7 @@ self-update packages do not contain or modify that directory.
 
 ## API compatibility
 
-This WebUI is developed against the v2rayN Web API contract in **Backend 7.25.4** and requires
+This WebUI requires a compatible `v2rayN.Web` API that provides
 the API capabilities `auth.sessions`, `events.sse`, `editor.options`, `profiles`,
 `subscriptions`, `routing`, `dns`, `settings`, `backup.restore`, `core.runtime`, `core.updates`,
 `web.self-update`, and `static-webui`.
@@ -67,6 +85,14 @@ private WebUI manifest or a separate API version endpoint.
 
 The independently versioned WebUI may not work with every historical Backend build. Pair it
 with an API that reports the required capability identifiers and exposes the endpoints above.
+
+## Releases
+
+PRs and pushes to `main` run tests, type checking and the production build without creating a
+Release. A stable `vX.Y.Z` tag, or a manual CI run with `release_tag`, publishes the verified
+`v2rayN-WebUI.zip`. Before tagging, update `package.json` and the lockfile to `X.Y.Z` and add its
+entry to [CHANGELOG.md](CHANGELOG.md). The workflow automatically reads that entry for Release
+Notes; missing notes or inconsistent versions fail the release.
 
 ## Screenshots
 

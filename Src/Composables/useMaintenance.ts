@@ -20,6 +20,7 @@ export function useMaintenance(options: ApiServices & {
   const updateSettings = ref<Dict>({ targets: [], geoFilesSelected: true, checkPreReleaseCoreTypes: [], preRelease: false, useProxy: true })
   const updateResults = ref<Record<string, Dict>>({})
   const updateProgress = ref<Record<string, Dict>>({})
+  const geoUpdateSubmitting = ref(false)
 
   async function loadMaintenance() {
     const [webdav, updates, progress, webTarget] = await Promise.all([
@@ -154,6 +155,7 @@ export function useMaintenance(options: ApiServices & {
 
   async function checkWebUpdate() {
     try {
+      if (!await persistUpdateSettings(false)) return
       const result = await options.request('/api/web-updates/check')
       const check = result.data || {}
       updateResults.value = { ...updateResults.value, 'v2rayN.Web': check }
@@ -186,12 +188,15 @@ export function useMaintenance(options: ApiServices & {
   }
 
   async function updateGeo() {
+    if (geoUpdateSubmitting.value) return
+    geoUpdateSubmitting.value = true
     try {
       if (!await persistUpdateSettings(false)) return
       const result = await options.request('/api/core/geo/update', { method: 'POST' })
       options.showNotice(options.operationMessage(result, 'updates.geoStarted'))
       await options.loadOperations()
     } catch (error) { options.showError(error) }
+    finally { geoUpdateSubmitting.value = false }
   }
 
   async function saveWebdav() {
@@ -248,13 +253,21 @@ export function useMaintenance(options: ApiServices & {
   }
 
   const maintenancePageState = reactive({
-    updateSettings, updateResults, updateProgress,
+    updateSettings, updateResults, updateProgress, geoUpdateSubmitting,
     operations: options.operations, status: options.status, webdavForm,
   })
 
+  function reset() {
+    webdavForm.value = { url: '', userName: '', password: '', dirName: '' }
+    updateSettings.value = { targets: [], geoFilesSelected: true, checkPreReleaseCoreTypes: [], preRelease: false, useProxy: true }
+    updateResults.value = {}
+    updateProgress.value = {}
+    geoUpdateSubmitting.value = false
+  }
+
   return {
     webdavForm, updateSettings, updateResults, updateProgress, loadMaintenance, loadCoreUpdateProgress,
-    recordCoreUpdateProgress, notifyCoreUpdateBatchComplete, notifyGeoUpdateComplete, maintenancePageState,
+    recordCoreUpdateProgress, notifyCoreUpdateBatchComplete, notifyGeoUpdateComplete, maintenancePageState, reset,
     maintenancePageActions: {
       checkCoreUpdate, updateCore, checkWebUpdate, updateWeb, runSelectedUpdateBatch, saveUpdateSettings, setPreReleaseTarget, updateGeo, clearStatistics, saveWebdav,
       webdavAction, downloadBackup, uploadRestore, loadMaintenance, loadOperations: options.loadOperations,

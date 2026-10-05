@@ -22,5 +22,9 @@ export function useTemplates(options: ApiServices & { showNotice: Notice; showEr
 
   const templatesPageState = reactive({ templates })
 
-  return { templates, loadTemplates, templatesPageState, templatesPageActions: { loadTemplates, saveTemplate } }
+  function reset() {
+    templates.value = []
+  }
+
+  return { templates, loadTemplates, templatesPageState, reset, templatesPageActions: { loadTemplates, saveTemplate } }
 }

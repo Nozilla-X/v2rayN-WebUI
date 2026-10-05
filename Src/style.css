@@ -317,17 +317,19 @@ input[type="checkbox"] { width: 16px; height: 16px; flex: 0 0 16px; align-self: 
 .code-area:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { border-color: var(--focus); }
 .rules-json { min-height: 180px; }
 .dns-code { min-height: 400px; }
-.form-grid { display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; gap: 7px; margin-bottom: 8px; }
+.form-grid { display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; gap: var(--space-3); margin-bottom: 8px; }
 .form-grid.two-col { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .form-grid.three-col { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.form-grid label, .modal-panel > label { display: grid; gap: 4px; color: var(--text-muted); font-size: 10px; }
+.form-grid label, .modal-panel > label { display: grid; gap: 4px; color: var(--text-muted); font-size: 10px; line-height: 1.4; }
 .form-grid input, .form-grid select, .form-grid textarea, .modal-panel input:not([type="checkbox"]), .modal-panel select, .modal-panel textarea:not(.code-area) { width: 100%; min-width: 0; min-height: var(--control-height); padding: 3px 6px; color: var(--text); border: 1px solid var(--border-strong); border-radius: 2px; background: var(--surface-input); font-size: 11px; }
 .form-grid textarea:not(.code-area), .modal-panel textarea:not(.code-area) { min-height: 52px; resize: vertical; }
 .form-grid > .button, .form-grid > .tool-button, .form-grid > .file-button { align-self: end; }
-.form-grid .check-inline { display: inline-flex; align-self: center; justify-self: start; align-items: center; width: max-content; max-width: 100%; min-height: var(--control-height); gap: 6px; white-space: nowrap; }
+.form-grid .check-inline { display: inline-flex; align-self: end; justify-self: start; align-items: center; width: max-content; max-width: 100%; min-height: var(--control-height); gap: 6px; white-space: normal; }
 .form-grid .check-inline input[type="checkbox"] { flex: 0 0 16px; width: 16px; height: 16px; min-height: 16px; padding: 0; border: 0; background: transparent; }
 .form-grid .wide-field { grid-column: 1 / -1; }
-.settings-multi-select { display: grid; align-content: start; gap: 5px; color: var(--text-muted); font-size: 10px; }
+.settings-sniffing-row { display: grid; grid-template-columns: subgrid; align-items: end; gap: var(--space-3); }
+.settings-sniffing-row .settings-multi-select { grid-column: 2 / -1; }
+.settings-multi-select { display: grid; align-content: start; gap: 4px; color: var(--text-muted); font-size: 10px; line-height: 1.4; }
 .check-inline-group { display: flex; flex-wrap: wrap; gap: 8px; }
 .mapping-list { max-height: 270px; overflow: auto; }
 .mapping-row { display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 8px; min-height: 29px; border-bottom: 1px solid var(--border-soft); color: var(--text); font-size: 10px; }
@@ -483,7 +485,8 @@ input[type="checkbox"] { width: 16px; height: 16px; flex: 0 0 16px; }
 
 .routing-strategy-bar { display: flex; align-items: end; gap: 8px; margin: 0 0 8px; padding: 7px 8px; border: 1px solid var(--border); background: var(--surface-inset); }
 .routing-strategy-bar label { display: grid; flex: 1 1 240px; gap: 4px; color: var(--text-muted); font-size: 10px; }
-.routing-strategy-bar input { width: 100%; min-width: 0; min-height: var(--control-height); padding: 3px 6px; color: var(--text); border: 1px solid var(--border-strong); border-radius: 2px; background: var(--surface-input); font-size: 11px; }
+.routing-strategy-bar input, .routing-strategy-bar select { width: 100%; min-width: 0; min-height: var(--control-height); padding: 3px 6px; color: var(--text); border: 1px solid var(--border-strong); border-radius: 2px; background: var(--surface-input); font-size: 11px; }
+.routing-strategy-bar > .button { min-height: var(--control-height); }
 .routing-workspace { grid-template-columns: minmax(240px, 315px) minmax(0, 1fr); }
 .heading-check { display: flex; align-items: center; gap: 7px; }
 .heading-check h2 { margin: 0; }
@@ -593,6 +596,7 @@ input[type="checkbox"] { width: 16px; height: 16px; flex: 0 0 16px; }
   .form-grid input:not([type="checkbox"]), .form-grid select, .form-label input, .form-label select, .mapping-row select { min-height: var(--control-height-touch); }
   .check-inline { min-height: var(--control-height-touch); }
   .form-grid .check-inline { min-height: var(--control-height-touch); }
+  .routing-strategy-bar input, .routing-strategy-bar select, .routing-strategy-bar > .button { min-height: var(--control-height-touch); }
   .section-tabs button { min-height: var(--control-height-touch); }
   .page-title { min-height: 27px; }
   .selection-summary { margin-left: auto; }
@@ -658,6 +662,8 @@ input[type="checkbox"] { width: 16px; height: 16px; flex: 0 0 16px; }
   .form-grid.two-col, .form-grid.three-col { grid-template-columns: 1fr; }
   .form-grid .check-inline { white-space: normal; }
   .form-grid .wide-field { grid-column: auto; }
+  .settings-sniffing-row .settings-multi-select { grid-column: auto; }
+  .routing-strategy-bar { flex-wrap: wrap; }
   .current-runtime-name { max-width: 110px; }
   .core-actions { width: 100%; justify-content: stretch; }
   .core-actions .button { flex: 1; }

@@ -110,5 +110,10 @@ export function useLogs(options: ApiServices & {
 
   const logsPageState = reactive({ logTotal, logFilter, logs, logPage, logTotalPages, selectedLogKeys })
 
-  return { logs, logFilter, logPage, logTotal, logPageSize, logTotalPages, matchesLogFilter, loadLogs, clearLogsState, logsPageState, logsPageActions: { loadLogs, clearLogs, changeLogPage, logKey, toggleLog, toggleAllLogs, copyCurrentPage, copySelectedLogs, copyAllLogs } }
+  function reset() {
+    logFilter.value = ''
+    clearLogsState()
+  }
+
+  return { logs, logFilter, logPage, logTotal, logPageSize, logTotalPages, matchesLogFilter, loadLogs, clearLogsState, logsPageState, reset, logsPageActions: { loadLogs, clearLogs, changeLogPage, logKey, toggleLog, toggleAllLogs, copyCurrentPage, copySelectedLogs, copyAllLogs } }
 }

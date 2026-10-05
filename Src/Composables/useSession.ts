@@ -163,7 +163,14 @@ export function useSession(options: {
   function clearSession() {
     options.closeEvents()
     options.token.value = ''
-    localStorage.removeItem('v2rayn-web-token')
+    try {
+      localStorage.removeItem('v2rayn-web-token')
+    } catch {
+      // Browser storage policy must not prevent clearing in-memory credentials.
+    }
+    managementKeyDraft.value = ''
+    setupKey.value = ''
+    setupConfirmKey.value = ''
     options.authenticated.value = false
     options.resetSessionData()
   }

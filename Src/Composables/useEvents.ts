@@ -1,6 +1,7 @@
 import { onUnmounted, watch, type Ref } from 'vue'
 import type { Dict, RequestApi, Notice, Translate } from './types'
 import { enqueueLogEntry, takeLogBatch } from './logBatch.js'
+import { createEventRefresh } from './eventRefresh.js'
 
 export function useEvents(options: {
   token: Ref<string>
@@ -37,6 +38,36 @@ export function useEvents(options: {
   let logEventHandler: EventListener | undefined
   let eventSourceIncludesLogs = false
   let minimumLogGeneration = 0
+  let geoUpdateActive = false
+  const operationsRefresh = createEventRefresh(options.loadOperations)
+  const updatePhases = new Map<string, string>()
+  const pendingUpdateProgress = new Map<string, Dict>()
+  let updateProgressTimer: ReturnType<typeof setTimeout> | undefined
+
+  function recordUpdateProgress(progress: Dict) {
+    if (typeof progress.coreType !== 'string') return
+    if (progress.isComplete || updatePhases.get(progress.coreType) !== progress.phase) {
+      updatePhases.set(progress.coreType, progress.phase)
+      pendingUpdateProgress.delete(progress.coreType)
+      if (!pendingUpdateProgress.size) {
+        clearTimeout(updateProgressTimer)
+        updateProgressTimer = undefined
+      }
+      options.onCoreUpdateProgress(progress)
+      return
+    }
+    // Download packets can arrive thousands of times a second. Keep only the
+    // latest progress per Core and render at most once per 100 ms.
+    pendingUpdateProgress.set(progress.coreType, progress)
+    if (updateProgressTimer === undefined) {
+      updateProgressTimer = setTimeout(() => {
+        updateProgressTimer = undefined
+        const batch = [...pendingUpdateProgress.values()]
+        pendingUpdateProgress.clear()
+        for (const latest of batch) options.onCoreUpdateProgress(latest)
+      }, 100)
+    }
+  }
 
   function openEvents() {
     closeEvents()
@@ -144,14 +175,26 @@ export function useEvents(options: {
       })
       source.addEventListener('core-update-progress', (event) => {
         const progress = JSON.parse((event as MessageEvent).data) as Dict
-        options.onCoreUpdateProgress(progress)
+        recordUpdateProgress(progress)
+        if (progress.coreType === 'GeoFiles') {
+          if (!geoUpdateActive && !progress.isComplete) operationsRefresh.request()
+          geoUpdateActive = !progress.isComplete
+        }
         if (progress.phase === 'checking' || progress.isComplete) {
-          void options.loadOperations().catch(() => {})
+          operationsRefresh.request()
         }
       })
       source.addEventListener('core-update-batch-completed', (event) => {
         options.onCoreUpdateBatchComplete(JSON.parse((event as MessageEvent).data) as Dict)
-        void options.loadOperations().catch(() => {})
+        operationsRefresh.request()
+      })
+      source.addEventListener('geo-update-progress', () => {
+        // Raw progress does not change operation membership. Refresh once at
+        // startup, not once per download packet; completion refreshes below.
+        if (!geoUpdateActive) {
+          geoUpdateActive = true
+          operationsRefresh.request()
+        }
       })
       source.addEventListener('logs-cleared', (event) => {
         const payload = JSON.parse((event as MessageEvent).data) as Dict
@@ -159,7 +202,7 @@ export function useEvents(options: {
         clearPendingLogQueue(generation)
         options.onLogsCleared(generation)
       })
-      for (const eventName of ['profiles-changed', 'subscription-progress', 'settings-changed', 'core-state', 'geo-update-progress', 'geo-update-completed', 'xray-update-completed']) {
+      for (const eventName of ['profiles-changed', 'subscription-progress', 'settings-changed', 'core-state', 'geo-update-completed', 'xray-update-completed']) {
         source.addEventListener(eventName, (event) => {
         if (eventName === 'core-state') {
           const state = JSON.parse((event as MessageEvent).data) as Dict
@@ -183,9 +226,10 @@ export function useEvents(options: {
           void Promise.all([options.loadStatus(), options.loadRouting()]).catch(() => {})
         }
         if (eventName === 'geo-update-completed') {
+          geoUpdateActive = false
           options.onGeoUpdateComplete(JSON.parse((event as MessageEvent).data) as Dict)
         }
-        if (eventName.includes('update')) void options.loadOperations().catch(() => {})
+        if (eventName === 'geo-update-completed' || eventName === 'xray-update-completed') operationsRefresh.request()
       })
       }
       source.onerror = () => {
@@ -218,6 +262,12 @@ export function useEvents(options: {
 
   function closeEvents() {
     connectionGeneration += 1
+    operationsRefresh.clear()
+    geoUpdateActive = false
+    clearTimeout(updateProgressTimer)
+    updateProgressTimer = undefined
+    pendingUpdateProgress.clear()
+    updatePhases.clear()
     clearTimeout(reconnectTimer)
     reconnectTimer = undefined
     reconnectAttempts = 0

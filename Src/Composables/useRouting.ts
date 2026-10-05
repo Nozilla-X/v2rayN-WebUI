@@ -2,6 +2,8 @@ import { computed, reactive, ref } from 'vue'
 import type { ApiServices, Dict, ErrorHandler, Notice, Translate } from './types'
 import { deleteSelectedRoutingRules as runBatchRuleDeletion } from './batchRuleDeletion.js'
 import { createUuid } from './uuid.mjs'
+import { planSelectedMoves } from './movementOrder.js'
+import { buildRoutingRuleBody } from './routingRulePayloads.js'
 
 export function useRouting(options: ApiServices & {
   t: Translate
@@ -24,6 +26,7 @@ export function useRouting(options: ApiServices & {
   const routingForm = ref<Dict>({})
   const routeForm = ref<Dict>({})
   const ruleForm = ref<Dict>({})
+  const initialRuleForm = ref<Dict>({})
   const ruleAdvancedJson = ref('')
   const ruleModalError = ref('')
   const showRouteForm = ref(false)
@@ -202,6 +205,7 @@ export function useRouting(options: ApiServices & {
     ruleModalError.value = ''
     ruleForm.value = { id: createUuid(), enabled: true, type: 'field', remarks: '', ruleType: null, outboundTag: 'proxy', port: '', network: '', inboundTagText: '', protocolText: '', domainText: '', ipText: '', processText: '' }
     ruleAdvancedJson.value = JSON.stringify({ id: '', type: 'field', port: '', network: '', inboundTag: [], outboundTag: 'proxy', ip: [], domain: [], protocol: [], process: [], enabled: true, remarks: '', ruleType: null }, null, 2)
+    initialRuleForm.value = { ...ruleForm.value }
     showRuleForm.value = true
   }
 
@@ -217,11 +221,8 @@ export function useRouting(options: ApiServices & {
       processText: (rule.process || []).join('\n'),
     }
     ruleAdvancedJson.value = JSON.stringify(rule, null, 2)
+    initialRuleForm.value = { ...ruleForm.value }
     showRuleForm.value = true
-  }
-
-  function listFromText(value: string) {
-    return value.split(/[\r\n,]+/).map((item) => item.trim()).filter(Boolean)
   }
 
   async function saveRoutingRule() {
@@ -229,22 +230,8 @@ export function useRouting(options: ApiServices & {
     savingRoutingRule.value = true
     try {
       const advanced = JSON.parse(ruleAdvancedJson.value || '{}')
-      const rule = {
-        ...advanced,
-        ...ruleForm.value,
-        id: editingRuleId.value || ruleForm.value.id || createUuid(),
-        inboundTag: listFromText(ruleForm.value.inboundTagText || ''),
-        protocol: listFromText(ruleForm.value.protocolText || ''),
-        domain: listFromText(ruleForm.value.domainText || ''),
-        ip: listFromText(ruleForm.value.ipText || ''),
-        process: listFromText(ruleForm.value.processText || ''),
-        ruleType: ruleForm.value.ruleType || null,
-      }
-      delete rule.inboundTagText
-      delete rule.protocolText
-      delete rule.domainText
-      delete rule.ipText
-      delete rule.processText
+      const rule = buildRoutingRuleBody(advanced, ruleForm.value, initialRuleForm.value,
+        editingRuleId.value || ruleForm.value.id || createUuid())
       const hasMatch = Boolean(rule.port || rule.network || rule.inboundTag.length || rule.protocol.length || rule.domain.length || rule.ip.length || rule.process.length)
       if (!hasMatch) {
         ruleModalError.value = t('routing.matchConditionRequired')
@@ -307,13 +294,12 @@ export function useRouting(options: ApiServices & {
 
   async function moveSelectedRules(direction: string) {
     if (!selectedRuleIds.value.length) return
-    const ordered = routingRules.value.filter((rule) => selectedRuleIds.value.includes(rule.id))
-    if (direction === 'up' || direction === 'top') ordered.reverse()
+    const ordered = planSelectedMoves(routingRules.value.map((rule) => rule.id), selectedRuleIds.value, direction)
     const directionName = direction[0].toUpperCase() + direction.slice(1)
     try {
-      for (const rule of ordered) {
+      for (const id of ordered) {
         await options.request(`/api/settings/routing-profiles/${encodeURIComponent(selectedRoutingId.value)}/rules/move`, {
-          method: 'POST', body: { ruleId: rule.id, direction: directionName, position: -1 },
+          method: 'POST', body: { ruleId: id, direction: directionName, position: -1 },
         })
       }
       await loadRules()
@@ -356,14 +342,42 @@ export function useRouting(options: ApiServices & {
     finally { applyingPreset.value = '' }
   }
 
+  function reset() {
+    rulesLoadSequence += 1
+    activeRoutingId.value = ''
+    selectedRoutingId.value = ''
+    routes.value = []
+    routingOptions.value = {}
+    routingRules.value = []
+    selectedRouteIds.value = []
+    selectedRuleIds.value = []
+    rulesRaw.value = '[]'
+    ruleImportText.value = ''
+    routingForm.value = {}
+    routeForm.value = {}
+    ruleForm.value = {}
+    initialRuleForm.value = {}
+    ruleAdvancedJson.value = ''
+    ruleModalError.value = ''
+    showRouteForm.value = false
+    showRuleForm.value = false
+    applyingPreset.value = ''
+    deletingSelectedRules.value = false
+    deletingSelectedRoutes.value = false
+    deletingRuleId.value = ''
+    savingRoutingRule.value = false
+    editingRouteId.value = ''
+    editingRuleId.value = ''
+  }
+
   const routingPageState = reactive({ routes, activeRoutingId, selectedRoutingId, currentRoute, selectedRoute, routingForm, routingRules, rulesRaw, ruleImportText, appendRules, selectedRouteIds, selectedRuleIds, routingOptions, applyingPreset, deletingSelectedRules, deletingSelectedRoutes, deletingRuleId })
   const routeModalState = reactive({ showRouteForm, routeForm, editingRouteId, routingOptions })
   const ruleModalState = reactive({ showRuleForm, ruleForm, ruleAdvancedJson, ruleModalError, editingRuleId, savingRoutingRule })
 
   return {
     activeRoutingId, selectedRoutingId, routes, routingForm, routingOptions, showRouteForm, loadRouting, loadRules, routingPageState, routeModalState, ruleModalState,
-    activateRoute,
-    routingPageActions: { importRoutingProfiles, openAddRoute, loadRules, selectRoutingProfile, openEditRoute, deleteRoute, deleteSelectedRoutes, toggleAllRoutes, activateRoute, applyPreset, saveRoutingStrategies, addRoutingRule, openEditRoutingRule, saveRoutingRule, toggleAllRules, deleteSelectedRules, exportSelectedRules, moveSelectedRules, copyRoutingRules, saveRoutingRules, moveRoutingRule, removeRoutingRule, importRoutingRules, importRulesFromClipboard, readRulesFile, importRulesFromUrl },
+    activateRoute, reset,
+    routingPageActions: { importRoutingProfiles, openAddRoute, loadRouting, loadRules, selectRoutingProfile, openEditRoute, deleteRoute, deleteSelectedRoutes, toggleAllRoutes, activateRoute, applyPreset, saveRoutingStrategies, addRoutingRule, openEditRoutingRule, saveRoutingRule, toggleAllRules, deleteSelectedRules, exportSelectedRules, moveSelectedRules, copyRoutingRules, saveRoutingRules, moveRoutingRule, removeRoutingRule, importRoutingRules, importRulesFromClipboard, readRulesFile, importRulesFromUrl },
     routeModalActions: { saveRoute },
     ruleModalActions: { saveRoutingRule },
   }

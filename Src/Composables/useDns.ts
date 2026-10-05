@@ -67,5 +67,13 @@ export function useDns(options: ApiServices & { t: Translate; showNotice: Notice
 
   const dnsPageState = reactive({ simpleDnsForm, simpleDnsAdvancedRaw, dnsProfiles, dnsOptions })
 
-  return { simpleDnsForm, simpleDnsAdvancedRaw, dnsProfiles, loadDns, dnsPageState, dnsPageActions: { loadDns, saveSimpleDns, saveDnsProfile, importDefaultDns } }
+  function reset() {
+    simpleDnsForm.value = {}
+    simpleDnsAdvancedRaw.value = '{}'
+    initialSimpleDns.value = {}
+    dnsProfiles.value = []
+    dnsOptions.value = {}
+  }
+
+  return { simpleDnsForm, simpleDnsAdvancedRaw, dnsProfiles, loadDns, dnsPageState, reset, dnsPageActions: { loadDns, saveSimpleDns, saveDnsProfile, importDefaultDns } }
 }
