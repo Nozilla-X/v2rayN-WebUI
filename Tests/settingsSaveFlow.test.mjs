@@ -18,7 +18,8 @@ test('every settings save uses one canonical settings reload after successful pe
     const body = source.slice(start, nextFunction < 0 ? source.indexOf('\n  const settingsPageState', start) : nextFunction)
     assert.match(body, /saveSettingsAndReload\(/, `${name} refreshes canonical settings`)
   }
-  assert.match(source, /settings\.value = await options\.data\('\/api\/settings'\)/)
+  assert.match(source, /const loaded = await options\.data\('\/api\/settings'\)/)
+  assert.match(source, /if \(generation !== loadGeneration\) return\s+settings\.value = loaded/)
 })
 
 test('settings option controls use Backend-provided ServiceLib candidates', async () => {

@@ -52,6 +52,6 @@ const tabs = [
 
     <section v-else class="settings-section form-section"><div class="settings-subsection"><div class="section-heading"><div><h2>{{ t('settings.coreTypes') }}</h2><small>{{ t('settings.coreTypesHint') }}</small></div></div><div class="mapping-list"><div v-for="mapping in state.settings.coreTypes || []" :key="mapping.configType" class="mapping-row"><span>{{ mapping.configType }}</span><select v-model="mapping.coreType"><option v-for="core in state.coreTypes" :key="core" :value="core">{{ core === 'sing_box' ? 'sing-box' : core }}</option></select></div></div></div></section>
 
-    <footer class="footer-actions settings-footer settings-global-footer"><span class="muted">{{ t('settings.singleSaveHint') }}</span><button class="button primary" @click="actions.saveAllSettings">{{ t('settings.saveAll') }}</button></footer>
+    <footer class="footer-actions settings-footer settings-global-footer"><span class="muted">{{ t('settings.singleSaveHint') }}</span><button class="button primary" :disabled="state.saving" :aria-busy="state.saving" @click="actions.saveAllSettings">{{ t('settings.saveAll') }}</button></footer>
   </section>
 </template>

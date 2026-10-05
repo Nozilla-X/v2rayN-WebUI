@@ -18,9 +18,14 @@ export function useSettings(options: ApiServices & {
   const coreForm = ref<Dict>({})
   const appForm = ref<Dict>({})
   const speedForm = ref<Dict>({})
+  const saving = ref(false)
+  let loadGeneration = 0
 
   async function loadSettings() {
-    settings.value = await options.data('/api/settings') || {}
+    const generation = ++loadGeneration
+    const loaded = await options.data('/api/settings') || {}
+    if (generation !== loadGeneration) return
+    settings.value = loaded
     options.routingOptions.value = settings.value.options || {}
     settings.value.coreTypes = (settings.value.coreTypes || []).map((mapping: Dict) => ({
       ...mapping,
@@ -95,6 +100,10 @@ export function useSettings(options: ApiServices & {
   }
 
   async function saveAllSettings() {
+    if (saving.value) return { completed: [], failed: null }
+    saving.value = true
+    // A GET started before this save must not restore an older snapshot.
+    loadGeneration += 1
     try {
       const body = buildSettingsApplyBody({
         inbound: inboundForm.value,
@@ -110,10 +119,21 @@ export function useSettings(options: ApiServices & {
     } catch (error) {
       options.showError(error)
       return { completed: [], failed: 'settings.allSaved' }
+    } finally {
+      saving.value = false
     }
   }
 
-  const settingsPageState = reactive({ inboundForm, coreForm, appForm, speedForm, settings, coreTypes: options.coreTypes })
+  const settingsPageState = reactive({ inboundForm, coreForm, appForm, speedForm, settings, saving, coreTypes: options.coreTypes })
 
-  return { settings, inboundForm, coreForm, appForm, speedForm, loadSettings, settingsPageState, settingsPageActions: { saveInbound, saveCoreSettings, saveAppSettings, saveSpeedSettings, saveCoreTypes, saveAllSettings, toggleDestOverride } }
+  function reset() {
+    loadGeneration += 1
+    settings.value = {}
+    inboundForm.value = {}
+    coreForm.value = {}
+    appForm.value = {}
+    speedForm.value = {}
+  }
+
+  return { settings, inboundForm, coreForm, appForm, speedForm, loadSettings, settingsPageState, reset, settingsPageActions: { saveInbound, saveCoreSettings, saveAppSettings, saveSpeedSettings, saveCoreTypes, saveAllSettings, toggleDestOverride } }
 }

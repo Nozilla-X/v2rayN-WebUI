@@ -2,8 +2,9 @@ import { createI18n } from 'vue-i18n'
 import zhCN from './Locales/zh-CN.json'
 import zhTW from './Locales/zh-TW.json'
 import enUS from './Locales/en-US.json'
+import { readStoredValue } from './Composables/browserStorage'
 
-const savedLocale = localStorage.getItem('v2rayn-web-locale')
+const savedLocale = readStoredValue('v2rayn-web-locale')
 const availableLocales = ['zh-CN', 'zh-TW', 'en-US'] as const
 
 function detectBrowserLocale(): (typeof availableLocales)[number] {

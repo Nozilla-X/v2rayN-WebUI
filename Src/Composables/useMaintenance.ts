@@ -1,5 +1,5 @@
 import { reactive, ref, type Ref } from 'vue'
-import type { ApiError, ApiServices, Dict, ErrorHandler, Notice, Translate } from './types'
+import type { ApiServices, Dict, ErrorHandler, Notice, Translate } from './types'
 
 const webUpdateTargetType = 'v2rayN.Web'
 
@@ -215,18 +215,11 @@ export function useMaintenance(options: ApiServices & {
 
   async function downloadBackup() {
     try {
-      const response = await fetch('/api/backup/download', { headers: { Authorization: `Bearer ${options.token.value}` } })
-      if (!response.ok) {
-        const payload = await response.json().catch(() => null)
-        const issue = new Error(options.translateKey(payload?.messageKey)) as ApiError
-        issue.messageKey = payload?.messageKey
-        throw issue
-      }
-      const blob = await response.blob()
+      const { blob, filename } = await options.download('/api/backup/download')
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      link.download = response.headers.get('Content-Disposition')?.match(/filename="?([^";]+)"?/i)?.[1] || 'v2rayN-backup.zip'
+      link.download = filename
       link.click()
       URL.revokeObjectURL(url)
     } catch (error) { options.showError(error) }

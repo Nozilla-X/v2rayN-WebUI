@@ -34,13 +34,14 @@ import { useSettings } from './Composables/useSettings'
 import { useSubscriptions } from './Composables/useSubscriptions'
 import { useTemplates } from './Composables/useTemplates'
 import { useTheme } from './Composables/useTheme'
+import { readStoredValue, writeStoredValue } from './Composables/browserStorage'
 import type { ApiError, Dict, NoticeKind } from './Composables/types'
 import { navigateMenu } from './Components/menuContext'
 import { preventNativeContextMenu } from './Components/contextMenu'
 
 const { t, locale } = useI18n()
 const theme = useTheme()
-const sessionToken = ref(localStorage.getItem('v2rayn-web-token') || '')
+const sessionToken = ref(readStoredValue('v2rayn-web-token') || '')
 const authenticated = ref(false)
 const loading = ref(false)
 const activePage = ref('nodes')
@@ -537,7 +538,7 @@ watch(activePage, async () => {
 })
 
 watch(locale, (value) => {
-  localStorage.setItem('v2rayn-web-locale', value)
+  writeStoredValue('v2rayn-web-locale', value)
   document.documentElement.lang = value
 }, { immediate: true })
 
