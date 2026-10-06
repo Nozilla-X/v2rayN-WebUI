@@ -130,6 +130,7 @@
     "more": "More"
   },
   "nodes": {
+    "toolsMenu": "Tools",
     "showDetails": "More details",
     "collapseDetails": "Less details",
     "title": "Configuration",

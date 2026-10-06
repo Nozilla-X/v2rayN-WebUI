@@ -84,3 +84,13 @@ The panel supports focus trapping, focus return, Escape, outside-click dismissal
 Build and **98 unit/contract tests** pass. The 36-case status/node-card browser runner covers panel lifecycle, original mocked start/restart/stop and route-activation endpoints, dark/light themes, fault-summary updates, focus/scroll behavior and breakpoint transitions. The 26 batch-speedtest payload checks also pass. Short/long fixture screenshot regression covers all primary pages at 360/390/430/502/760px and desktop widths 1280/1440/1920.
 
 New screenshots are under `/tmp/opencode/webui-mobile-browser/core-panel-{short,long}/` and `core-panel-regression/`. This change is recorded under Unreleased; the published `v1.0.1` tag and assets remain unchanged.
+
+## Denser node summaries and a coherent utility entry
+
+Mobile node type is now a small capsule beside the name, using the existing accent palette. It follows the text width rather than stretching to a third of the card. Transport and security remain visible as lightweight endpoint metadata, removing the old standalone three-box protocol row. Long names/endpoints still wrap; the checkbox/context actions retain their touch areas. Short fixture cards are now approximately 175px high instead of 220px.
+
+The five loose mobile toolbar icons are replaced by **Tools**, immediately before **Add**. Its items reuse the existing edit/add subscription actions, shared column-fitting state, fast real-connection test and mixed test actions. Editing remains disabled for all-groups selection and becomes available for a selected subscription. Desktop retains the original icon toolbar and protocol columns.
+
+Build and **100 unit/contract tests** pass. The 36 status/node-card cases check intrinsic VLESS/Hysteria2 capsule widths, title placement, compact heights, summary visibility, long-name handling and existing Core-panel behavior. The batch/node-tools browser runner verifies **30 POST payloads**, all five utility entries, checkbox-style column fitting, subscription dialogs, multi-selection, English header spacing and original desktop utilities. Short/long fixture screenshots include subscription metadata entries and all primary pages at 360/390/430/502/760px plus desktop widths 1280/1440/1920.
+
+Screenshot output is in `/tmp/opencode/webui-mobile-browser/node-density-{short,long}/` and `node-density-regression/`. These are Unreleased changes; no published release tag or asset is replaced.

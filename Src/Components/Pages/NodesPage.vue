@@ -43,7 +43,18 @@ function toggleDetails(id: string) {
 
   <div class="page-header page-toolbar nodes-page-toolbar">
     <div class="page-title"><h1>{{ t('nodes.title') }}</h1><span class="count-tag">{{ state.filteredProfiles.length }}</span><span v-if="state.selectedIds.length" class="selection-summary"><strong>{{ t('common.selected', { count: state.selectedIds.length }) }}</strong><button class="selection-clear" :aria-label="t('common.clearSelection')" :title="t('common.clearSelection')" @click="state.selectedIds = []"><UiIcon name="close" :size="12" /></button></span></div>
-    <div class="toolbar-main"><ActionDropdown :label="t('nodes.addMenu')" prefix="plus" variant="primary"><button class="action-menu-item" role="menuitem" @click="actions.openAddProfile">{{ t('nodes.addNode') }}</button><button class="action-menu-item" role="menuitem" @click="actions.openImportProfiles">{{ t('nodes.importNodes') }}…</button></ActionDropdown></div>
+    <div class="toolbar-main">
+      <ActionDropdown class="mobile-node-tools" :label="t('nodes.toolsMenu')">
+        <button class="action-menu-item" role="menuitem" :disabled="!selectedSubscription" @click="selectedSubscription && actions.openEditSubscription(selectedSubscription)">{{ t('subscriptions.editSubscription') }}</button>
+        <button class="action-menu-item" role="menuitem" @click="actions.openAddSubscription">{{ t('subscriptions.addSubscription') }}</button>
+        <div class="action-menu-separator" role="separator"></div>
+        <button class="action-menu-item" role="menuitemcheckbox" :aria-checked="autoFitColumns" @click="autoFitColumns = !autoFitColumns">{{ t('nodes.autoFitColumns') }}<UiIcon v-if="autoFitColumns" name="check" :size="12" /></button>
+        <div class="action-menu-separator" role="separator"></div>
+        <button class="action-menu-item" role="menuitem" @click="actions.startSpeedTest('fastRealping')">{{ t('nodes.fastRealping') }}</button>
+        <button class="action-menu-item" role="menuitem" @click="actions.startSpeedTest('mixedtest')">{{ t('nodes.mixedtest') }}</button>
+      </ActionDropdown>
+      <ActionDropdown :label="t('nodes.addMenu')" prefix="plus" variant="primary"><button class="action-menu-item" role="menuitem" @click="actions.openAddProfile">{{ t('nodes.addNode') }}</button><button class="action-menu-item" role="menuitem" @click="actions.openImportProfiles">{{ t('nodes.importNodes') }}…</button></ActionDropdown>
+    </div>
   </div>
 
   <div class="table-container table-wrap" :class="{ 'auto-fit-columns': autoFitColumns }">
@@ -70,8 +81,8 @@ function toggleDetails(id: string) {
         <tr v-for="profile in state.filteredProfiles" :key="profile.indexId" :data-profile-id="profile.indexId" :tabindex="state.focusedProfileId === profile.indexId ? 0 : -1" :aria-current="profile.isCurrent ? 'true' : undefined" :aria-selected="state.selectedIds.includes(profile.indexId)" :class="{ current: profile.isCurrent, selected: state.selectedIds.includes(profile.indexId), 'details-open': expandedProfiles.has(profile.indexId) }" @focus="actions.setFocusedProfile(profile.indexId)" @click="actions.focusProfile($event, profile)" @keydown="actions.handleRowKeydown($event, profile)" @dblclick="actions.selectProfile(profile)" @contextmenu.stop.prevent="actions.openContext($event, profile)">
           <td class="check-cell"><label class="node-select-label" @click.stop @dblclick.stop><UiCheckbox :model-value="state.selectedIds.includes(profile.indexId)" :aria-label="profile.remarks || profile.address" @change="actions.toggleProfile(profile.indexId)" @click.stop /></label></td>
           <td class="node-protocol node-badge" :data-label="t('nodes.type')" :title="t('nodes.type')"><span class="protocol-code">{{ profile.protocol }}</span></td>
-          <td class="remark-cell" :data-label="t('nodes.remarks')"><UiIcon v-if="profile.isCurrent" class="current-marker" name="check" :size="12" :title="t('nodes.current')" /><span class="remark-text" :title="profile.remarks">{{ profile.remarks || '—' }}</span></td>
-          <td class="address-cell node-endpoint" :data-label="t('nodes.address')" :title="profile.address"><span>{{ profile.address }}<span class="mobile-node-port">:{{ profile.port }}</span></span></td>
+          <td class="remark-cell" :data-label="t('nodes.remarks')"><UiIcon v-if="profile.isCurrent" class="current-marker" name="check" :size="12" :title="t('nodes.current')" /><span class="remark-text" :title="profile.remarks">{{ profile.remarks || '—' }}</span><span v-if="profile.protocol" class="mobile-node-type" :aria-label="`${t('nodes.type')}: ${profile.protocol}`">{{ profile.protocol }}</span></td>
+          <td class="address-cell node-endpoint" :data-label="t('nodes.address')" :title="profile.address"><span class="node-endpoint-value">{{ profile.address }}<span class="mobile-node-port">:{{ profile.port }}</span></span><span class="mobile-node-transport" :aria-label="`${t('nodes.network')}: ${profile.network || '—'}; ${t('nodes.tls')}: ${profile.streamSecurity || '—'}`">{{ profile.network || '—' }} · {{ profile.streamSecurity || '—' }}</span></td>
           <td class="number-cell node-port" :data-label="t('nodes.port')">{{ profile.port }}</td>
           <td class="node-network node-badge" :data-label="t('nodes.network')" :title="t('nodes.network')">{{ profile.network || '—' }}</td>
           <td class="node-security node-badge" :data-label="t('nodes.tls')" :title="t('nodes.tls')">{{ profile.streamSecurity || '—' }}</td>

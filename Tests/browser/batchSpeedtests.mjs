@@ -22,7 +22,8 @@ try {
       '/api/status': { coreRunning: true, coreType: 'Xray', runtimeState: 'running', statisticsEnabled: true, listeners: [], traffic: {} },
       '/api/editor-options': { profiles: { configTypes: ['VLESS'], coreTypes: ['Xray'] } },
       '/api/profiles': ['A', 'B', 'C'].map((indexId, i) => ({ indexId, remarks: `Node ${indexId}`, configType: 'VLESS', protocol: 'vless', address: `192.0.2.${i + 1}`, port: 443, network: 'raw', streamSecurity: 'reality', isCurrent: indexId === 'A' })),
-      '/api/profile-groups': [], '/api/subscriptions': [], '/api/operations': [],
+      '/api/profile-groups': [{ id: '', name: '全部', profileCount: 3 }, { id: 'fixture-sub', name: '测试订阅', profileCount: 3 }],
+      '/api/subscriptions': [{ id: 'fixture-sub', remarks: '测试订阅', url: 'https://example.invalid/subscription', enabled: true }], '/api/operations': [],
       '/api/settings': { inbound: { localPort: 1145 }, options: {} },
       '/api/settings/routing-profiles': [], '/api/logs': { items: [], total: 0 },
     }
@@ -66,10 +67,62 @@ try {
     for (const [action, shortcut] of [['tcping', 'Control+o'], ['realping', 'Control+r'], ['speedtest', 'Control+t']]) {
       await assertSubmission(action, ['A', 'B'], () => page.keyboard.press(shortcut))
     }
+    if (width <= 760) {
+      const tools = page.locator('.mobile-node-tools')
+      const trigger = tools.locator('.action-menu-trigger')
+      const add = page.locator('.nodes-page-toolbar .toolbar-main > .action-dropdown:not(.mobile-node-tools) .action-menu-trigger')
+      const toolsBounds = await trigger.boundingBox()
+      const addBounds = await add.boundingBox()
+      assert.ok(toolsBounds.x + toolsBounds.width <= addBounds.x, 'Tools belongs immediately before Add')
+      assert.ok(toolsBounds.height >= 44)
+      for (const icon of await page.locator('.group-toolbar .node-toolbar-action').all()) assert.equal(await icon.isVisible(), false, 'loose mobile icon row is replaced, not duplicated')
+      const openTools = () => trigger.click()
+      await openTools()
+      const menu = tools.locator('.action-menu-popup')
+      assert.equal(await menu.locator('button').count(), 5, 'all five existing utilities remain available')
+      assert.ok(await menu.getByRole('menuitem', { name: labels.subscriptions.editSubscription, exact: true }).isDisabled(), 'editing stays disabled for all-groups selection')
+      const fit = menu.getByRole('menuitemcheckbox')
+      assert.equal(await fit.getAttribute('aria-checked'), 'false')
+      await fit.click()
+      assert.ok((await page.locator('.table-wrap').getAttribute('class')).includes('auto-fit-columns'))
+      await openTools()
+      assert.equal(await fit.getAttribute('aria-checked'), 'true')
+      await fit.focus()
+      await page.keyboard.press('Enter')
+      assert.equal((await page.locator('.table-wrap').getAttribute('class')).includes('auto-fit-columns'), false)
+      for (const [action, key] of [['fastRealping', 'fastRealping'], ['mixedtest', 'mixedtest']]) {
+        await openTools()
+        await assertSubmission(action, ['A', 'B'], () => menu.getByRole('menuitem', { name: labels.nodes[key], exact: true }).click())
+      }
+      await openTools()
+      await menu.getByRole('menuitem', { name: labels.subscriptions.addSubscription, exact: true }).click()
+      await page.locator('.modal-panel').waitFor()
+      await page.keyboard.press('Escape')
+      await page.locator('.group-chip').filter({ hasText: '测试订阅' }).click()
+      await page.locator('.group-chip.selected').filter({ hasText: '测试订阅' }).waitFor()
+      await openTools()
+      const edit = menu.getByRole('menuitem', { name: labels.subscriptions.editSubscription, exact: true })
+      assert.equal(await edit.isDisabled(), false)
+      await edit.click()
+      await page.locator('.modal-panel').waitFor()
+      await page.keyboard.press('Escape')
+      await page.locator('.header-more').click()
+      await page.locator('.locale-select').selectOption('en-US')
+      await page.keyboard.press('Escape')
+      await checkbox('A').check()
+      await checkbox('B').check()
+      const title = await page.locator('.page-title').boundingBox()
+      const actions = await page.locator('.nodes-page-toolbar .toolbar-main').boundingBox()
+      assert.ok(title.x + title.width <= actions.x, 'English title and utilities do not overlap')
+      assert.ok(await page.evaluate(width => document.documentElement.scrollWidth <= width, width))
+    } else {
+      assert.equal(await page.locator('.mobile-node-tools').isVisible(), false, 'desktop keeps its original toolbar')
+      for (const icon of await page.locator('.group-toolbar .node-toolbar-action').all()) assert.ok(await icon.isVisible())
+    }
     assert.deepEqual(errors, [], 'no browser runtime errors')
     await context.close()
   }
 } finally {
   await browser.close()
 }
-console.log(`Batch speedtest browser regression: ${checked} desktop/mobile request payloads passed.`)
+console.log(`Batch speedtest and node-tools browser regression: ${checked} desktop/mobile request payloads passed.`)

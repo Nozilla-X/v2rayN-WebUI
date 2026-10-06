@@ -28,7 +28,7 @@ try {
           '/api/editor-options': { profiles: { configTypes: ['VLESS'], coreTypes: ['Xray'] } },
           '/api/profiles': [
             { indexId: 'node-1', remarks: name, configType: 'VLESS', protocol: 'vless', address: '192.0.2.99', port: 443, network: 'raw', streamSecurity: 'reality', isCurrent: true, subscriptionName: 'Test group', ipInfo: 'Test IP', delay: 0, speed: 0, todayUp: 308, todayDown: 347, totalUp: 308, totalDown: 347 },
-            { indexId: 'node-2', remarks: 'Second node', configType: 'VLESS', protocol: 'vless', address: '192.0.2.100', port: 443, network: 'raw', streamSecurity: 'reality', isCurrent: false, delay: 82, speed: 20 },
+            { indexId: 'node-2', remarks: 'Second node', configType: 'Hysteria2', protocol: 'hysteria2', address: '192.0.2.100', port: 443, network: 'udp', streamSecurity: 'tls', isCurrent: false, delay: 82, speed: 20 },
           ],
           '/api/profile-groups': [],
           '/api/subscriptions': [],
@@ -50,7 +50,15 @@ try {
         const details = node.locator('.mobile-node-details button')
         if (width <= 760) {
           const collapsed = await node.boundingBox()
-          if (scenario !== 'long') assert.ok(collapsed.height < 260, 'node summary should not be a tall desktop field list')
+          if (scenario !== 'long') assert.ok(collapsed.height < 200, 'compact node summary does not need a separate protocol row')
+          const capsule = await node.locator('.mobile-node-type').boundingBox()
+          assert.ok(capsule.width < 70 && capsule.height <= 24, 'protocol capsule follows its text width')
+          const longerCapsule = await page.locator('[data-profile-id="node-2"] .mobile-node-type').boundingBox()
+          assert.ok(longerCapsule.width > capsule.width && longerCapsule.width < 90, 'longer protocol names retain intrinsic capsule sizing')
+          const identity = await node.locator('.remark-cell').boundingBox()
+          assert.ok(capsule.y >= identity.y && capsule.y + capsule.height <= identity.y + identity.height, 'protocol capsule belongs in the title row, including wrapped long names')
+          assert.ok(await node.locator('.mobile-node-transport').isVisible(), 'transport/security stay visible beside endpoint')
+          for (const badge of await node.locator('.node-badge').all()) assert.equal(await badge.isVisible(), false, 'desktop protocol cells do not become stretched mobile boxes')
           const input = await node.locator('.check-cell input').boundingBox()
           assert.ok(input.y - collapsed.y < 40, 'selection checkbox belongs at the top, not the middle')
           assert.equal(await node.locator('.node-detail-cell').first().isVisible(), false)
