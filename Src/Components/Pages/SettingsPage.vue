@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { UiProps } from '../types'
 import UiCheckbox from '../UiCheckbox.vue'
+import SaveBar from '../SaveBar.vue'
 
 const { t } = useI18n()
 const props = defineProps<UiProps>()
@@ -54,6 +55,6 @@ const tabs = [
 
     <section v-else class="settings-section form-section"><div class="settings-subsection"><div class="section-heading"><div><h2>{{ t('settings.coreTypes') }}</h2><small>{{ t('settings.coreTypesHint') }}</small></div></div><div class="mapping-list"><div v-for="mapping in state.settings.coreTypes || []" :key="mapping.configType" class="mapping-row"><span>{{ mapping.configType }}</span><select v-model="mapping.coreType"><option v-for="core in state.coreTypes" :key="core" :value="core">{{ core === 'sing_box' ? 'sing-box' : core }}</option></select></div></div></div></section>
 
-    <footer class="footer-actions settings-footer settings-global-footer"><span class="muted">{{ t('settings.singleSaveHint') }}</span><button class="button primary" :disabled="state.saving" :aria-busy="state.saving" @click="actions.saveAllSettings">{{ t('settings.saveAll') }}</button></footer>
+    <SaveBar sticky :hint="t('settings.singleSaveHint')" :label="t('settings.saveAll')" :busy="state.saving" @save="actions.saveAllSettings" />
   </section>
 </template>

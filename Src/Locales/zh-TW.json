@@ -330,6 +330,9 @@
     "coreType": "Core 類型"
   },
   "subscriptions": {
+    "details": "詳情",
+    "manualUpdate": "手動更新",
+    "intervalSummary": "每 {minutes} 分鐘更新",
     "title": "訂閱分組",
     "name": "別名",
     "url": "可選位址 (URL)",
@@ -380,6 +383,8 @@
     "saveFailed": "訂閱儲存失敗"
   },
   "routing": {
+    "batchActions": "批次操作",
+    "importMenu": "匯入",
     "title": "路由設定",
     "profiles": "規則集",
     "rules": "預定義規則集列表",

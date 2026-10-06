@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { UiProps } from '../types'
 import UiCheckbox from '../UiCheckbox.vue'
+import SaveBar from '../SaveBar.vue'
 
 const { t } = useI18n()
 const props = defineProps<UiProps>()
@@ -40,7 +41,7 @@ const tabs = [
           <label>{{ t('dns.strategyProxyDial') }}<select v-model="state.simpleDnsForm.strategy4ProxyDial"><option v-for="value in state.dnsOptions.domainStrategies4Freedom" :key="value || 'none'" :value="value">{{ value || t('common.none') }}</option><option v-if="state.simpleDnsForm.strategy4ProxyDial && !state.dnsOptions.domainStrategies4Freedom.includes(state.simpleDnsForm.strategy4ProxyDial)" :value="state.simpleDnsForm.strategy4ProxyDial">{{ state.simpleDnsForm.strategy4ProxyDial }}</option></select></label>
         </div>
         <div class="settings-checks"><label class="check-inline"><UiCheckbox v-model="state.simpleDnsForm.parallelQuery" />{{ t('dns.parallelQuery') }}</label><label class="check-inline"><UiCheckbox v-model="state.simpleDnsForm.serveStale" />{{ t('dns.serveStale') }}</label><label class="check-inline"><UiCheckbox v-model="state.simpleDnsForm.enableHappyEyeballs" />{{ t('dns.happyEyeballs') }}</label></div>
-        <div class="footer-actions settings-footer"><button class="button primary" @click="actions.saveSimpleDns">{{ t('common.save') }}</button></div>
+        <SaveBar @save="actions.saveSimpleDns" />
       </fieldset>
     </section>
 
@@ -59,7 +60,7 @@ const tabs = [
           <label class="wide-field">{{ t('dns.hosts') }}<textarea v-model="state.simpleDnsForm.hosts" class="code-area" spellcheck="false" /></label>
         </div>
         <details class="advanced-editor"><summary>{{ t('dns.jsonEditor') }}</summary><p class="field-hint">{{ t('dns.jsonCompatibilityHint') }}</p><textarea v-model="state.simpleDnsAdvancedRaw" class="code-area dns-code" spellcheck="false" /></details>
-        <div class="footer-actions settings-footer"><button class="button primary" @click="actions.saveSimpleDns">{{ t('common.save') }}</button></div>
+        <SaveBar @save="actions.saveSimpleDns" />
       </fieldset>
     </section>
 
@@ -84,7 +85,7 @@ const tabs = [
             <label v-if="activeTab === 'xray'" class="check-inline"><UiCheckbox v-model="activeDnsProfile.useSystemHosts" />{{ t('dns.useSystemHosts') }}</label>
           </div>
         </div>
-        <div class="footer-actions settings-footer"><button class="button primary" @click="actions.saveDnsProfile(activeDnsProfile)">{{ t('common.save') }}</button></div>
+        <SaveBar @save="actions.saveDnsProfile(activeDnsProfile)" />
       </template>
       <p v-else class="muted empty-inline">{{ t('dns.coreProfileUnavailable') }}</p>
     </section>

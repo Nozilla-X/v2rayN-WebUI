@@ -83,7 +83,39 @@ test('subscription and routing cards preserve all desktop data and row actions o
   }
   for (const key of ['ruleType', 'outboundTag', 'matchers']) assert.ok(routing.includes(`:data-label="t('routing.${key}')"`))
   assert.match(css, /\.subscription-table td \{[^}]*overflow-wrap: anywhere/)
-  assert.match(css, /\.rule-row > :nth-child\(3\), \.rule-row > :nth-child\(4\), \.rule-row > :nth-child\(5\) \{ display: block/)
+  assert.match(css, /\.rule-row > \.rule-details \{ display: block/)
+  assert.match(css, /\.mobile-rule-outbound \{ display: inline-block/)
+})
+
+test('mobile subscription cards disclose optional fields and keep existing actions in a compact footer', async () => {
+  const [page, css] = await Promise.all([source('Components/Pages/SubscriptionsPage.vue'), source('style.css')])
+  assert.match(page, /:aria-expanded="expanded\.has\(item\.id\)"/)
+  for (const action of ['updateSubscription(item.id)', 'openEditSubscription(item)', 'shareSubscription(item)', 'deleteSubscription(item)']) assert.ok(page.includes(action))
+  assert.match(css, /\.subscription-table tr:not\(\.details-open\) > \.subscription-detail/)
+  assert.match(css, /\.mobile-subscription-status \{ display: inline-flex/)
+})
+
+test('routing uses batch/import menus and row context actions on mobile without losing matchers', async () => {
+  const [page, css] = await Promise.all([source('Components/Pages/RoutingPage.vue'), source('style.css')])
+  assert.match(page, /class="mobile-rule-actions"/)
+  assert.match(page, /\['top', 'up', 'down', 'bottom'\]/)
+  assert.match(page, /role="menuitemcheckbox" :aria-checked="state\.appendRules"/)
+  assert.match(page, /class="mobile-rule-menu"[^>]*icon-only/)
+  assert.match(css, /\.rule-toolbar, \.rule-import-options \{ display: none/)
+  assert.match(css, /\.rule-row > \.rule-details \{ display: block/)
+})
+
+test('settings, DNS and templates share a save bar with one click/submit path and no duplicate mobile hint', async () => {
+  const [settings, dns, templates, bar, css] = await Promise.all([
+    source('Components/Pages/SettingsPage.vue'), source('Components/Pages/DnsPage.vue'), source('Components/Pages/TemplatesPage.vue'), source('Components/SaveBar.vue'), source('style.css'),
+  ])
+  assert.match(settings, /<SaveBar sticky[^>]*@save="actions\.saveAllSettings"/)
+  assert.match(dns, /<SaveBar @save="actions\.saveSimpleDns"/)
+  assert.match(dns, /<SaveBar @save="actions\.saveDnsProfile\(activeDnsProfile\)"/)
+  assert.match(templates, /<SaveBar submit/)
+  assert.match(bar, /:type="submit \? 'submit' : 'button'"/)
+  assert.match(css, /\.save-bar > \.save-bar-hint \{ display: none/)
+  assert.match(css, /\.save-bar > \.button \{ min-width: 128px; min-height: 44px/)
 })
 
 test('mobile nodes use a compact identity-first summary with selectable, expandable secondary data', async () => {

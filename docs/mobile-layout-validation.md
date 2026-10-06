@@ -94,3 +94,16 @@ The five loose mobile toolbar icons are replaced by **Tools**, immediately befor
 Build and **100 unit/contract tests** pass. The 36 status/node-card cases check intrinsic VLESS/Hysteria2 capsule widths, title placement, compact heights, summary visibility, long-name handling and existing Core-panel behavior. The batch/node-tools browser runner verifies **30 POST payloads**, all five utility entries, checkbox-style column fitting, subscription dialogs, multi-selection, English header spacing and original desktop utilities. Short/long fixture screenshots include subscription metadata entries and all primary pages at 360/390/430/502/760px plus desktop widths 1280/1440/1920.
 
 Screenshot output is in `/tmp/opencode/webui-mobile-browser/node-density-{short,long}/` and `node-density-regression/`. These are Unreleased changes; no published release tag or asset is replaced.
+
+## Whole-app mobile hierarchy and save controls
+
+The follow-up audit covers all eight pages, not just individual screenshots:
+
+- Subscription cards prioritize name/status, last update and interval. URLs, User Agent and filters are disclosed on demand; empty optional fields stay out of mobile details. Primary update and contextual edit/share/delete reuse existing actions. Header bulk updates/proxy choice remain in More. Short summaries are approximately 165px instead of a full-height field list.
+- Routing headers and rules separate primary creation from secondary tools. Batch selection/export/movement/deletion and import/file/clipboard/URL options stay in menus, with append mode preserved. Rules show name, outbound and matchers; empty type labels and duplicate summaries are omitted on mobile. Typical rows are about 80px instead of roughly 180–200px.
+- `SaveBar.vue` is shared by parameters, DNS, templates and mobile WebDAV. Mobile buttons are 128×44px; opaque single-row bars are approximately 60px high and sit above bottom navigation. The existing desktop hints remain; mobile explanations stay near the relevant form rather than doubling the sticky footer height.
+- Headers, form gaps, subsection typography, update/WebDAV actions and log copy/clear controls were checked together. Logs use a mobile feed instead of a horizontally scrolling desktop table. Desktop toolbars, dense columns and API handlers remain intact.
+
+Build and **103 unit/contract tests** pass. `Tests/browser/allPages.mjs` renders **128 page/viewport/locale combinations**: all eight pages at 360/390/430/502/760/1280/1440/1920px, Chinese/dark and English/light, plus internal tabs. It checks single-column forms, compact cards/rules, save-button geometry/navigation clearance, contextual actions, confirmations and **22 mocked save/update/import/WebDAV payloads**. The existing 36 status/node cases and 30 batch/node-tools payload checks also pass. No real subscription, routing, settings, backup, update or Core mutation is used for these tests.
+
+Baseline and updated screenshots use the same complete API fixtures under `/tmp/opencode/webui-mobile-browser/global-mobile-{before,after}/`. Desktop page dimensions match across all eight pages in both locales at all three desktop widths. Comparisons include `comparison-subscriptions-502.png`, `comparison-rules-list-502.png` and `comparison-settings-save-502.png` in `global-mobile-after/`. The published `v1.0.1` tag/assets are unchanged.

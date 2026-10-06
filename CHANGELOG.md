@@ -11,6 +11,13 @@
   share the endpoint summary instead of occupying a row of stretched button-like boxes.
 - Mobile subscription utilities, column fitting and quick tests move into a Tools menu
   immediately before Add, keeping the group/search area focused on filtering.
+- Mobile subscription cards now prioritize name/status/update information and disclose
+  URLs and optional configuration only on demand. Update stays primary; edit/share/delete
+  remain available through contextual actions.
+- Routing uses compact rule summaries and batch/import/context menus rather than large
+  repeated button rows. Logs use a narrow-screen feed; maintenance utilities are grouped.
+- Settings, DNS, templates and mobile WebDAV share a consistent save bar above navigation,
+  with duplicate footer explanations removed from mobile and compact form spacing throughout.
 
 ## [1.0.1] - 2026-10-06
 

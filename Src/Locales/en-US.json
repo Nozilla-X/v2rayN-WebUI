@@ -336,6 +336,9 @@
     "listenerStatus": "Listener status"
   },
   "subscriptions": {
+    "details": "Details",
+    "manualUpdate": "Manual updates",
+    "intervalSummary": "Every {minutes} minutes",
     "title": "Subscription Group",
     "name": "Remarks",
     "url": "URL (optional)",
@@ -386,6 +389,8 @@
     "loaded": "Subscriptions loaded"
   },
   "routing": {
+    "batchActions": "Batch actions",
+    "importMenu": "Import",
     "title": "Routing Setting",
     "profiles": "Rule sets",
     "rules": "Pre-defined Rule Set List",

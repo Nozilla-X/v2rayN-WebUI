@@ -9,10 +9,12 @@ withDefaults(defineProps<{
   prefix?: string
   variant?: 'default' | 'primary'
   disabled?: boolean
+  iconOnly?: boolean
 }>(), {
   prefix: '',
   variant: 'default',
   disabled: false,
+  iconOnly: false,
 })
 
 const root = ref<HTMLElement | null>(null)
@@ -90,18 +92,20 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div ref="root" class="action-dropdown" :class="{ open }">
+  <div ref="root" class="action-dropdown" :class="{ open, 'icon-only': iconOnly }">
     <button
       type="button"
       class="button action-menu-trigger"
       :class="{ primary: variant === 'primary' }"
       :disabled="disabled"
+      :aria-label="label"
       aria-haspopup="menu"
       :aria-expanded="open"
       @click.stop="toggle"
     >
       <UiIcon v-if="prefix === 'plus'" name="plus" />
-      {{ label }}<UiIcon class="menu-caret" name="chevron-down" :size="12" />
+      <UiIcon v-if="iconOnly" name="more" />
+      <template v-else>{{ label }}<UiIcon class="menu-caret" name="chevron-down" :size="12" /></template>
     </button>
     <div v-if="open" ref="popup" class="action-menu-popup" :style="popupStyle" role="menu" @keydown="onPopupKeydown" @menu-escape.stop="onMenuEscape" @click="closeFromClick">
       <slot />
