@@ -91,10 +91,10 @@ jobs:
           set -euo pipefail
           node Scripts/release-notes.mjs "$RELEASE_TAG" "$RUNNER_TEMP/release-notes.md"
           if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
-            gh release upload "$RELEASE_TAG" v2rayN-WebUI.zip --clobber
+            gh release upload "$RELEASE_TAG" v2rayN-WebUI.zip LICENSE --clobber
             gh release edit "$RELEASE_TAG" --notes-file "$RUNNER_TEMP/release-notes.md" --draft=false --prerelease=false --latest
           else
-            gh release create "$RELEASE_TAG" v2rayN-WebUI.zip \
+            gh release create "$RELEASE_TAG" v2rayN-WebUI.zip LICENSE \
               --target "$GITHUB_SHA" --title "$RELEASE_TAG" \
               --notes-file "$RUNNER_TEMP/release-notes.md" --latest
           fi

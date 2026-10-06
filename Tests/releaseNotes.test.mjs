@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
+import { readFile } from 'node:fs/promises'
 import { extractReleaseNotes, releaseVersion, verifyReleaseVersions } from '../Scripts/release-notes.mjs'
 
 test('release notes use only the matching changelog section', () => {
@@ -31,4 +32,10 @@ test('release version must match all project version metadata', () => {
   assert.throws(() => verifyReleaseVersions('v2.0.0', pkg, lock), /must match/)
   assert.throws(() => verifyReleaseVersions('v1.0.0', pkg, { ...lock, version: '0.1.0' }), /must match/)
   assert.throws(() => verifyReleaseVersions('v1.0.0', pkg, { ...lock, packages: {} }), /must match/)
+})
+
+test('both new and existing releases attach the license alongside the static WebUI archive', async () => {
+  const workflow = await readFile(new URL('../.github/workflows/ci.yml', import.meta.url), 'utf8')
+  assert.match(workflow, /gh release upload "\$RELEASE_TAG" v2rayN-WebUI\.zip LICENSE --clobber/)
+  assert.match(workflow, /gh release create "\$RELEASE_TAG" v2rayN-WebUI\.zip LICENSE/)
 })

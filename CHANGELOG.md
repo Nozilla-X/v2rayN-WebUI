@@ -1,5 +1,43 @@
 # Changelog
 
+## [1.0.1] - 2026-10-06
+
+### Improvements
+
+- Mobile App Bar keeps the brand visible and moves language, theme, connection state,
+  refresh and logout into one More entry instead of crowding the header.
+- Mobile bottom navigation provides quick access to nodes, subscriptions and routing;
+  all other pages remain available through More, with the active destination indicated.
+- Core status, current node, routing, listeners and traffic use responsive groups.
+  Controls fill their cards even with short or empty content; the primary Core action
+  follows the runtime state without placing all three buttons in one narrow row.
+- DNS, parameters and dialog forms use a single column on mobile. Internal tabs remain
+  scrollable with larger touch targets, consistent spacing and safe-area-aware footers.
+- Mobile node cards put selection, name and context actions first, combine address/port,
+  group protocol and test results, and disclose subscription/IP/traffic details on demand.
+  Subscription cards and routing rules retain their data without desktop-width rows.
+- Desktop navigation, dense tables, form columns and the existing visual style are preserved.
+
+### Fixes
+
+- Right-click TCP, real-connection, download and UDP tests now submit the full selected
+  node batch instead of only the right-clicked node. Desktop, mobile card More and
+  keyboard shortcuts share the same selection behavior.
+- Node shortcuts no longer intercept Enter on focused buttons, links or disclosures.
+
+### Compatibility and install
+
+This is a frontend-only release. Backend API contracts are unchanged, and WebUI updates
+do not replace the Backend or its configuration.
+
+Download `v2rayN-WebUI.zip` and extract its contents into `webui/` beside `v2rayN.Web`,
+or into the Backend's configured WebUI directory. The ZIP root contains `index.html`,
+`assets/` and the existing static icons/images, without an enclosing `dist/` directory.
+Node.js is not required to serve the installed WebUI. Refresh the browser after upgrading.
+
+The separately attached `LICENSE` includes the license text and attribution for the
+icon/image assets reused from [v2rayN](https://github.com/2dust/v2rayN).
+
 ## [1.0.0] - 2026-10-06
 
 The first stable release of **v2rayN-WebUI**, a reference WebUI for `v2rayN.Web`.
