@@ -26,11 +26,14 @@ try {
           '/api/setup/status': { setupRequired: false },
           '/api/status': { coreRunning: running, coreType: 'Xray', runtimeState: running ? 'running' : 'stopped', currentProfileName: name, statisticsEnabled: true, runtime: 'v2rayN - V7.25.5 - X64', traffic: { proxyUp: 0, proxyDown: 0, directUp: 0, directDown: 0 }, listeners: [{ name: 'local', listening: running, listenAddress: '0.0.0.0', port: 1145, protocols: ['http', 'socks', 'udp'] }] },
           '/api/editor-options': { profiles: { configTypes: ['VLESS'], coreTypes: ['Xray'] } },
-          '/api/profiles': [],
+          '/api/profiles': [
+            { indexId: 'node-1', remarks: name, configType: 'VLESS', protocol: 'vless', address: '192.0.2.99', port: 443, network: 'raw', streamSecurity: 'reality', isCurrent: true, subscriptionName: 'Test group', ipInfo: 'Test IP', delay: 0, speed: 0, todayUp: 308, todayDown: 347, totalUp: 308, totalDown: 347 },
+            { indexId: 'node-2', remarks: 'Second node', configType: 'VLESS', protocol: 'vless', address: '192.0.2.100', port: 443, network: 'raw', streamSecurity: 'reality', isCurrent: false, delay: 82, speed: 20 },
+          ],
           '/api/profile-groups': [],
           '/api/subscriptions': [],
           '/api/operations': [],
-          '/api/settings': { inbound: { localPort: 1145 }, options: {} },
+          '/api/settings': { inbound: { localPort: 1145 }, showIpInfoColumn: running, options: {} },
           '/api/settings/routing-profiles': [{ id: 'route-1', remarks: 'V4-绕过大陆(Whitelist)', isActive: true }],
           '/api/settings/routing-profiles/route-1/rules': [],
           '/api/logs': { items: [], total: 0 },
@@ -38,6 +41,37 @@ try {
         await page.route('**/api/**', route => route.fulfill({ json: { success: true, data: fixtures[new URL(route.request().url()).pathname] ?? [] } }))
         await page.goto(base)
         await page.waitForFunction(() => document.querySelector('#runtime-route')?.value === 'route-1')
+        const node = page.locator('[data-profile-id="node-1"]')
+        await node.waitFor()
+        const details = node.locator('.mobile-node-details button')
+        if (width <= 760) {
+          const collapsed = await node.boundingBox()
+          if (scenario !== 'long') assert.ok(collapsed.height < 260, 'node summary should not be a tall desktop field list')
+          const input = await node.locator('.check-cell input').boundingBox()
+          assert.ok(input.y - collapsed.y < 40, 'selection checkbox belongs at the top, not the middle')
+          assert.equal(await node.locator('.node-detail-cell').first().isVisible(), false)
+          assert.ok(await node.locator('.mobile-node-port').isVisible(), 'port is retained in endpoint summary')
+          await details.focus()
+          await page.keyboard.press('Enter')
+          assert.equal(await details.getAttribute('aria-expanded'), 'true')
+          assert.equal(await node.getAttribute('aria-selected'), 'false', 'expanding details does not select a node')
+          for (const cell of await node.locator('.node-detail-cell').all()) assert.ok(await cell.isVisible(), 'all secondary fields are reachable')
+          assert.equal(await node.locator('.ip-cell').count(), running ? 1 : 0, 'IP capability is respected in details')
+          assert.ok((await node.textContent()).includes('308 B'), 'traffic values are preserved')
+          await details.click()
+          await node.locator('.check-cell input').check()
+          assert.equal(await node.getAttribute('aria-selected'), 'true')
+          await node.locator('.row-more').click()
+          await page.locator('.context-menu').waitFor()
+          await page.keyboard.press('Escape')
+          if (output && scenario === 'short' && running) {
+            await page.locator('.profile-table').evaluate(el => window.scrollTo({ top: el.getBoundingClientRect().top + scrollY - 80 }))
+            await page.screenshot({ path: `${output}/${width}-nodes.png` })
+          }
+        } else {
+          assert.equal(await details.isVisible(), false, 'desktop does not gain a details column')
+          for (const cell of await node.locator('.node-detail-cell').all()) assert.ok(await cell.isVisible(), 'desktop retains dense fields')
+        }
         await page.locator('.main-nav > .nav-tab').nth(2).click()
         await page.locator('.routing-page').waitFor()
         const layout = await page.evaluate(() => {
@@ -70,4 +104,4 @@ try {
 } finally {
   await browser.close()
 }
-console.log(`Mobile status browser regression: ${checks} viewport/content/runtime combinations passed.`)
+console.log(`Mobile status and node-card browser regression: ${checks} viewport/content/runtime combinations passed.`)

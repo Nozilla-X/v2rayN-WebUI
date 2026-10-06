@@ -130,6 +130,8 @@
     "more": "更多"
   },
   "nodes": {
+    "showDetails": "更多信息",
+    "collapseDetails": "收起信息",
     "title": "配置项",
     "addMenu": "添加",
     "importMenu": "导入",

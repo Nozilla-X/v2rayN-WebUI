@@ -130,6 +130,8 @@
     "more": "More"
   },
   "nodes": {
+    "showDetails": "More details",
+    "collapseDetails": "Less details",
     "title": "Configuration",
     "addMenu": "Add",
     "importMenu": "Import",

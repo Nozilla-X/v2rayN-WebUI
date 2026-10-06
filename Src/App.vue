@@ -418,7 +418,7 @@ function copySelectedShareLinks() {
 
 function isEditableTarget(target: EventTarget | null) {
   return target instanceof Element
-    && Boolean(target.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"])'))
+    && Boolean(target.closest('button, a[href], summary, input, textarea, select, [contenteditable]:not([contenteditable="false"])'))
 }
 
 function closeTopLayerOnEscape(event: KeyboardEvent): boolean {

@@ -16,6 +16,6 @@ test('IP information column is shown only when the backend Desktop-parity capabi
 test('nodes table conditionally removes both IP header and cells when unavailable', async () => {
   const source = await readFile(pagePath, 'utf8')
   assert.match(source, /v-if="showIpInfoColumn"[^>]*>\{\{ t\('nodes\.ip'\) \}\}/)
-  assert.match(source, /v-if="showIpInfoColumn" class="ip-cell"/)
+  assert.match(source, /v-if="showIpInfoColumn" class="ip-cell node-detail-cell"/)
   assert.match(source, /:colspan="showIpInfoColumn \? 16 : 15"/)
 })

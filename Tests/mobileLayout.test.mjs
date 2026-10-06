@@ -65,3 +65,16 @@ test('subscription and routing cards preserve all desktop data and row actions o
   assert.match(css, /\.subscription-table td \{[^}]*overflow-wrap: anywhere/)
   assert.match(css, /\.rule-row > :nth-child\(3\), \.rule-row > :nth-child\(4\), \.rule-row > :nth-child\(5\) \{ display: block/)
 })
+
+test('mobile nodes use a compact identity-first summary with selectable, expandable secondary data', async () => {
+  const [page, css] = await Promise.all([source('Components/Pages/NodesPage.vue'), source('style.css')])
+  assert.match(page, /expandedProfiles = ref\(new Set<string>\(\)\)/)
+  assert.match(page, /:aria-expanded="expandedProfiles\.has\(profile\.indexId\)" @click\.stop="toggleDetails\(profile\.indexId\)"/)
+  assert.match(page, /class="node-select-label" @click\.stop @dblclick\.stop/)
+  assert.match(page, /class="mobile-node-port">:\{\{ profile\.port \}\}/)
+  for (const field of ['todayUp', 'todayDown', 'totalUp', 'totalDown']) assert.ok(page.includes(`actions.formatBytes(profile.${field})`))
+  assert.match(css, /\.profile-table td\.remark-cell \{ grid-column: 1 \/ -1; grid-row: 1/)
+  assert.match(css, /\.profile-table td\.node-metric \{ grid-row: 4; grid-column: span 3/)
+  assert.match(css, /\.profile-table tr:not\(\.details-open\) > \.node-detail-cell \{ display: none/)
+  assert.match(css, /\.mobile-node-port, \.profile-table td\.mobile-node-details \{ display: none/)
+})

@@ -47,3 +47,20 @@ node Tests/browser/mobileStatus.mjs
 ```
 
 The frontend build and **91 unit/contract tests** pass. Short and long fixture screenshots also cover all primary pages at 360/390/430/502/760 and desktop widths 1280/1440/1920. Desktop page dimensions remain unchanged; 1440px and 1920px screenshots of the five primary pages are pixel-identical to the previous deployed bundle. Local correction screenshots are under `/tmp/opencode/webui-mobile-browser/correction-{short,long}/` (including `correction-short/comparison-502.png`).
+
+## Follow-up: node information hierarchy
+
+The deployed node list still resembled a vertically expanded desktop table. Its default mobile presentation now orders the same data as:
+
+1. Top-left selection, node name/current marker, top-right context actions.
+2. Address and port together, followed by protocol/transport/security summary.
+3. Delay and speed together.
+4. A per-node More details toggle for subscription, optional IP information and all four traffic counters.
+
+Secondary data is progressively disclosed, not removed. Desktop still renders the same dense table, without the mobile details control or duplicated port. Expanding details does not select or activate a node. Global node shortcuts now yield to focused buttons/links/summaries so Enter works on the disclosure button rather than activating a profile.
+
+For the two-short-node fixture at 502px, a collapsed card is approximately **220px**, compared with approximately **520px** previously. Two nodes fit together in a scrolled mobile viewport. Long names and endpoints still wrap, and the selection hit area remains at the top rather than vertically centered down the card.
+
+The build and **92 unit/contract tests** pass. `Tests/browser/mobileStatus.mjs` also checks node summary heights, selection position, capability-gated IP fields, preserved traffic values, keyboard expansion, selection independence, context actions and desktop field visibility across its 36 width/content/runtime combinations. Primary-page short/long screenshot regression covers 360/390/430/502/760px and desktop widths; 1440px and 1920px node screenshots are pixel-identical to the prior bundle.
+
+Node-list comparison and expanded-state screenshots are in `/tmp/opencode/webui-mobile-browser/node-cards-{short,long}/`, including `node-cards-short/comparison-node-list-502.png`.

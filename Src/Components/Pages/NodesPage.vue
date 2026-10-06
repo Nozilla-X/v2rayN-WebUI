@@ -14,6 +14,11 @@ const actions = props.actions
 const selectedSubscription = computed(() => state.subscriptions.find((item: Record<string, any>) => item.id === state.selectedGroup) || null)
 const autoFitColumns = ref(false)
 const showIpInfoColumn = computed(() => shouldRenderIpInfoColumn(state.showIpInfoColumn))
+const expandedProfiles = ref(new Set<string>())
+function toggleDetails(id: string) {
+  if (expandedProfiles.value.has(id)) expandedProfiles.value.delete(id)
+  else expandedProfiles.value.add(id)
+}
 </script>
 
 <template>
@@ -62,21 +67,22 @@ const showIpInfoColumn = computed(() => shouldRenderIpInfoColumn(state.showIpInf
         <th class="actions-cell">{{ t('nodes.actions') }}</th>
       </tr></thead>
       <tbody>
-        <tr v-for="profile in state.filteredProfiles" :key="profile.indexId" :data-profile-id="profile.indexId" :tabindex="state.focusedProfileId === profile.indexId ? 0 : -1" :aria-current="profile.isCurrent ? 'true' : undefined" :aria-selected="state.selectedIds.includes(profile.indexId)" :class="{ current: profile.isCurrent, selected: state.selectedIds.includes(profile.indexId) }" @focus="actions.setFocusedProfile(profile.indexId)" @click="actions.focusProfile($event, profile)" @keydown="actions.handleRowKeydown($event, profile)" @dblclick="actions.selectProfile(profile)" @contextmenu.stop.prevent="actions.openContext($event, profile)">
-          <td class="check-cell"><UiCheckbox :model-value="state.selectedIds.includes(profile.indexId)" :aria-label="profile.remarks || profile.address" @change="actions.toggleProfile(profile.indexId)" @click.stop /></td>
-          <td :data-label="t('nodes.type')"><span class="protocol-code">{{ profile.protocol }}</span></td>
+        <tr v-for="profile in state.filteredProfiles" :key="profile.indexId" :data-profile-id="profile.indexId" :tabindex="state.focusedProfileId === profile.indexId ? 0 : -1" :aria-current="profile.isCurrent ? 'true' : undefined" :aria-selected="state.selectedIds.includes(profile.indexId)" :class="{ current: profile.isCurrent, selected: state.selectedIds.includes(profile.indexId), 'details-open': expandedProfiles.has(profile.indexId) }" @focus="actions.setFocusedProfile(profile.indexId)" @click="actions.focusProfile($event, profile)" @keydown="actions.handleRowKeydown($event, profile)" @dblclick="actions.selectProfile(profile)" @contextmenu.stop.prevent="actions.openContext($event, profile)">
+          <td class="check-cell"><label class="node-select-label" @click.stop @dblclick.stop><UiCheckbox :model-value="state.selectedIds.includes(profile.indexId)" :aria-label="profile.remarks || profile.address" @change="actions.toggleProfile(profile.indexId)" @click.stop /></label></td>
+          <td class="node-protocol node-badge" :data-label="t('nodes.type')" :title="t('nodes.type')"><span class="protocol-code">{{ profile.protocol }}</span></td>
           <td class="remark-cell" :data-label="t('nodes.remarks')"><UiIcon v-if="profile.isCurrent" class="current-marker" name="check" :size="12" :title="t('nodes.current')" /><span class="remark-text" :title="profile.remarks">{{ profile.remarks || '—' }}</span></td>
-          <td class="address-cell" :data-label="t('nodes.address')" :title="profile.address">{{ profile.address }}</td>
-          <td class="number-cell" :data-label="t('nodes.port')">{{ profile.port }}</td>
-          <td :data-label="t('nodes.network')">{{ profile.network || '—' }}</td>
-          <td :data-label="t('nodes.tls')">{{ profile.streamSecurity || '—' }}</td>
-          <td class="group-cell" :data-label="t('nodes.groupColumn')" :title="profile.subscriptionName">{{ profile.subscriptionName || t('common.none') }}</td>
-          <td :data-label="t('nodes.delay')" :class="['number-cell', 'delay-cell', { bad: profile.delay < 0 }]">{{ actions.formatDelay(profile.delay) }}</td>
-          <td class="number-cell" :data-label="t('nodes.speed')">{{ profile.speed ? `${profile.speed} MB/s` : '—' }}</td>
-          <td v-if="showIpInfoColumn" class="ip-cell" :data-label="t('nodes.ip')" :title="profile.ipInfo">{{ profile.ipInfo || '—' }}</td>
-          <td class="number-cell" :data-label="t('nodes.todayUp')">{{ actions.formatBytes(profile.todayUp) }}</td><td class="number-cell" :data-label="t('nodes.todayDown')">{{ actions.formatBytes(profile.todayDown) }}</td>
-          <td class="number-cell" :data-label="t('nodes.totalUp')">{{ actions.formatBytes(profile.totalUp) }}</td><td class="number-cell" :data-label="t('nodes.totalDown')">{{ actions.formatBytes(profile.totalDown) }}</td>
-          <td class="row-actions" :data-label="t('nodes.actions')"><button class="tool-button row-more" :aria-label="t('nodes.actions')" :title="t('nodes.actions')" @click.stop="actions.openContext($event, profile)"><UiIcon name="more" /></button></td>
+          <td class="address-cell node-endpoint" :data-label="t('nodes.address')" :title="profile.address"><span>{{ profile.address }}<span class="mobile-node-port">:{{ profile.port }}</span></span></td>
+          <td class="number-cell node-port" :data-label="t('nodes.port')">{{ profile.port }}</td>
+          <td class="node-network node-badge" :data-label="t('nodes.network')" :title="t('nodes.network')">{{ profile.network || '—' }}</td>
+          <td class="node-security node-badge" :data-label="t('nodes.tls')" :title="t('nodes.tls')">{{ profile.streamSecurity || '—' }}</td>
+          <td class="group-cell node-detail-cell" :data-label="t('nodes.groupColumn')" :title="profile.subscriptionName">{{ profile.subscriptionName || t('common.none') }}</td>
+          <td :data-label="t('nodes.delay')" :class="['number-cell', 'delay-cell', 'node-metric', { bad: profile.delay < 0 }]">{{ actions.formatDelay(profile.delay) }}</td>
+          <td class="number-cell node-metric" :data-label="t('nodes.speed')">{{ profile.speed ? `${profile.speed} MB/s` : '—' }}</td>
+          <td v-if="showIpInfoColumn" class="ip-cell node-detail-cell" :data-label="t('nodes.ip')" :title="profile.ipInfo">{{ profile.ipInfo || '—' }}</td>
+          <td class="number-cell node-detail-cell" :data-label="t('nodes.todayUp')">{{ actions.formatBytes(profile.todayUp) }}</td><td class="number-cell node-detail-cell" :data-label="t('nodes.todayDown')">{{ actions.formatBytes(profile.todayDown) }}</td>
+          <td class="number-cell node-detail-cell" :data-label="t('nodes.totalUp')">{{ actions.formatBytes(profile.totalUp) }}</td><td class="number-cell node-detail-cell" :data-label="t('nodes.totalDown')">{{ actions.formatBytes(profile.totalDown) }}</td>
+          <td class="row-actions" :data-label="t('nodes.actions')" @dblclick.stop><button class="tool-button row-more" :aria-label="t('nodes.actions')" :title="t('nodes.actions')" @click.stop="actions.openContext($event, profile)"><UiIcon name="more" /></button></td>
+          <td class="mobile-node-details" @dblclick.stop><button type="button" :aria-expanded="expandedProfiles.has(profile.indexId)" @click.stop="toggleDetails(profile.indexId)">{{ t(expandedProfiles.has(profile.indexId) ? 'nodes.collapseDetails' : 'nodes.showDetails') }}<UiIcon name="chevron-down" :size="12" /></button></td>
         </tr>
         <tr v-if="!state.filteredProfiles.length"><td :colspan="showIpInfoColumn ? 16 : 15" class="empty-row">{{ state.profiles.length ? t('common.noResults') : t('nodes.noProfile') }}</td></tr>
       </tbody>
