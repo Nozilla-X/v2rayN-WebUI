@@ -35,6 +35,15 @@ test('runtime retains all operations while mobile promotes the applicable primar
   assert.match(css, /\.current-runtime-name \{ max-width: none;[^}]*white-space: normal; overflow-wrap: anywhere/)
 })
 
+test('mobile status grids explicitly fill the cards even with short or empty content', async () => {
+  const css = await source('style.css')
+  for (const selector of ['runtime-strip', 'connection-strip']) {
+    assert.match(css, new RegExp(`\\.${selector} \\{ display: grid; grid-template-columns: minmax\\(0, 1fr\\); justify-content: stretch; align-items: stretch`))
+  }
+  assert.match(css, /\.runtime-node, \.runtime-route \{ display: grid; grid-template-columns: 48px minmax\(0, 1fr\)/)
+  assert.match(css, /\.traffic-list \{ grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/)
+})
+
 test('mobile forms use one column and scrolling tabs keep touch targets without changing desktop grids', async () => {
   const css = await source('style.css')
   assert.match(css, /\.form-grid\.three-col \{ grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/)

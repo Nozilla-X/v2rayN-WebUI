@@ -28,3 +28,22 @@ Browser assertions checked page overflow, mobile single-column grids, dialog/con
 Local screenshot evidence and the fixture-driven browser runner are under `/tmp/opencode/webui-mobile-browser/`; images and metrics are in its `screenshots/` directory (`before-*`, `after-*`, `metrics.json`). This is temporary validation output, not a production dependency or persistent backup.
 
 These checks validate Chromium layout and frontend interaction, not live Backend/Core behavior or native iOS/Android browser behavior. Backend and native-device end-to-end validation were not performed.
+
+## Follow-up: short-content regression
+
+The first review used long fixture names and missed a real layout defect reported in the deployed UI: the status containers inherited desktop `justify-content` values, while their mobile grids had no explicit column tracks. Short content therefore shrank the inner track, leaving a large empty area on the right. The initial screenshots were not sufficient acceptance evidence for this case.
+
+The corrected mobile grids explicitly use `minmax(0, 1fr)` and stretch alignment. Node/routing labels use a compact label/value grid, and upload/download values share a two-column group. With a short node name and zero traffic, the routing heading now starts around 500px rather than 680px at a 502px viewport; controls retain 44px height. This correction changes only the mobile breakpoint.
+
+`Tests/browser/mobileStatus.mjs` now asserts **36 combinations**: widths 360/390/430/502/760/1440, short/long/empty names, and running/stopped Core states. It checks actual rendered group/control widths, touch targets, disabled states and first-screen content position. The runner uses only mocked API responses and never controls a real Core.
+
+Run it against a local Vite server with an externally installed Playwright package:
+
+```sh
+WEBUI_URL=http://127.0.0.1:5178 \
+PLAYWRIGHT_MODULE=/path/to/playwright/index.mjs \
+PLAYWRIGHT_BROWSERS_PATH=/path/to/playwright-browsers \
+node Tests/browser/mobileStatus.mjs
+```
+
+The frontend build and **91 unit/contract tests** pass. Short and long fixture screenshots also cover all primary pages at 360/390/430/502/760 and desktop widths 1280/1440/1920. Desktop page dimensions remain unchanged; 1440px and 1920px screenshots of the five primary pages are pixel-identical to the previous deployed bundle. Local correction screenshots are under `/tmp/opencode/webui-mobile-browser/correction-{short,long}/` (including `correction-short/comparison-502.png`).
