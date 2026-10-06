@@ -18,6 +18,8 @@
   repeated button rows. Logs use a narrow-screen feed; maintenance utilities are grouped.
 - Settings, DNS, templates and mobile WebDAV share a consistent save bar above navigation,
   with duplicate footer explanations removed from mobile and compact form spacing throughout.
+- Mobile save bars align with their actual form fields, without viewport-compensating
+  negative margins that could make nested template panels protrude or appear offset.
 
 ## [1.0.1] - 2026-10-06
 

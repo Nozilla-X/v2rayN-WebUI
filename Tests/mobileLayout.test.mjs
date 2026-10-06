@@ -116,6 +116,9 @@ test('settings, DNS and templates share a save bar with one click/submit path an
   assert.match(bar, /:type="submit \? 'submit' : 'button'"/)
   assert.match(css, /\.save-bar > \.save-bar-hint \{ display: none/)
   assert.match(css, /\.save-bar > \.button \{ min-width: 128px; min-height: 44px/)
+  assert.match(css, /\.save-bar \{[^}]*width: 100%; min-width: 0/)
+  assert.doesNotMatch(css, /\.template-editor \.save-bar \{ margin-inline: -/)
+  assert.doesNotMatch(css, /\.save-bar[^}]*margin(?:-inline)?:[^;]*-16px/)
 })
 
 test('mobile nodes use a compact identity-first summary with selectable, expandable secondary data', async () => {

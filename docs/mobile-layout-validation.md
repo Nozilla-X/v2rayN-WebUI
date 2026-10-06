@@ -107,3 +107,9 @@ The follow-up audit covers all eight pages, not just individual screenshots:
 Build and **103 unit/contract tests** pass. `Tests/browser/allPages.mjs` renders **128 page/viewport/locale combinations**: all eight pages at 360/390/430/502/760/1280/1440/1920px, Chinese/dark and English/light, plus internal tabs. It checks single-column forms, compact cards/rules, save-button geometry/navigation clearance, contextual actions, confirmations and **22 mocked save/update/import/WebDAV payloads**. The existing 36 status/node cases and 30 batch/node-tools payload checks also pass. No real subscription, routing, settings, backup, update or Core mutation is used for these tests.
 
 Baseline and updated screenshots use the same complete API fixtures under `/tmp/opencode/webui-mobile-browser/global-mobile-{before,after}/`. Desktop page dimensions match across all eight pages in both locales at all three desktop widths. Comparisons include `comparison-subscriptions-502.png`, `comparison-rules-list-502.png` and `comparison-settings-save-502.png` in `global-mobile-after/`. The published `v1.0.1` tag/assets are unchanged.
+
+### Save-bar alignment regression correction
+
+The attempted full-viewport negative margins made the template save strip protrude from its nested form panel. They are removed: each save bar now uses its containing form's real 100% width, normal margins and the same right edge as its fields. Sticky navigation clearance, button size and opaque background remain unchanged.
+
+The all-page runner additionally checks exact left/width alignment against parameter/DNS/template fields, repeats the checks after scrolling long forms to their bottom, and checks WebDAV too. The build, 103 tests, all 128 page/viewport/locale combinations and 22 mocked payload checks pass. Corrected bottom-of-form screenshots are in `/tmp/opencode/webui-mobile-browser/save-alignment-after/`, including `zh-CN-502-templates-save-bottom.png`.
