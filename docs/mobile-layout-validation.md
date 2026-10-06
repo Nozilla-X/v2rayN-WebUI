@@ -72,3 +72,15 @@ Context-menu TCP/real-connection/download/UDP tests previously passed the right-
 `Tests/batchSpeedtestSelection.test.mjs` covers selection preservation, unselected-node behavior, snapshots and context-menu bindings. `Tests/browser/batchSpeedtests.mjs` intercepts **26 real frontend POST payloads** at 390/502/1440px, exercising four right-click test actions, mobile card More, single-node fallback and three keyboard shortcuts. All APIs are mocked, so no real Core or nodes are tested. Run this optional runner with the same `WEBUI_URL`, `PLAYWRIGHT_MODULE` and `PLAYWRIGHT_BROWSERS_PATH` variables as the status runner.
 
 Production build, **96 unit/contract tests**, the 26 payload checks and the 36 status/node-card browser combinations pass. This is one shared frontend fix for desktop and mobile; Backend API contracts are unchanged.
+
+## Mobile Core controls become secondary
+
+Mobile pages now retain only a single lightweight runtime/current-node summary (approximately 36px high). The App Bar's More entry opens **Core & status**, a compact modal panel containing Core actions, current node, routing selection, listeners and traffic. Node/subscription/routing content is no longer preceded by two status cards.
+
+`CoreStatus.vue` renders the existing `RuntimeStrip` and `ConnectionStrip` exactly once: inside the mobile panel when requested, or in the original desktop position. All state and actions still belong to App's existing composables. Closing/reopening the panel does not restart Core or fetch a second copy of its state. The summary updates from the same runtime state and keeps faults visible without opening controls.
+
+The panel supports focus trapping, focus return, Escape, outside-click dismissal and background scroll locking. Widening to desktop closes the panel and restores the existing strips; returning to mobile does not reopen it. Disconnect/session reset also clears its open state.
+
+Build and **98 unit/contract tests** pass. The 36-case status/node-card browser runner covers panel lifecycle, original mocked start/restart/stop and route-activation endpoints, dark/light themes, fault-summary updates, focus/scroll behavior and breakpoint transitions. The 26 batch-speedtest payload checks also pass. Short/long fixture screenshot regression covers all primary pages at 360/390/430/502/760px and desktop widths 1280/1440/1920.
+
+New screenshots are under `/tmp/opencode/webui-mobile-browser/core-panel-{short,long}/` and `core-panel-regression/`. This change is recorded under Unreleased; the published `v1.0.1` tag and assets remain unchanged.

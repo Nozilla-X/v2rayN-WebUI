@@ -4,7 +4,7 @@
     "proxy": "代理正在執行",
     "off": "已關閉"
   },
-  "header": { "language": "語言", "more": "更多" },
+  "header": { "language": "語言", "more": "更多", "coreStatus": "Core 與狀態" },
   "theme": {
     "label": "主題",
     "system": "跟隨系統",

@@ -44,6 +44,26 @@ test('mobile status grids explicitly fill the cards even with short or empty con
   assert.match(css, /\.traffic-list \{ grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/)
 })
 
+test('mobile Core controls are progressively disclosed from the App Bar without duplicating desktop logic', async () => {
+  const [app, header, status, panel, css] = await Promise.all([
+    source('App.vue'), source('Components/AppHeader.vue'), source('Components/CoreStatus.vue'), source('Components/CorePanel.vue'), source('style.css'),
+  ])
+  assert.match(app, /<CoreStatus[^>]*:open="showCorePanel" @close="showCorePanel = false"/)
+  assert.match(app, /showCorePanel\.value = false/)
+  assert.match(header, /class="button mobile-core-entry" @click="openCorePanel"/)
+  assert.match(status, /v-if="mobile" class="mobile-core-summary" role="status"/)
+  assert.match(status, /v-if="!mobile \|\| open" :is="mobile \? CorePanel : 'div'"/)
+  assert.equal((status.match(/<RuntimeStrip /g) || []).length, 1)
+  assert.equal((status.match(/<ConnectionStrip /g) || []).length, 1)
+  assert.match(status, /if \(!mobile\.value\) emit\('close'\)/)
+  assert.match(status, /query\.removeEventListener\('change', updateViewport\)/)
+  assert.match(panel, /useModalFocus\(panel\)/)
+  assert.match(panel, /role="dialog" aria-modal="true"/)
+  assert.match(panel, /@click\.self="emit\('close'\)"/)
+  assert.match(css, /\.core-status-host \{ display: contents/)
+  assert.match(css, /\.button\.mobile-core-entry \{ display: none/)
+})
+
 test('mobile forms use one column and scrolling tabs keep touch targets without changing desktop grids', async () => {
   const css = await source('style.css')
   assert.match(css, /\.form-grid\.three-col \{ grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/)

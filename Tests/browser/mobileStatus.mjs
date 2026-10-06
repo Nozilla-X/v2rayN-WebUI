@@ -13,7 +13,7 @@ try {
   for (const width of [360, 390, 430, 502, 760, 1440]) {
     for (const [scenario, name] of [['short', 'Test-node-k3skg7b3'], ['long', '移动端长节点名称 / Hong Kong '.repeat(5)], ['empty', '']]) {
       for (const running of [true, false]) {
-        const context = await browser.newContext({ viewport: { width, height: 844 }, isMobile: width <= 760, hasTouch: width <= 760 })
+        const context = await browser.newContext({ viewport: { width, height: 844 }, isMobile: width <= 760, hasTouch: width <= 760, colorScheme: scenario === 'empty' ? 'light' : 'dark' })
         await context.addInitScript(() => {
           localStorage.setItem('v2rayn-web-token', 'isolated-layout-fixture')
           localStorage.setItem('v2rayn-web-locale', 'zh-CN')
@@ -34,13 +34,17 @@ try {
           '/api/subscriptions': [],
           '/api/operations': [],
           '/api/settings': { inbound: { localPort: 1145 }, showIpInfoColumn: running, options: {} },
-          '/api/settings/routing-profiles': [{ id: 'route-1', remarks: 'V4-绕过大陆(Whitelist)', isActive: true }],
+          '/api/settings/routing-profiles': [{ id: 'route-1', remarks: 'V4-绕过大陆(Whitelist)', isActive: true }, { id: 'route-2', remarks: '备用规则', isActive: false }],
           '/api/settings/routing-profiles/route-1/rules': [],
           '/api/logs': { items: [], total: 0 },
         }
         await page.route('**/api/**', route => route.fulfill({ json: { success: true, data: fixtures[new URL(route.request().url()).pathname] ?? [] } }))
         await page.goto(base)
-        await page.waitForFunction(() => document.querySelector('#runtime-route')?.value === 'route-1')
+        if (width <= 760) {
+          await page.waitForFunction(running => document.querySelector('.mobile-core-summary strong')?.textContent === (running ? '运行中' : '已停止'), running)
+          assert.equal(await page.locator('.runtime-strip, .connection-strip').count(), 0, 'Core cards are not mounted on the main mobile page')
+          assert.ok((await page.locator('.mobile-core-summary').boundingBox()).height <= 44, 'mobile status stays a single lightweight row')
+        } else await page.waitForFunction(() => document.querySelector('#runtime-route')?.value === 'route-1')
         const node = page.locator('[data-profile-id="node-1"]')
         await node.waitFor()
         const details = node.locator('.mobile-node-details button')
@@ -74,6 +78,19 @@ try {
         }
         await page.locator('.main-nav > .nav-tab').nth(2).click()
         await page.locator('.routing-page').waitFor()
+        if (output && scenario === 'short' && running) await page.screenshot({ path: `${output}/${width}-routing.png` })
+        async function openCorePanel() {
+          await page.locator('.header-more').click()
+          await page.locator('.mobile-core-entry').click()
+          await page.locator('.core-panel').waitFor()
+        }
+        if (width <= 760) {
+          assert.ok((await page.locator('.page-title').boundingBox()).y < 200, 'routing content starts near the top, including with long node names')
+          await openCorePanel()
+          await page.waitForFunction(() => document.querySelector('#runtime-route')?.value === 'route-1')
+          assert.equal(await page.locator('.runtime-strip').count(), 1, 'panel reuses a single RuntimeStrip')
+          assert.equal(await page.locator('.connection-strip').count(), 1, 'panel reuses a single ConnectionStrip')
+        }
         const layout = await page.evaluate(() => {
           const box = selector => document.querySelector(selector).getBoundingClientRect()
           const inner = selector => {
@@ -89,13 +106,66 @@ try {
           for (const group of ['listeners', 'traffic']) assert.ok(Math.abs(layout[group] - layout.connectionInner) < 1, `${width} ${scenario}: ${group} shrinks to content width`)
           assert.ok(Math.abs(layout.route - (layout.statusInner - 56)) < 1, 'route select fills the value column')
           assert.ok(layout.controls.every(control => control.height >= 44), 'Core actions retain touch targets')
-          if (scenario !== 'long') assert.ok(layout.title < 520, 'short/empty status leaves routing content on the first screen')
+          assert.ok(layout.title < 200, 'Core panel does not consume the main page layout')
         }
         assert.equal(layout.controls[0].disabled, running, 'start disabled only while running')
         assert.equal(layout.controls[1].disabled, !running, 'restart follows runtime state')
         assert.equal(layout.controls[2].disabled, !running, 'stop follows runtime state')
+        if (width <= 760) {
+          const panel = page.locator('.core-panel')
+          assert.equal(await page.evaluate(() => getComputedStyle(document.body).overflowY), 'hidden', 'Core panel locks background scrolling')
+          if (output && scenario === 'short' && running) await page.screenshot({ path: `${output}/${width}-core-panel.png` })
+          const bounds = await panel.boundingBox()
+          assert.ok(bounds.x >= 0 && bounds.x + bounds.width <= width && bounds.y >= 0 && bounds.y + bounds.height <= 844, 'Core panel stays within viewport')
+          const focusable = panel.locator('button:not(:disabled), select:not(:disabled)')
+          await focusable.first().focus()
+          await page.keyboard.press('Shift+Tab')
+          assert.ok(await focusable.last().evaluate(el => el === document.activeElement), 'reverse Tab stays inside panel')
+          await page.keyboard.press('Tab')
+          assert.ok(await focusable.first().evaluate(el => el === document.activeElement), 'Tab stays inside panel')
+          const action = running ? 'restart' : 'start'
+          await Promise.all([
+            page.waitForResponse(response => new URL(response.url()).pathname === `/api/core/${action}` && response.request().method() === 'POST'),
+            page.locator('.core-actions button').nth(running ? 1 : 0).click(),
+          ])
+          await page.waitForFunction(() => [...document.querySelectorAll('.core-actions button')].some(button => !button.disabled))
+          if (running) {
+            await Promise.all([
+              page.waitForResponse(response => new URL(response.url()).pathname === '/api/core/stop' && response.request().method() === 'POST'),
+              page.locator('.core-actions button').nth(2).click(),
+            ])
+          }
+          await Promise.all([
+            page.waitForResponse(response => new URL(response.url()).pathname === '/api/settings/routing-profiles/route-2/activate' && response.request().method() === 'POST'),
+            page.locator('#runtime-route').selectOption('route-2'),
+          ])
+          await page.keyboard.press('Escape')
+          assert.equal(await panel.count(), 0, 'Escape closes the panel')
+          assert.notEqual(await page.evaluate(() => getComputedStyle(document.body).overflowY), 'hidden', 'closing the panel restores background scrolling')
+          assert.ok(await page.locator('.header-more').evaluate(el => el === document.activeElement), 'focus returns to the visible App Bar entry')
+          await openCorePanel()
+          await page.locator('.core-panel-shade').click({ position: { x: 2, y: 2 } })
+          assert.equal(await panel.count(), 0, 'outside click closes the panel')
+          await openCorePanel()
+          await page.setViewportSize({ width: 1440, height: 1000 })
+          await page.locator('.core-status-host .runtime-strip').waitFor()
+          assert.equal(await panel.count(), 0, 'desktop resize closes the modal and restores the original strips')
+          assert.equal(await page.locator('.runtime-strip').count(), 1)
+          await page.setViewportSize({ width, height: 844 })
+          await page.locator('.mobile-core-summary').waitFor()
+          assert.equal(await panel.count(), 0, 'returning to mobile does not reopen the panel')
+          assert.equal(await page.locator('.runtime-strip, .connection-strip').count(), 0)
+          if (scenario === 'empty' && !running) {
+            fixtures['/api/status'].runtimeState = 'faulted'
+            fixtures['/api/status'].runtimeFailure = 'Isolated fixture failure'
+            await page.locator('.header-more').click()
+            await page.locator('.header-right button[title]').click()
+            await page.waitForFunction(() => document.querySelector('.mobile-core-summary strong')?.textContent === '运行异常')
+            assert.ok(await page.locator('.mobile-core-summary .danger-text').isVisible(), 'runtime faults remain visible without opening Core controls')
+            await page.keyboard.press('Escape')
+          }
+        }
         assert.deepEqual(errors, [], 'no browser errors')
-        if (output && scenario === 'short' && running) await page.screenshot({ path: `${output}/${width}-routing.png` })
         checks++
         await context.close()
       }

@@ -1,5 +1,13 @@
 # Changelog
 
+## [Unreleased]
+
+### Improvements
+
+- Mobile pages now prioritize nodes and subscriptions: Core controls, routing selection,
+  listeners and traffic move into a Core & status panel under the App Bar's More entry.
+  A lightweight runtime/current-node summary remains visible. Desktop Core strips are unchanged.
+
 ## [1.0.1] - 2026-10-06
 
 ### Improvements

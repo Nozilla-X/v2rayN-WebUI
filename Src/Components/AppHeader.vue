@@ -15,6 +15,11 @@ const desktop = window.matchMedia('(min-width: 761px)')
 function syncControls() {
   controlsOpen.value = false
 }
+function openCorePanel() {
+  controlsOpen.value = false
+  controls.value?.querySelector<HTMLButtonElement>('.header-more')?.focus()
+  actions.openCorePanel()
+}
 
 function closeControls(event: PointerEvent) {
   if (!desktop.matches && event.target instanceof Node && !controls.value?.contains(event.target)) controlsOpen.value = false
@@ -55,6 +60,7 @@ onUnmounted(() => {
     <button type="button" class="tool-button header-more" :aria-label="t('header.more')" :aria-expanded="controlsOpen" aria-controls="global-controls" @click="controlsOpen = !controlsOpen"><UiIcon name="more" /></button>
     <div id="global-controls" class="header-right">
     <span :class="['connection-tag', { online: state.authenticated }]">{{ state.authenticated ? t('auth.connected') : t('auth.waiting') }}</span>
+    <button v-if="state.authenticated" type="button" class="button mobile-core-entry" @click="openCorePanel"><UiIcon name="settings" />{{ t('header.coreStatus') }}</button>
     <label class="header-control-field"><span>{{ t('header.language') }}</span><select v-model="state.locale" class="locale-select" :aria-label="t('header.language')">
       <option value="zh-CN">{{ t('localeNames.zhCN') }}</option><option value="zh-TW">{{ t('localeNames.zhTW') }}</option><option value="en-US">{{ t('localeNames.enUS') }}</option>
     </select></label>

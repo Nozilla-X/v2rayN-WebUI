@@ -2,11 +2,10 @@
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppHeader from './Components/AppHeader.vue'
-import ConnectionStrip from './Components/ConnectionStrip.vue'
+import CoreStatus from './Components/CoreStatus.vue'
 import ConfirmDialog from './Components/Modals/ConfirmDialog.vue'
 import FlyoutMenu from './Components/FlyoutMenu.vue'
 import ToastViewport from './Components/ToastViewport.vue'
-import RuntimeStrip from './Components/RuntimeStrip.vue'
 import DnsPage from './Components/Pages/DnsPage.vue'
 import LogsPage from './Components/Pages/LogsPage.vue'
 import MaintenancePage from './Components/Pages/MaintenancePage.vue'
@@ -45,6 +44,7 @@ const sessionToken = ref(readStoredValue('v2rayn-web-token') || '')
 const authenticated = ref(false)
 const loading = ref(false)
 const activePage = ref('nodes')
+const showCorePanel = ref(false)
 const contextMenu = ref<Dict | null>(null)
 interface ToastEntry { id: number; message: string; kind: NoticeKind }
 const toasts = ref<ToastEntry[]>([])
@@ -210,6 +210,7 @@ const session = useSession({
     maintenance.reset()
     logs.reset()
     contextMenu.value = null
+    showCorePanel.value = false
     activeConfirmation.value?.resolve(false)
     activeConfirmation.value = null
     for (const confirmation of confirmationQueue.splice(0)) confirmation.resolve(false)
@@ -306,7 +307,7 @@ function positionContextMenu(menu: Dict) {
 }
 
 const headerState = reactive({ navItems, brandIconSrc, brandIconTitle, activePage, subscriptions: subscriptions.subscriptions, authenticated, locale, loading, themePreference: theme.preference })
-const headerActions = { navigate, refreshBase, disconnect, setTheme: theme.setPreference }
+const headerActions = { navigate, refreshBase, disconnect, setTheme: theme.setPreference, openCorePanel: () => { showCorePanel.value = true } }
 const runtimeStripState = reactive({ status: runtime.status, currentProfile, activeRoutingId: routing.activeRoutingId, routes: routing.routes, busy: runtime.busy })
 const runtimeStripActions = { activateRoute, coreAction: runtime.coreAction }
 const connectionStripState = runtime.connectionStripState
@@ -457,6 +458,8 @@ function closeTopLayerOnEscape(event: KeyboardEvent): boolean {
       profiles.showImportForm.value = false
     } else if (profiles.showProfileForm.value) {
       profiles.showProfileForm.value = false
+    } else if (showCorePanel.value) {
+      showCorePanel.value = false
     } else {
       return false
     }
@@ -626,8 +629,7 @@ function positionOpenContextMenu() {
       </div>
     </section>
       <template v-else>
-        <RuntimeStrip :state="runtimeStripState" :actions="runtimeStripActions" />
-        <ConnectionStrip :state="connectionStripState" :actions="connectionStripActions" />
+        <CoreStatus :runtime-state="runtimeStripState" :runtime-actions="runtimeStripActions" :connection-state="connectionStripState" :connection-actions="connectionStripActions" :open="showCorePanel" @close="showCorePanel = false" />
         <main class="workspace">
           <NodesPage v-if="activePage === 'nodes'" :state="nodesPageState" :actions="nodesPageActions" />
           <SubscriptionsPage v-else-if="activePage === 'subscriptions'" :state="subscriptionsPageState" :actions="subscriptionsPageActions" />
