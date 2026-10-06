@@ -393,8 +393,8 @@ function deleteSelectedNodes() {
   if (ensureNodeSelection()) void nodesPageActions.runProfileAction('delete')
 }
 
-function testSelectedNodes(action: string, profile?: Dict) {
-  const ids = profile ? [profile.indexId] : nodeIdsForAction()
+function testSelectedNodes(action: string) {
+  const ids = nodeIdsForAction()
   if (ids.length) void nodesPageActions.startSpeedTest(action, ids)
 }
 
@@ -653,10 +653,10 @@ function positionOpenContextMenu() {
       <button role="menuitem" @click="nodesPageActions.runProfileAction('deduplicate')">{{ t('nodes.deduplicate') }}</button>
       <button role="menuitem" @click="nodesPageActions.runProfileAction('remove-invalid')">{{ t('nodes.removeInvalid') }}</button>
       <div class="context-separator"></div>
-      <button role="menuitem" @click="testSelectedNodes('tcping', contextMenu.profile)">{{ t('nodes.tcping') }}<span class="menu-shortcut">Ctrl+O</span></button>
-      <button role="menuitem" @click="testSelectedNodes('realping', contextMenu.profile)">{{ t('nodes.realping') }}<span class="menu-shortcut">Ctrl+R</span></button>
-      <button role="menuitem" @click="testSelectedNodes('speedtest', contextMenu.profile)">{{ t('nodes.speedtest') }}<span class="menu-shortcut">Ctrl+T</span></button>
-      <button role="menuitem" @click="testSelectedNodes('udpTest', contextMenu.profile)">{{ t('nodes.udp') }}</button>
+      <button role="menuitem" @click="testSelectedNodes('tcping')">{{ t('nodes.tcping') }}<span class="menu-shortcut">Ctrl+O</span></button>
+      <button role="menuitem" @click="testSelectedNodes('realping')">{{ t('nodes.realping') }}<span class="menu-shortcut">Ctrl+R</span></button>
+      <button role="menuitem" @click="testSelectedNodes('speedtest')">{{ t('nodes.speedtest') }}<span class="menu-shortcut">Ctrl+T</span></button>
+      <button role="menuitem" @click="testSelectedNodes('udpTest')">{{ t('nodes.udp') }}</button>
       <button role="menuitem" @click="nodesPageActions.sortProfiles('DelayVal')">{{ t('nodes.sortByTestResults') }}</button>
       <div class="context-separator"></div>
       <FlyoutMenu context :label="t('nodes.moveGroup')" :disabled="!nodesPageState.selectedIds.length" @select="contextMenu = null">

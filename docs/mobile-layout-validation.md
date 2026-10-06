@@ -64,3 +64,11 @@ For the two-short-node fixture at 502px, a collapsed card is approximately **220
 The build and **92 unit/contract tests** pass. `Tests/browser/mobileStatus.mjs` also checks node summary heights, selection position, capability-gated IP fields, preserved traffic values, keyboard expansion, selection independence, context actions and desktop field visibility across its 36 width/content/runtime combinations. Primary-page short/long screenshot regression covers 360/390/430/502/760px and desktop widths; 1440px and 1920px node screenshots are pixel-identical to the prior bundle.
 
 Node-list comparison and expanded-state screenshots are in `/tmp/opencode/webui-mobile-browser/node-cards-{short,long}/`, including `node-cards-short/comparison-node-list-502.png`.
+
+## Shared desktop/mobile batch speedtests
+
+Context-menu TCP/real-connection/download/UDP tests previously passed the right-clicked profile directly, bypassing the selected batch. They now use the same selection resolver as keyboard shortcuts. Opening a menu on a selected profile preserves the batch; opening it on an unselected profile still deliberately replaces the selection with that profile. Submission snapshots the selected IDs and never accidentally omits `profileIds` to test all nodes.
+
+`Tests/batchSpeedtestSelection.test.mjs` covers selection preservation, unselected-node behavior, snapshots and context-menu bindings. `Tests/browser/batchSpeedtests.mjs` intercepts **26 real frontend POST payloads** at 390/502/1440px, exercising four right-click test actions, mobile card More, single-node fallback and three keyboard shortcuts. All APIs are mocked, so no real Core or nodes are tested. Run this optional runner with the same `WEBUI_URL`, `PLAYWRIGHT_MODULE` and `PLAYWRIGHT_BROWSERS_PATH` variables as the status runner.
+
+Production build, **96 unit/contract tests**, the 26 payload checks and the 36 status/node-card browser combinations pass. This is one shared frontend fix for desktop and mobile; Backend API contracts are unchanged.
