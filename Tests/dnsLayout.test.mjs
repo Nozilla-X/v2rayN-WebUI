@@ -14,7 +14,7 @@ test('DNS settings use full workspace width without removing the workspace cap o
   assert.match(css, /\.dns-core-section\s*\{\s*width:\s*100%;\s*\}/)
   assert.doesNotMatch(css, /\.dns-page \.settings-section\s*\{[^}]*max-width:\s*(?:1180|860)px/)
   assert.match(css, /\.form-grid\.three-col\s*\{\s*grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\)/)
-  assert.match(css, /@media\s*\(max-width:\s*760px\)[\s\S]*?\.form-grid\.two-col, \.form-grid\.three-col\s*\{\s*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/)
+  assert.match(css, /@media\s*\(max-width:\s*760px\)[\s\S]*?\.form-grid\.two-col, \.form-grid\.three-col\s*\{\s*grid-template-columns:\s*minmax\(0,\s*1fr\)/)
   assert.match(css, /\.form-grid input, \.form-grid select, \.form-grid textarea\s*\{[^}]*min-width:\s*0/)
 })
 

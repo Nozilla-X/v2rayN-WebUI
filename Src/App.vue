@@ -545,6 +545,10 @@ async function navigate(page: string) {
   activePage.value = page
   contextMenu.value = null
   profiles.selectedIds.value = []
+  if (window.matchMedia('(max-width: 760px)').matches) {
+    await nextTick()
+    window.scrollTo({ top: 0, behavior: 'instant' })
+  }
 }
 
 watch(activePage, async () => {

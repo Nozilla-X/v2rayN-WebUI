@@ -4,7 +4,7 @@
     "proxy": "代理正在运行",
     "off": "已关闭"
   },
-  "header": { "language": "语言" },
+  "header": { "language": "语言", "more": "更多" },
   "theme": {
     "label": "主题",
     "system": "跟随系统",

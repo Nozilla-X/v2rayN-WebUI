@@ -4,7 +4,7 @@
     "proxy": "Proxy is running",
     "off": "Stopped"
   },
-  "header": { "language": "Language" },
+  "header": { "language": "Language", "more": "More" },
   "theme": {
     "label": "Theme",
     "system": "Follow system",
