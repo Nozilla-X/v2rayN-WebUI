@@ -20,6 +20,12 @@
   with duplicate footer explanations removed from mobile and compact form spacing throughout.
 - Mobile save bars align with their actual form fields, without viewport-compensating
   negative margins that could make nested template panels protrude or appear offset.
+- Mobile layout is denser and rounds its geometry: the group label stays inline with the
+  filter chips, page chrome and section spacing are compressed, and cards, chips, menus
+  and buttons share consistent rounded corners.
+- Mobile node cards keep three rows: identity, endpoint and a metrics line whose trailing
+  chevron expands subscription/IP/traffic details; subscription cards pair the update
+  time with the interval on one line.
 
 ### Fixes
 
