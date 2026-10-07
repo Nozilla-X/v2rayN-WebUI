@@ -939,3 +939,5 @@ input[type="checkbox"] { width: 16px; height: 16px; flex: 0 0 16px; }
   .update-core-row .check-inline { min-height: 44px; }
   .form-grid .check-inline, .settings-checks .check-inline { min-height: 44px; }
 }
+.backend-fields .inline-field { flex-wrap: wrap; }
+.backend-fields .inline-field input { min-width: 140px; }

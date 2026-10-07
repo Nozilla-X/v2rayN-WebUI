@@ -1,5 +1,18 @@
 {
   "brand": "v2rayN Web",
+  "backend": {
+    "address": "Backend API 地址",
+    "apply": "使用地址",
+    "test": "测试连接",
+    "hint": "留空使用同源 API。填写不含 /api 的 http(s) 地址，支持反向代理路径前缀。独立 WebUI 的精确 origin 需要加入 V2RAYN_WEB_ALLOWED_ORIGINS。点击测试或登录后，浏览器可能询问本地网络权限。",
+    "invalidEndpoint": "请填写 http:// 或 https:// 地址，不含用户名、密码、查询或片段；留空使用同源 API。",
+    "reachable": "Backend API 可访问。",
+    "timeout": "API 连接超时。请检查地址、监听/防火墙、CORS 和本地网络权限。",
+    "notApi": "此地址没有返回 v2rayN API 健康响应，请检查端口和路径前缀。",
+    "networkFailure": "API 连接失败。请检查地址、Backend 监听/防火墙和精确 CORS 白名单。浏览器不能可靠区分 CORS 拒绝与服务不可达，请查看开发者工具的网络/控制台。",
+    "localNetworkFailure": "HTTPS 页面无法连接本地 HTTP API。请允许此站点访问本地网络，并检查 CORS、监听和防火墙；部分浏览器还会限制 HTTPS → HTTP 或 EventSource，必要时使用同源部署或 HTTPS API。",
+    "mixedContentFailure": "浏览器可能阻止 HTTPS WebUI 连接此 HTTP API（混合内容）。请使用 HTTPS API 或同源部署。"
+  },
   "brandState": {
     "proxy": "代理正在运行",
     "off": "已关闭"
@@ -17,7 +30,7 @@
     "managementKey": "管理密钥",
     "confirmKey": "确认密钥",
     "submit": "设置并进入",
-    "localOnly": "首次初始化请在运行 v2rayN Web 的本机或可信私有网络中，通过服务器的私有 IP 直接访问；不支持公网或反向代理访问。",
+    "localOnly": "首次初始化请通过 Backend 在 localhost 托管的 WebUI 完成。独立/跨源 WebUI 不允许初始化密钥：请先在 Backend 配置 V2RAYN_WEB_API_KEY，再在这里登录。",
     "keyTooShort": "管理密钥至少需要 12 个字符。",
     "keyTooLong": "管理密钥不能超过 4096 个字符。",
     "keysDoNotMatch": "两次输入的密钥不一致。",

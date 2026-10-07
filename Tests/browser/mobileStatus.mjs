@@ -15,7 +15,7 @@ try {
       for (const running of [true, false]) {
         const context = await browser.newContext({ viewport: { width, height: 844 }, isMobile: width <= 760, hasTouch: width <= 760, colorScheme: scenario === 'empty' ? 'light' : 'dark' })
         await context.addInitScript(() => {
-          localStorage.setItem('v2rayn-web-token', 'isolated-layout-fixture')
+          localStorage.setItem('v2rayn-api-session:' + encodeURIComponent(location.origin), 'isolated-layout-fixture')
           localStorage.setItem('v2rayn-web-locale', 'zh-CN')
           window.EventSource = class { addEventListener() {} close() {} }
         })

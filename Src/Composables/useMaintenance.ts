@@ -1,7 +1,10 @@
 import { reactive, ref, type Ref } from 'vue'
 import type { ApiServices, Dict, ErrorHandler, Notice, Translate } from './types'
 
-const webUpdateTargetType = 'v2rayN.Web'
+// Consume the API-advertised identity so historical Backends remain usable.
+function webUpdateTargetName(target?: Dict) {
+  return target?.name === 'v2rayN.Web' ? 'v2rayN.Web' : 'v2rayN.WebAPI'
+}
 
 export function useMaintenance(options: ApiServices & {
   t: Translate
@@ -21,6 +24,7 @@ export function useMaintenance(options: ApiServices & {
   const updateResults = ref<Record<string, Dict>>({})
   const updateProgress = ref<Record<string, Dict>>({})
   const geoUpdateSubmitting = ref(false)
+  const webUpdateTargetType = () => webUpdateTargetName(updateSettings.value.webTarget)
 
   async function loadMaintenance() {
     const [webdav, updates, progress, webTarget] = await Promise.all([
@@ -34,7 +38,7 @@ export function useMaintenance(options: ApiServices & {
     const targets = updates.targets || []
     const supportedPreReleaseTargets = new Set([
       ...targets.filter((target: Dict) => target.supportsPreRelease).map((target: Dict) => target.coreType),
-      webUpdateTargetType,
+      webUpdateTargetName(webTarget),
     ])
     const checkPreReleaseCoreTypes = [...new Set(
       (Array.isArray(updates.checkPreReleaseCoreTypes) ? updates.checkPreReleaseCoreTypes : [])
@@ -45,7 +49,7 @@ export function useMaintenance(options: ApiServices & {
       targets: targets.map((target: Dict) => ({ ...target })),
       checkPreReleaseCoreTypes,
       // The Backend's per-target list is authoritative; preRelease is only kept as a legacy alias.
-      preRelease: checkPreReleaseCoreTypes.includes(webUpdateTargetType),
+      preRelease: checkPreReleaseCoreTypes.includes(webUpdateTargetName(webTarget)),
       webTarget,
       webSelected: Boolean(webTarget?.selected),
     }
@@ -88,12 +92,12 @@ export function useMaintenance(options: ApiServices & {
         .filter((target: Dict) => target.selected)
         .map((target: Dict) => target.coreType)
       if (updateSettings.value.geoFilesSelected) selectedCoreTypes.push('GeoFiles')
-      if (updateSettings.value.webSelected) selectedCoreTypes.push(webUpdateTargetType)
+      if (updateSettings.value.webSelected) selectedCoreTypes.push(webUpdateTargetType())
       const supportedPreReleaseTargets = new Set([
         ...(updateSettings.value.targets || [])
           .filter((target: Dict) => target.supportsPreRelease)
           .map((target: Dict) => target.coreType),
-        webUpdateTargetType,
+        webUpdateTargetType(),
       ])
       const checkPreReleaseCoreTypes = [...new Set(
         (updateSettings.value.checkPreReleaseCoreTypes || [])
@@ -104,7 +108,7 @@ export function useMaintenance(options: ApiServices & {
         body: {
           selectedCoreTypes,
           checkPreReleaseCoreTypes,
-          preRelease: checkPreReleaseCoreTypes.includes(webUpdateTargetType),
+          preRelease: checkPreReleaseCoreTypes.includes(webUpdateTargetType()),
           useProxy: Boolean(updateSettings.value.useProxy),
         },
       })
@@ -117,7 +121,7 @@ export function useMaintenance(options: ApiServices & {
   }
 
   function setPreReleaseTarget(coreType: string, enabled: boolean) {
-    const isSupported = coreType === webUpdateTargetType
+    const isSupported = coreType === webUpdateTargetType()
       || (updateSettings.value.targets || []).some((target: Dict) => target.coreType === coreType && target.supportsPreRelease)
     if (!isSupported) return
 
@@ -125,7 +129,7 @@ export function useMaintenance(options: ApiServices & {
     updateSettings.value.checkPreReleaseCoreTypes = enabled
       ? current.includes(coreType) ? current : [...current, coreType]
       : current.filter((target: string) => target !== coreType)
-    updateSettings.value.preRelease = updateSettings.value.checkPreReleaseCoreTypes.includes(webUpdateTargetType)
+    updateSettings.value.preRelease = updateSettings.value.checkPreReleaseCoreTypes.includes(webUpdateTargetType())
   }
 
   async function saveUpdateSettings() {
@@ -158,7 +162,7 @@ export function useMaintenance(options: ApiServices & {
       if (!await persistUpdateSettings(false)) return
       const result = await options.request('/api/web-updates/check')
       const check = result.data || {}
-      updateResults.value = { ...updateResults.value, 'v2rayN.Web': check }
+      updateResults.value = { ...updateResults.value, [webUpdateTargetType()]: check }
       options.showNotice(check.updateAvailable
         ? t('maintenance.updateAvailable', { version: check.latestVersion })
         : check.detail || options.translateKey(result.messageKey), check.updateAvailable ? 'info' : 'success')

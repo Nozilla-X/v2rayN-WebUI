@@ -1,5 +1,18 @@
 {
   "brand": "v2rayN Web",
+  "backend": {
+    "address": "Backend API address",
+    "apply": "Use address",
+    "test": "Test connection",
+    "hint": "Leave empty for same-origin. Use an http(s) address without /api; reverse-proxy path prefixes are supported. A standalone WebUI requires its exact origin in V2RAYN_WEB_ALLOWED_ORIGINS. Local network permission may be requested after you click Test or Sign in.",
+    "invalidEndpoint": "Enter an http:// or https:// address, without credentials, query or fragment (or leave empty for same-origin).",
+    "reachable": "Backend API is reachable.",
+    "timeout": "API connection timed out. Check the address, listener/firewall, CORS and local network permission.",
+    "notApi": "This address did not return a v2rayN API health response. Check the port and path prefix.",
+    "networkFailure": "API connection failed. Check the address, Backend listener/firewall and exact CORS allowed origin. The browser cannot reliably distinguish CORS from an unreachable server; check its Network/Console panel.",
+    "localNetworkFailure": "Could not connect to the local HTTP API from HTTPS. Allow local network access for this site, and check CORS and the listener/firewall. Some browsers also block HTTPS → HTTP or EventSource; use same-origin hosting or an HTTPS API if needed.",
+    "mixedContentFailure": "An HTTPS WebUI cannot connect to this HTTP API in browsers that block mixed content. Use an HTTPS API or same-origin hosting."
+  },
   "brandState": {
     "proxy": "Proxy is running",
     "off": "Stopped"
@@ -17,7 +30,7 @@
     "managementKey": "Management key",
     "confirmKey": "Confirm key",
     "submit": "Set up and continue",
-    "localOnly": "Complete first-run setup on this machine or directly from a trusted private network using the server's private IP. Public and reverse-proxy access is not allowed.",
+    "localOnly": "Complete first-run setup using the Backend-hosted WebUI on localhost. A standalone/cross-origin WebUI cannot initialize a key: configure V2RAYN_WEB_API_KEY on the Backend first, then sign in here.",
     "keyTooShort": "The management key must be at least 12 characters.",
     "keyTooLong": "The management key cannot exceed 4096 characters.",
     "keysDoNotMatch": "The keys do not match.",

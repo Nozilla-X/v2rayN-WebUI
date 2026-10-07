@@ -2,6 +2,7 @@ import { onUnmounted, watch, type Ref } from 'vue'
 import type { Dict, RequestApi, Notice, Translate } from './types'
 import { enqueueLogEntry, takeLogBatch } from './logBatch.js'
 import { createEventRefresh } from './eventRefresh.js'
+import { resolveApiUrl } from './apiEndpoint'
 
 export function useEvents(options: {
   token: Ref<string>
@@ -12,6 +13,8 @@ export function useEvents(options: {
   logPage: Ref<number>
   logPageSize: number
   request: RequestApi
+  resolveUrl?: (path: string) => string
+  networkFailureMessage?: () => string
   t: Translate
   showNotice: Notice
   matchesLogFilter: (entry: Dict) => boolean
@@ -138,6 +141,7 @@ export function useEvents(options: {
     if (!source || options.activePage.value !== 'logs' || logEventSource === source) return
     detachLogListener()
     const handler: EventListener = (event) => {
+      if (eventSource !== source) return
       const entry = JSON.parse((event as MessageEvent).data)
       enqueueLog(entry)
     }
@@ -156,8 +160,13 @@ export function useEvents(options: {
 
       const includeLogs = options.activePage.value === 'logs'
       eventSourceIncludesLogs = includeLogs
-      const source = new EventSource(`/api/events?sse_ticket=${encodeURIComponent(ticket)}&include_logs=${includeLogs}`)
+      const source = new EventSource((options.resolveUrl || resolveApiUrl)(`/api/events?sse_ticket=${encodeURIComponent(ticket)}&include_logs=${includeLogs}`))
       eventSource = source
+      const listen = (name: string, handler: (event: MessageEvent) => void) => {
+        source.addEventListener(name, (event) => {
+          if (eventSource === source && generation === connectionGeneration) handler(event as MessageEvent)
+        })
+      }
       attachLogListener()
       source.onopen = () => {
         if (eventSource === source) {
@@ -166,14 +175,14 @@ export function useEvents(options: {
           void options.loadStatus().catch(() => {})
         }
       }
-      source.addEventListener('status', (event) => { options.status.value = JSON.parse((event as MessageEvent).data) })
-      source.addEventListener('traffic', (event) => {
+      listen('status', (event) => { options.status.value = JSON.parse(event.data) })
+      listen('traffic', (event) => {
       if (options.status.value) options.status.value.traffic = JSON.parse((event as MessageEvent).data)
       })
-      source.addEventListener('speedtest-result', (event) => {
+      listen('speedtest-result', (event) => {
         options.onSpeedTestResult(JSON.parse((event as MessageEvent).data) as Dict)
       })
-      source.addEventListener('core-update-progress', (event) => {
+      listen('core-update-progress', (event) => {
         const progress = JSON.parse((event as MessageEvent).data) as Dict
         recordUpdateProgress(progress)
         if (progress.coreType === 'GeoFiles') {
@@ -184,11 +193,11 @@ export function useEvents(options: {
           operationsRefresh.request()
         }
       })
-      source.addEventListener('core-update-batch-completed', (event) => {
+      listen('core-update-batch-completed', (event) => {
         options.onCoreUpdateBatchComplete(JSON.parse((event as MessageEvent).data) as Dict)
         operationsRefresh.request()
       })
-      source.addEventListener('geo-update-progress', () => {
+      listen('geo-update-progress', () => {
         // Raw progress does not change operation membership. Refresh once at
         // startup, not once per download packet; completion refreshes below.
         if (!geoUpdateActive) {
@@ -196,14 +205,14 @@ export function useEvents(options: {
           operationsRefresh.request()
         }
       })
-      source.addEventListener('logs-cleared', (event) => {
+      listen('logs-cleared', (event) => {
         const payload = JSON.parse((event as MessageEvent).data) as Dict
         const generation = typeof payload.generation === 'number' ? payload.generation : minimumLogGeneration
         clearPendingLogQueue(generation)
         options.onLogsCleared(generation)
       })
       for (const eventName of ['profiles-changed', 'subscription-progress', 'settings-changed', 'core-state', 'geo-update-completed', 'xray-update-completed']) {
-        source.addEventListener(eventName, (event) => {
+        listen(eventName, (event) => {
         if (eventName === 'core-state') {
           const state = JSON.parse((event as MessageEvent).data) as Dict
           if (options.status.value) {
@@ -252,7 +261,7 @@ export function useEvents(options: {
     reconnectAttempts += 1
     if (reconnectAttempts >= 5 && !reconnectNotified) {
       reconnectNotified = true
-      options.showNotice(t('common.unknownError'), 'error')
+      options.showNotice(options.networkFailureMessage?.() || t('backend.networkFailure'), 'error')
     }
     reconnectTimer = setTimeout(() => {
       reconnectTimer = undefined
@@ -290,5 +299,10 @@ export function useEvents(options: {
 
   onUnmounted(closeEvents)
 
-  return { openEvents, closeEvents, clearPendingLogQueue }
+  function resetEvents() {
+    closeEvents()
+    minimumLogGeneration = 0
+  }
+
+  return { openEvents, closeEvents, resetEvents, clearPendingLogQueue }
 }

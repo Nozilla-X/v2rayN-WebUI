@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { UiProps } from '../types'
 import UiIcon from '../UiIcon.vue'
@@ -12,6 +12,7 @@ const props = defineProps<UiProps>()
 const state = props.state
 const actions = props.actions
 const activeTab = ref('updates')
+const webTargetType = computed(() => state.updateSettings.webTarget?.name === 'v2rayN.Web' ? 'v2rayN.Web' : 'v2rayN.WebAPI')
 </script>
 
 <template>
@@ -53,18 +54,18 @@ const activeTab = ref('updates')
             }) }}</small>
             <small v-if="state.updateSettings.webTarget?.installReasonKey" class="field-hint">{{ t(state.updateSettings.webTarget.installReasonKey) }}</small>
           </div>
-          <span v-if="state.updateResults['v2rayN.Web']?.updateAvailable" class="update-state">{{ t('maintenance.updateAvailable', { version: state.updateResults['v2rayN.Web'].latestVersion }) }}</span>
-          <span v-else-if="state.updateResults['v2rayN.Web'] && !state.updateResults['v2rayN.Web'].updateAvailable" class="muted">{{ t('maintenance.upToDateGeneric') }}</span>
+          <span v-if="state.updateResults[webTargetType]?.updateAvailable" class="update-state">{{ t('maintenance.updateAvailable', { version: state.updateResults[webTargetType].latestVersion }) }}</span>
+          <span v-else-if="state.updateResults[webTargetType] && !state.updateResults[webTargetType].updateAvailable" class="muted">{{ t('maintenance.upToDateGeneric') }}</span>
         </div>
         <div class="update-core-row">
           <label class="check-inline"><UiCheckbox v-model="state.updateSettings.webSelected" :disabled="!state.updateSettings.webTarget?.isSupported" />{{ t('maintenance.includeWebUpdate') }}</label>
-          <label v-if="state.updateSettings.webTarget" class="check-inline"><UiCheckbox :model-value="state.updateSettings.checkPreReleaseCoreTypes.includes('v2rayN.Web')" @change="actions.setPreReleaseTarget('v2rayN.Web', $event)" />{{ t('maintenance.preRelease') }}</label>
-          <span v-if="state.updateProgress['v2rayN.Web'] && !state.updateProgress['v2rayN.Web'].isComplete" class="update-state">{{ t(`maintenance.phase.${state.updateProgress['v2rayN.Web'].phase}`) }}</span>
-          <span v-else-if="state.updateProgress['v2rayN.Web']?.isComplete" :class="state.updateProgress['v2rayN.Web'].success ? 'update-state' : 'danger-note'">{{ t(state.updateProgress['v2rayN.Web'].success ? 'maintenance.phase.completed' : 'maintenance.phase.failed') }}</span>
+          <label v-if="state.updateSettings.webTarget" class="check-inline"><UiCheckbox :model-value="state.updateSettings.checkPreReleaseCoreTypes.includes(webTargetType)" @change="actions.setPreReleaseTarget(webTargetType, $event)" />{{ t('maintenance.preRelease') }}</label>
+          <span v-if="state.updateProgress[webTargetType] && !state.updateProgress[webTargetType].isComplete" class="update-state">{{ t(`maintenance.phase.${state.updateProgress[webTargetType].phase}`) }}</span>
+          <span v-else-if="state.updateProgress[webTargetType]?.isComplete" :class="state.updateProgress[webTargetType].success ? 'update-state' : 'danger-note'">{{ t(state.updateProgress[webTargetType].success ? 'maintenance.phase.completed' : 'maintenance.phase.failed') }}</span>
         </div>
-        <p v-if="state.updateProgress['v2rayN.Web']?.detail" class="field-hint update-detail">{{ state.updateProgress['v2rayN.Web'].detail }}</p>
-        <p v-if="state.updateProgress['v2rayN.Web']?.isComplete && state.updateProgress['v2rayN.Web'].success === false && state.updateProgress['v2rayN.Web'].rollbackSucceeded !== null && state.updateProgress['v2rayN.Web'].rollbackSucceeded !== undefined" class="field-hint update-detail">{{ t(state.updateProgress['v2rayN.Web'].rollbackSucceeded ? 'maintenance.webRollbackSucceeded' : 'maintenance.webRollbackFailed') }}</p>
-        <p v-if="state.updateResults['v2rayN.Web']?.detail" class="field-hint update-detail">{{ state.updateResults['v2rayN.Web'].detail }}</p>
+        <p v-if="state.updateProgress[webTargetType]?.detail" class="field-hint update-detail">{{ state.updateProgress[webTargetType].detail }}</p>
+        <p v-if="state.updateProgress[webTargetType]?.isComplete && state.updateProgress[webTargetType].success === false && state.updateProgress[webTargetType].rollbackSucceeded !== null && state.updateProgress[webTargetType].rollbackSucceeded !== undefined" class="field-hint update-detail">{{ t(state.updateProgress[webTargetType].rollbackSucceeded ? 'maintenance.webRollbackSucceeded' : 'maintenance.webRollbackFailed') }}</p>
+        <p v-if="state.updateResults[webTargetType]?.detail" class="field-hint update-detail">{{ state.updateResults[webTargetType].detail }}</p>
         <div class="button-row">
           <button class="button" :disabled="!state.updateSettings.webTarget?.canCheck || state.operations.includes('core-update-batch') || state.operations.includes('web-update')" @click="actions.checkWebUpdate">{{ t('maintenance.checkWebUpdate') }}</button>
           <button class="button primary" :disabled="!state.updateSettings.webSelected || !state.updateSettings.webTarget?.canInstall || state.operations.includes('core-update-batch') || state.operations.includes('web-update')" @click="actions.updateWeb">{{ t('maintenance.installWebUpdate') }}</button>

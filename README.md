@@ -4,7 +4,7 @@ This repository contains one WebUI implementation for the v2rayN Web API. It is 
 independently developed Vue application; it is **not** part of the API contract and the API
 does not require Vue, Vite, Node.js, or this UI to start.
 
-The Backend is `v2rayN.Web` in [Nozilla-X/v2rayN](https://github.com/Nozilla-X/v2rayN).
+The Backend is `v2rayN.WebAPI` in [Nozilla-X/v2rayN](https://github.com/Nozilla-X/v2rayN).
 The frontend and Backend are independently versioned and released.
 
 ## Development
@@ -25,9 +25,87 @@ proxy at the API. The default target is `http://127.0.0.1:5080`; override it whe
 VITE_API_TARGET=http://127.0.0.1:5080 npm run dev
 ```
 
-The browser always calls same-origin `/api/...` and `/api/events` URLs. Only Vite's development
-server proxies `/api` to the configured target; production builds do not embed an API origin
-and need no CORS configuration.
+The default remains same-origin; only Vite's development server proxies `/api` in that mode.
+An explicitly configured Backend is contacted directly by the browser, including in development,
+and must allow the WebUI's exact origin through CORS.
+
+## Standalone hosting and Backend selection
+
+The same static artifact supports Backend-hosted same-origin access and standalone hosting.
+On the unsigned-in screen, leave **Backend API address** empty for same-origin, or enter an
+absolute HTTP(S) address and click **Use address** / **Test connection**. Examples:
+
+- `http://127.0.0.1:5080`
+- `http://192.168.1.10:5080`
+- `https://v2rayn-api.example.com`
+- `https://gateway.example.com/v2rayn` (the proxy strips `/v2rayn` before forwarding `/api/**`)
+
+Do not append `/api`. Trailing slashes, default ports and host/scheme casing are normalized.
+Credentials, query strings, fragments and non-HTTP(S) schemes are rejected. API requests do
+not follow redirects; configure the final endpoint. REST, login, setup, downloads, SSE tickets
+and EventSource all share `Src/Composables/apiEndpoint.ts`. Icons, favicon, static assets and
+`webui-config.js` always belong to the WebUI origin.
+
+For a deployment default, edit **`webui-config.js` after extracting/building** (no rebuild needed):
+
+```js
+window.__V2RAYN_WEBUI_CONFIG__ = { apiBaseUrl: 'http://127.0.0.1:5080' }
+```
+
+The shipped value is `''` (same-origin). A saved user selection overrides this deployment
+default. Serve the config file without long-lived caching. No particular public dashboard
+domain is hard-coded in the application.
+
+For an independent site at `https://webui.example.com`, configure the Backend:
+
+```ini
+V2RAYN_WEB_API_KEY=<your-management-key>
+V2RAYN_WEB_ALLOWED_ORIGINS=https://webui.example.com
+```
+
+Allowed origins are **scheme + host + port**, not URLs with paths. Multiple values are comma
+separated; no wildcard or cookie/credential CORS is supported. Configure each Backend separately.
+An allowed WebUI is trusted to manage that Backend once the user gives it a session.
+For a Backend-hosted WebUI that needs to connect to *another* Backend, also configure the
+hosting Backend's `V2RAYN_WEB_UI_CONNECT_ORIGINS` with explicit API destination origins;
+the hosted UI's default CSP deliberately retains `connect-src 'self'`.
+
+**First-run setup is not permitted cross-origin**, even for an allowed origin. Configure the
+Management Key on the Backend first, or initialize using its localhost-hosted same-origin UI.
+The UI explains this restriction using `/api/setup/status`.
+
+Sessions are scoped to the normalized endpoint **including its path prefix**. Applying a new
+Backend closes SSE, cancels all pending requests (including login/setup), clears runtime state,
+credential drafts and the old local session. A bounded best-effort logout uses an immutable
+snapshot of the old URL/token, never the new endpoint. Unscoped historical `v2rayn-web-token`
+values are discarded and require a fresh login. The Management Key is never persisted by the WebUI.
+Standalone mode does not automatically contact a configured local/LAN API on page load:
+**Test connection** or **Sign in** is the first explicit network action.
+
+### HTTPS dashboards and local network access
+
+An HTTPS site connecting to localhost/LAN HTTP is subject to the browser's Local Network
+Access permission **and** mixed-content policy. They are different from CORS. Allow local
+network access for the site when prompted; do not disable browser security globally.
+Loopback (`localhost`, `127.0.0.1`, `::1`) and literal private IPs are recognized without DNS
+probing. A `targetAddressSpace` hint is used only when `Request` exposes and accepts it; other
+browsers keep their native inference. EventSource has no equivalent hint or permission option.
+
+Some Firefox versions permit HTTP loopback but block HTTP LAN as mixed active content even
+after granting local-network permission. Use an HTTPS API/reverse proxy or same-origin hosting
+in that case. Old Private Network Access preflights are not bypassed through a blanket
+`Access-Control-Allow-Private-Network` response. CORS, network failure and permission failure
+are intentionally diagnosed as possible causes, not falsely distinguished from opaque fetch
+errors. Browser and enterprise-policy differences require real REST **and SSE** verification.
+
+`Tests/browser/backendConnection.mjs` exercises a real isolated native Backend and built UI in
+Chrome/Firefox (no API/SSE mocks). Provide `WEBAPI_EXECUTABLE`, `BROWSER_TEST_DIR` (with a private
+`management-key`, `tls.key`, `tls.crt`), `LAN_ADDRESS`, and optionally `PLAYWRIGHT_MODULE`,
+`PLAYWRIGHT_BROWSERS_PATH` / `CHROME_EXECUTABLE`. It uses ports 5178/5443/5180 and isolated data.
+`PUBLIC_HTTPS_ORIGIN` optionally navigates a real public HTTPS document and injects only the
+local UI artifact into its DOM for address-space testing; it does **not** deploy or modify that
+public site. Preserve the document (not `document.write`/synthetic navigation), and inspect
+the recorded browser remote address/address spaces before claiming public-network LNA coverage.
 
 ## Build and install
 
@@ -55,6 +133,7 @@ The deployable artifact is `dist/`:
 ```text
 dist/
 ├── index.html
+├── webui-config.js
 └── assets/**
 ```
 
@@ -72,7 +151,7 @@ self-update packages do not contain or modify that directory.
 
 ## API compatibility
 
-This WebUI requires a compatible `v2rayN.Web` API that provides
+This WebUI requires a compatible `v2rayN.WebAPI` (or historical `v2rayN.Web`) API that provides
 the API capabilities `auth.sessions`, `events.sse`, `editor.options`, `profiles`,
 `subscriptions`, `routing`, `dns`, `settings`, `backup.restore`, `core.runtime`, `core.updates`,
 `web.self-update`, and `static-webui`.
@@ -82,6 +161,10 @@ and `capabilities`; the UI keeps the status response as API data and can use the
 checking compatibility. Dynamic protocol/Core/DNS/routing/editor choices come from Backend
 option endpoints. The UI does not import or vendor ServiceLib enums, and it does not require a
 private WebUI manifest or a separate API version endpoint.
+
+`webVersion`, `web.self-update`, `/api/web-updates` and build metadata's `Web*` keys remain
+intentional compatibility names. The updater consumes `/api/web-updates`' advertised `name`:
+new Backends use `v2rayN.WebAPI`, while historical Backends can still use `v2rayN.Web`.
 
 The independently versioned WebUI may not work with every historical Backend build. Pair it
 with an API that reports the required capability identifiers and exposes the endpoints above.

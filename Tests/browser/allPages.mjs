@@ -15,7 +15,7 @@ try {
     for (const locale of ['zh-CN', 'en-US']) {
       const context = await browser.newContext({ viewport: { width, height: 844 }, isMobile: width <= 760, hasTouch: width <= 760, colorScheme: locale === 'zh-CN' ? 'dark' : 'light', timezoneId: 'Asia/Shanghai' })
       await context.addInitScript(locale => {
-        localStorage.setItem('v2rayn-web-token', 'isolated-application-fixture')
+        localStorage.setItem('v2rayn-api-session:' + encodeURIComponent(location.origin), 'isolated-application-fixture')
         localStorage.setItem('v2rayn-web-locale', locale)
         window.EventSource = class { addEventListener() {} close() {} }
         Object.defineProperty(navigator, 'clipboard', { value: { writeText: async value => { window.__copied = value }, readText: async () => '[{"remarks":"Imported fixture","domain":["example.invalid"],"outboundTag":"direct"}]' } })

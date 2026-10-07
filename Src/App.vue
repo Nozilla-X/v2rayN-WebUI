@@ -2,6 +2,7 @@
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppHeader from './Components/AppHeader.vue'
+import BackendAddressFields from './Components/BackendAddressFields.vue'
 import CoreStatus from './Components/CoreStatus.vue'
 import ConfirmDialog from './Components/Modals/ConfirmDialog.vue'
 import FlyoutMenu from './Components/FlyoutMenu.vue'
@@ -37,10 +38,17 @@ import { readStoredValue, writeStoredValue } from './Composables/browserStorage'
 import type { ApiError, Dict, NoticeKind } from './Composables/types'
 import { navigateMenu } from './Components/menuContext'
 import { preventNativeContextMenu } from './Components/contextMenu'
+import { useBackend } from './Composables/useBackend'
+import { normalizeApiBase, networkFailureKey } from './Composables/apiEndpoint'
 
 const { t, locale } = useI18n()
 const theme = useTheme()
-const sessionToken = ref(readStoredValue('v2rayn-web-token') || '')
+const backend = useBackend()
+// Old unscoped tokens have no trustworthy Backend identity; require a fresh login.
+try { localStorage.removeItem('v2rayn-web-token') } catch { /* Storage may be blocked. */ }
+const sessionToken = ref(backend.isSameOrigin() ? readStoredValue(backend.storageKey()) || '' : '')
+const connectionTesting = ref(false)
+let connectionGeneration = 0
 const authenticated = ref(false)
 const loading = ref(false)
 const activePage = ref('nodes')
@@ -139,7 +147,7 @@ function showError(error: unknown) {
 }
 
 let clearSession = () => {}
-const api = useApi({ getToken: () => sessionToken.value, onUnauthorized: () => clearSession(), translateKey })
+const api = useApi({ getToken: () => sessionToken.value, getBase: () => backend.base.value, onUnauthorized: () => clearSession(), translateKey })
 const runtime = useRuntime({ ...api, showNotice, showError })
 const profiles = useProfiles({
   ...api, t, showNotice, showError, confirm: confirmDestructive,
@@ -164,7 +172,8 @@ const logs = useLogs({ ...api, t, showNotice, showError, confirm: confirmDestruc
 const events = useEvents({
   token: sessionToken, activePage, status: runtime.status,
   logs: logs.logs, logTotal: logs.logTotal, logPage: logs.logPage, logPageSize: logs.logPageSize,
-  request: api.request, t, showNotice, matchesLogFilter: logs.matchesLogFilter,
+  request: api.request, resolveUrl: api.resolveUrl, t, showNotice, matchesLogFilter: logs.matchesLogFilter,
+  networkFailureMessage: () => t(networkFailureKey(backend.base.value)),
   loadGroups: profiles.loadGroups, loadProfiles: profiles.loadProfiles, loadSubscriptions: subscriptions.loadSubscriptions,
   loadStatus: runtime.loadStatus, loadRouting: routing.loadRouting, loadOperations: runtime.loadOperations,
   onCoreUpdateProgress: maintenance.recordCoreUpdateProgress,
@@ -191,8 +200,8 @@ async function loadConnectedData() {
 }
 
 const session = useSession({
-  token: sessionToken, authenticated, loading, request: api.request, t, showNotice, showError,
-  closeEvents: events.closeEvents, openEvents: events.openEvents,
+  token: sessionToken, authenticated, loading, request: api.request, publicRequest: api.publicRequest, storageKey: backend.storageKey, t, showNotice, showError,
+  closeEvents: events.resetEvents, openEvents: events.openEvents,
   refreshData: async () => {
     await profiles.loadGroups()
     await Promise.all([runtime.loadStatus(), profiles.loadProfiles(), subscriptions.loadSubscriptions()])
@@ -223,6 +232,48 @@ const session = useSession({
   loadProfiles: profiles.loadProfiles,
 })
 clearSession = session.clearSession
+
+function applyBackend(): boolean {
+  backend.error.value = ''
+  try {
+    const normalized = normalizeApiBase(backend.draft.value)
+    if (normalized !== backend.base.value) {
+      const revokeOldSession = api.captureSessionRevocation()
+      connectionGeneration += 1
+      connectionTesting.value = false
+      session.clearSession() // Close SSE and abort *all* requests before changing the URL.
+      backend.setBase(normalized)
+      void revokeOldSession()
+      session.setupStatusReady.value = true
+    } else backend.draft.value = normalized
+    return true
+  } catch { backend.error.value = t('backend.invalidEndpoint'); return false }
+}
+
+async function testConnection() {
+  if (!applyBackend() || connectionTesting.value) return
+  const generation = ++connectionGeneration
+  connectionTesting.value = true
+  try {
+    const { response, payload } = await api.publicRequest('/api/health', { signal: AbortSignal.timeout(10000) })
+    if (!response.ok || payload?.status !== 'ok') throw new Error(t('backend.notApi'))
+    if (generation !== connectionGeneration) return
+    await session.loadSetupStatus()
+    if (generation === connectionGeneration) showNotice(t('backend.reachable'))
+  } catch (error) {
+    if (generation === connectionGeneration) showError(error)
+  } finally {
+    if (generation === connectionGeneration) connectionTesting.value = false
+  }
+}
+
+async function loginToBackend() {
+  const key = session.managementKeyDraft.value
+  if (applyBackend()) {
+    session.managementKeyDraft.value = key
+    await session.login()
+  }
+}
 
 const {
   managementKeyDraft, setupStatusReady, setupRequired, setupAllowedFromRequest,
@@ -568,6 +619,8 @@ watch(locale, (value) => {
 onMounted(async () => {
   document.addEventListener('keydown', handleGlobalKeydown, true)
   window.addEventListener('resize', positionOpenContextMenu)
+  // Cross-origin and local-network permission requests require an explicit action.
+  if (!backend.isSameOrigin()) { setupStatusReady.value = true; return }
   await session.loadSetupStatus()
   if (setupRequired.value || !sessionToken.value) return
   authenticated.value = true
@@ -600,6 +653,7 @@ function positionOpenContextMenu() {
       <div class="auth-box setup-box">
         <div class="auth-title"><img class="brand-glyph" src="/v2rayN.png" alt="" /><div><strong>{{ t('setup.title') }}</strong><small>{{ t('brand') }}</small></div></div>
         <p>{{ t('setup.localOnly') }}</p>
+        <BackendAddressFields v-model="backend.draft.value" :testing="connectionTesting" :error="backend.error.value" @apply="applyBackend" @test="testConnection" />
       </div>
     </section>
 
@@ -607,6 +661,7 @@ function positionOpenContextMenu() {
       <form class="auth-box setup-box" @submit.prevent="configureManagementKey">
         <div class="auth-title"><img class="brand-glyph" src="/v2rayN.png" alt="" /><div><strong>{{ t('setup.title') }}</strong><small>{{ t('brand') }}</small></div></div>
         <p>{{ t('setup.description') }}</p>
+        <BackendAddressFields v-model="backend.draft.value" :testing="connectionTesting" :error="backend.error.value" @apply="applyBackend" @test="testConnection" />
         <div class="form-grid">
           <label>{{ t('setup.managementKey') }}<input v-model="setupKey" type="password" autocomplete="new-password" minlength="12" maxlength="4096" required /></label>
           <label>{{ t('setup.confirmKey') }}<input v-model="setupConfirmKey" type="password" autocomplete="new-password" minlength="12" maxlength="4096" required /></label>
@@ -620,9 +675,10 @@ function positionOpenContextMenu() {
       <AppHeader :state="headerState" :actions="headerActions" />
     <section v-if="!authenticated" class="auth-wrap">
       <div class="auth-content">
-        <form class="auth-box" @submit.prevent="login()">
+        <form class="auth-box" @submit.prevent="loginToBackend">
           <div class="auth-title"><img class="brand-glyph" src="/v2rayN.png" alt="" /><div><strong>{{ t('auth.title') }}</strong><small>{{ t('brand') }}</small></div></div>
           <p>{{ t('auth.hint') }}</p>
+          <BackendAddressFields v-model="backend.draft.value" :testing="connectionTesting" :error="backend.error.value" @apply="applyBackend" @test="testConnection" />
           <label class="field-label" for="management-key">{{ t('auth.token') }}</label>
           <div class="inline-field"><input id="management-key" v-model="managementKeyDraft" type="password" autocomplete="current-password" :placeholder="t('auth.placeholder')" /><button class="button primary" type="submit">{{ t('auth.connect') }}</button></div>
         </form>

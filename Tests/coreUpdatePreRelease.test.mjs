@@ -28,7 +28,7 @@ async function createMaintenance(coreSettings, webTarget = { selected: false }) 
       if (route === '/api/settings/webdav') return {}
       if (route === '/api/core-updates') return coreSettings
       if (route === '/api/core-updates/progress') return []
-      if (route === '/api/web-updates') return webTarget
+      if (route === '/api/web-updates') return { name: 'v2rayN.Web', ...webTarget }
       throw new Error(`Unexpected GET ${route}`)
     },
     request: async (route, init) => {
@@ -137,6 +137,6 @@ test('saving keeps selected targets and prerelease targets separate and excludes
 test('the Maintenance UI shows per-target prerelease controls only for supported targets', async () => {
   const page = await readFile(path.join(root, 'Src/Components/Pages/MaintenancePage.vue'), 'utf8')
   assert.match(page, /v-if="target\.supportsPreRelease"[\s\S]*?actions\.setPreReleaseTarget\(target\.coreType, \$event\)/)
-  assert.match(page, /v-if="state\.updateSettings\.webTarget"[\s\S]*?setPreReleaseTarget\('v2rayN\.Web', \$event\)/)
+  assert.match(page, /v-if="state\.updateSettings\.webTarget"[\s\S]*?setPreReleaseTarget\(webTargetType, \$event\)/)
   assert.doesNotMatch(page, /v-model="state\.updateSettings\.preRelease"/)
 })

@@ -1,12 +1,16 @@
 import { onUnmounted, ref, watch, type Ref } from 'vue'
 import type { RequestApi, ErrorHandler, Notice, Translate } from './types'
 import { classifyLoginResponse, connectEstablishedSession } from './sessionFlow.js'
+import { useApi, type ApiClient } from './useApi'
+import { sessionStorageKey } from './apiEndpoint'
 
 export function useSession(options: {
   token: Ref<string>
   authenticated: Ref<boolean>
   loading: Ref<boolean>
   request: RequestApi
+  publicRequest?: ApiClient['publicRequest']
+  storageKey?: () => string
   t: Translate
   showNotice: Notice
   showError: ErrorHandler
@@ -27,39 +31,48 @@ export function useSession(options: {
   const setupSubmitting = ref(false)
   const setupError = ref('')
   let refreshTimer: ReturnType<typeof setInterval> | undefined
+  let sessionGeneration = 0
+  const fallbackApi = useApi({ getToken: () => options.token.value, onUnauthorized: () => clearSession(), translateKey: t })
+  const publicRequest = options.publicRequest || fallbackApi.publicRequest
+  const storageKey = options.storageKey || sessionStorageKey
 
   async function loadSetupStatus() {
+    const generation = sessionGeneration
     try {
-      const response = await fetch('/api/setup/status')
+      const { response, payload } = await publicRequest('/api/setup/status')
       if (!response.ok) throw new Error(`${response.status}`)
-      const payload = await response.json()
+      if (generation !== sessionGeneration) return
       const setupStatus = payload?.data ?? payload
       setupRequired.value = Boolean(setupStatus?.setupRequired)
       setupAllowedFromRequest.value = Boolean(setupStatus?.setupAllowedFromThisRequest)
     } catch (error) {
-      options.showError(error)
+      if (generation === sessionGeneration) options.showError(error)
     } finally {
-      setupStatusReady.value = true
+      if (generation === sessionGeneration) setupStatusReady.value = true
     }
   }
 
   async function refreshBase(): Promise<boolean> {
     if (!options.token.value || options.loading.value) return false
     options.loading.value = true
+    const generation = sessionGeneration
     try {
       await options.refreshData()
+      if (generation !== sessionGeneration) return false
       options.authenticated.value = true
       return true
     } catch (error) {
+      if (generation !== sessionGeneration) return false
       if (options.authenticated.value) options.showError(error)
       else throw error
       return false
     } finally {
-      options.loading.value = false
+      if (generation === sessionGeneration) options.loading.value = false
     }
   }
 
   async function login() {
+    const generation = sessionGeneration
     const managementKey = managementKeyDraft.value
     if (!managementKey) {
       options.showNotice(t('auth.tokenRequired'), 'error')
@@ -67,12 +80,13 @@ export function useSession(options: {
     }
 
     try {
-      const response = await fetch('/api/auth/login', {
+      await loadSetupStatus()
+      if (generation !== sessionGeneration || setupRequired.value) return
+      const { response, payload } = await publicRequest('/api/auth/login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ key: managementKey }),
+        body: { key: managementKey },
       })
-      const payload = await response.json().catch(() => ({}))
+      if (generation !== sessionGeneration) return
       switch (classifyLoginResponse(response.status, payload)) {
         case 'rate-limited':
           options.showNotice(t('auth.rateLimited'), 'error')
@@ -87,29 +101,36 @@ export function useSession(options: {
 
       managementKeyDraft.value = ''
       await connectWithSession(payload.data.token)
-    } catch {
-      options.showNotice(t('auth.loginUnavailable'), 'error')
+    } catch (error) {
+      if (generation === sessionGeneration) options.showError(error)
     }
   }
 
   async function connectWithSession(sessionToken: string) {
+    const generation = sessionGeneration
+    const key = storageKey()
     await connectEstablishedSession({
       sessionToken,
       setToken: (token) => { options.token.value = token },
       setAuthenticated: (value) => { options.authenticated.value = value },
-      isAuthenticated: () => options.authenticated.value,
-      persistToken: (token) => localStorage.setItem('v2rayn-web-token', token),
+      isAuthenticated: () => generation === sessionGeneration && options.authenticated.value,
+      persistToken: (token) => localStorage.setItem(key, token),
       refreshBase,
       openEvents: options.openEvents,
       loadConnectedData: options.loadConnectedData,
       onDataLoadFailure: () => options.showNotice(t('auth.sessionDataLoadFailed'), 'error'),
       onConnected: () => options.showNotice(t('auth.connected')),
-      onSessionExpired: () => options.showNotice(t('auth.sessionExpired'), 'error'),
+      onSessionExpired: () => { if (generation === sessionGeneration) options.showNotice(t('auth.sessionExpired'), 'error') },
     })
   }
 
   async function configureManagementKey() {
+    const generation = sessionGeneration
     setupError.value = ''
+    if (!setupAllowedFromRequest.value) {
+      setupError.value = t('setup.localOnly')
+      return
+    }
     if (setupKey.value.length < 12) {
       setupError.value = t('setup.keyTooShort')
       return
@@ -125,12 +146,11 @@ export function useSession(options: {
 
     setupSubmitting.value = true
     try {
-      const response = await fetch('/api/setup', {
+      const { response, payload } = await publicRequest('/api/setup', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ key: setupKey.value, confirmKey: setupConfirmKey.value }),
+        body: { key: setupKey.value, confirmKey: setupConfirmKey.value },
       })
-      const payload = await response.json().catch(() => ({}))
+      if (generation !== sessionGeneration) return
       if (!response.ok) {
         setupError.value = payload.error === 'key_too_short'
           ? t('setup.keyTooShort')
@@ -153,18 +173,20 @@ export function useSession(options: {
         return
       }
       await connectWithSession(sessionToken)
-    } catch {
-      setupError.value = t('setup.setupFailed')
+    } catch (error) {
+      if (generation === sessionGeneration) options.showError(error)
     } finally {
-      setupSubmitting.value = false
+      if (generation === sessionGeneration) setupSubmitting.value = false
     }
   }
 
   function clearSession() {
+    sessionGeneration += 1
+    fallbackApi.cancelPendingRequests()
     options.closeEvents()
     options.token.value = ''
     try {
-      localStorage.removeItem('v2rayn-web-token')
+      localStorage.removeItem(storageKey())
     } catch {
       // Browser storage policy must not prevent clearing in-memory credentials.
     }
@@ -172,16 +194,22 @@ export function useSession(options: {
     setupKey.value = ''
     setupConfirmKey.value = ''
     options.authenticated.value = false
+    options.loading.value = false
+    setupSubmitting.value = false
+    setupRequired.value = false
+    setupAllowedFromRequest.value = false
+    setupError.value = ''
     options.resetSessionData()
   }
 
   async function disconnect() {
+    const generation = sessionGeneration
     try {
       await options.request('/api/auth/logout', { method: 'POST' })
     } catch {
       // Clear the local session even when the backend is already unavailable.
     }
-    clearSession()
+    if (generation === sessionGeneration) clearSession()
   }
 
   watch(options.authenticated, (connected) => {

@@ -32,6 +32,6 @@ test('speedtest-result for a profile outside the current list does not trigger a
 
 test('SSE speedtest-result is handled as a row merge instead of a profiles reload event', async () => {
   const source = await readFile(useEventsPath, 'utf8')
-  assert.match(source, /addEventListener\('speedtest-result',[\s\S]*?options\.onSpeedTestResult\(/)
+  assert.match(source, /listen\('speedtest-result',[\s\S]*?options\.onSpeedTestResult\(/)
   assert.doesNotMatch(source, /\['profiles-changed',[^\]]*'speedtest-result'/)
 })

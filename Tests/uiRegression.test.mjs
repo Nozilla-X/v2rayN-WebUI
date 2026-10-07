@@ -171,7 +171,7 @@ test('web update checks save edited preferences before checking and retain them 
     ...services(), translateKey: (key) => key, token: harness.vue.ref('test-session'), status: harness.vue.ref(null), operations: harness.vue.ref([]), loadProfiles: async () => {},
     data: async (route) => route === '/api/core-updates' ? structuredClone(persisted)
       : route.endsWith('progress') ? []
-        : route === '/api/web-updates' ? { selected: false }
+        : route === '/api/web-updates' ? { name: 'v2rayN.Web', selected: false }
           : {},
     request: async (route, init) => {
       calls.push(route)
@@ -270,7 +270,7 @@ test('blocked browser storage cannot prevent clearing auth or credential drafts'
 test('restored sessions load editor options and a 401 clears every sensitive dialog and state', async (t) => {
   const harness = createSourceHarness()
   const original = Object.fromEntries(['localStorage', 'window', 'document', 'EventSource', 'fetch'].map((name) => [name, globalThis[name]]))
-  const storage = new Map([['v2rayn-web-token', 'test-session']])
+  const storage = new Map([['v2rayn-api-session:same-origin', 'test-session']])
   globalThis.localStorage = { getItem: (key) => storage.get(key) || null, setItem: (key, value) => storage.set(key, value), removeItem: (key) => storage.delete(key) }
   globalThis.window = { matchMedia: () => ({ matches: false, addEventListener() {}, removeEventListener() {} }), addEventListener() {}, removeEventListener() {} }
   globalThis.document = { documentElement: { dataset: {}, style: {} }, querySelector: () => null, addEventListener() {}, removeEventListener() {} }
@@ -331,7 +331,7 @@ test('restored sessions load editor options and a 401 clears every sensitive dia
   await assert.rejects(app.api.request('/api/status'), (error) => error.status === 401)
   await harness.vue.nextTick()
   assert.equal(app.authenticated.value, false)
-  assert.equal(storage.has('v2rayn-web-token'), false)
+  assert.equal(storage.has('v2rayn-api-session:same-origin'), false)
   assert.equal(app.profiles.profileModalState.showProfileForm, false)
   assert.deepEqual(app.profiles.profileModalState.profileForm, {})
   assert.equal(app.profiles.exportModalState.showExportDialog, false)

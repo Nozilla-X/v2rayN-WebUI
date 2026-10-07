@@ -10,7 +10,7 @@ try {
   for (const width of [390, 502, 1440]) {
     const context = await browser.newContext({ viewport: { width, height: 844 }, isMobile: width <= 760, hasTouch: width <= 760 })
     await context.addInitScript(() => {
-      localStorage.setItem('v2rayn-web-token', 'isolated-batch-fixture')
+      localStorage.setItem('v2rayn-api-session:' + encodeURIComponent(location.origin), 'isolated-batch-fixture')
       localStorage.setItem('v2rayn-web-locale', 'zh-CN')
       window.EventSource = class { addEventListener() {} close() {} }
     })
