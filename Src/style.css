@@ -163,7 +163,6 @@ input[type="checkbox"] { width: 16px; height: 16px; flex: 0 0 16px; align-self: 
 .core-status-host { display: contents; }
 .button.mobile-core-entry { display: none; }
 .header-refresh-label { display: none; }
-.mobile-header-traffic { display: none; }
 body:has(.core-panel-shade) { overflow: hidden; }
 .connection-tag { padding: 3px 7px; color: var(--text-muted); border: 1px solid var(--border-strong); border-radius: 2px; background: var(--surface-raised); font-size: 10px; }
 .connection-tag.online { color: var(--success-text); border-color: var(--success-border); background: var(--success-surface); }
@@ -732,9 +731,6 @@ input[type="checkbox"] { width: 16px; height: 16px; flex: 0 0 16px; }
   .app-header { position: relative; align-items: center; justify-content: space-between; flex-wrap: nowrap; gap: 12px; padding: 6px 12px; }
   .brand { min-height: 44px; padding: 0; font-size: 15px; }
   .brand.unauthenticated { display: flex; }
-  .mobile-header-traffic { display: grid; flex: 0 1 auto; min-width: 0; gap: 3px; color: var(--text-muted); font-size: 11px; font-variant-numeric: tabular-nums; }
-  .mobile-header-traffic > span { display: flex; align-items: center; gap: 4px; white-space: nowrap; }
-  .mobile-header-traffic b { color: var(--text-primary); font-weight: 500; }
   .header-controls { position: relative; display: block; margin-left: auto; }
   .header-controls > .header-more { display: flex; width: 44px; height: 44px; }
   .header-controls > .header-right { display: none; }

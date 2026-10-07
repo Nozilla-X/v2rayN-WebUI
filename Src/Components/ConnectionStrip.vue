@@ -12,11 +12,10 @@ const actions = props.actions
 <template>
 <section class="connection-strip">
   <div class="listener-list">
-    <strong>{{ t('nodes.listener') }}</strong>
     <span v-for="listener in state.listeners" :key="listener.name" class="listener-item">
-      <i :class="['status-led', { on: listener.listening }]"></i>{{ listener.name === 'lan' ? t('nodes.lan') : t('nodes.local') }} {{ actions.listenerDescription(listener) }}
+      <i :class="['status-led', { on: listener.listening }]"></i><span>{{ t('nodes.listener') }} {{ listener.name === 'lan' ? t('nodes.lan') : t('nodes.local') }} {{ actions.listenerDescription(listener) }}</span>
     </span>
-    <span v-if="!state.listeners.length" class="muted">{{ t('coreToolbar.noListener') }}</span>
+    <span v-if="!state.listeners.length" class="muted">{{ t('nodes.listener') }} {{ t('coreToolbar.noListener') }}</span>
   </div>
   <div class="traffic-list">
     <strong>{{ t('nodes.traffic') }}</strong>

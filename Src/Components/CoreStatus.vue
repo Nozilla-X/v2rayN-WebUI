@@ -36,11 +36,10 @@ onUnmounted(() => query.removeEventListener('change', updateViewport))
     <span class="mobile-core-node" :title="nodeName" :aria-label="`${t('nodes.current')}: ${nodeName}`">{{ nodeName }}</span>
     </div>
     <div class="mobile-core-listeners">
-      <strong>{{ t('nodes.listener') }}</strong>
       <span v-for="listener in connectionState.listeners" :key="listener.name" class="listener-item">
-        <i :class="['status-led', { on: listener.listening }]" aria-hidden="true"></i>{{ listener.name === 'lan' ? t('nodes.lan') : t('nodes.local') }} {{ connectionActions.listenerDescription(listener) }}
+        <i :class="['status-led', { on: listener.listening }]" aria-hidden="true"></i><span>{{ t('nodes.listener') }} {{ listener.name === 'lan' ? t('nodes.lan') : t('nodes.local') }} {{ connectionActions.listenerDescription(listener) }}</span>
       </span>
-      <span v-if="!connectionState.listeners.length" class="muted">{{ t('coreToolbar.noListener') }}</span>
+      <span v-if="!connectionState.listeners.length" class="muted">{{ t('nodes.listener') }} {{ t('coreToolbar.noListener') }}</span>
     </div>
     <span v-if="connectionState.runtimeVersion" class="mobile-core-version">{{ connectionState.runtimeVersion }}</span>
   </section>

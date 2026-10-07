@@ -44,20 +44,20 @@ test('mobile status grids explicitly fill the cards even with short or empty con
   assert.match(css, /\.traffic-list \{ grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/)
 })
 
-test('mobile shows listeners and version after the current node and live traffic after the brand', async () => {
-  const [app, header, status, css] = await Promise.all([
-    source('App.vue'), source('Components/AppHeader.vue'), source('Components/CoreStatus.vue'), source('style.css'),
+test('listeners have one consistent inline label and the header has no traffic bar', async () => {
+  const [header, status, connection, css] = await Promise.all([
+    source('Components/AppHeader.vue'), source('Components/CoreStatus.vue'), source('Components/ConnectionStrip.vue'), source('style.css'),
   ])
-  assert.match(app, /traffic: runtime\.traffic/)
-  assert.match(header, /v-if="state\.authenticated" class="mobile-header-traffic"/)
-  assert.ok(header.indexOf('class="brand"') < header.indexOf('class="mobile-header-traffic"'))
-  for (const direction of ['proxyUp', 'proxyDown']) assert.ok(header.includes(`actions.formatBytes(state.traffic.${direction})`))
+  assert.doesNotMatch(header, /mobile-header-traffic|state\.traffic/)
   assert.ok(status.indexOf('class="mobile-core-node"') < status.indexOf('class="mobile-core-listeners"'))
   assert.ok(status.indexOf('class="mobile-core-listeners"') < status.indexOf('class="mobile-core-version"'))
   assert.match(status, /connectionActions\.listenerDescription\(listener\)/)
   assert.match(status, /connectionState\.runtimeVersion/)
-  assert.match(css, /\.mobile-header-traffic \{ display: none/)
-  assert.match(css, /@media \(max-width: 760px\)[\s\S]*\.mobile-header-traffic \{ display: grid/)
+  for (const component of [status, connection]) {
+    assert.match(component, /<span>\{\{ t\('nodes\.listener'\) \}\} \{\{ listener\.name/)
+    assert.doesNotMatch(component, /<strong>\{\{ t\('nodes\.listener'\) \}\}<\/strong>/)
+  }
+  assert.doesNotMatch(css, /mobile-header-traffic/)
   assert.match(css, /\.core-panel \.connection-strip \.listener-list, \.core-panel \.connection-strip \.runtime-version \{ display: none/)
 })
 

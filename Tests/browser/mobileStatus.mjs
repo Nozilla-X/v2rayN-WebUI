@@ -46,42 +46,26 @@ try {
         }
         await page.route('**/api/**', route => route.fulfill({ json: { success: true, data: fixtures[new URL(route.request().url()).pathname] ?? [] } }))
         await page.goto(base)
+        assert.equal(await page.locator('.mobile-header-traffic').count(), 0, 'header traffic bar is removed on every viewport')
         if (width <= 760) {
           await page.waitForFunction(running => document.querySelector('.mobile-core-summary strong')?.textContent === (running ? '运行中' : '已停止'), running)
           assert.equal(await page.locator('.runtime-strip, .connection-strip').count(), 0, 'Core cards are not mounted on the main mobile page')
           assert.ok((await page.locator('.mobile-core-summary').boundingBox()).height <= 100, 'mobile identity/listener/version summary stays compact')
-          await page.waitForFunction(() => document.querySelector('.mobile-header-traffic')?.textContent.includes('2.0 KB/s'))
-          assert.ok(await page.locator('.mobile-header-traffic').isVisible(), 'live proxy traffic is visible beside the brand')
-          assert.match(await page.locator('.mobile-header-traffic').textContent(), /1\.0 KB\/s[\s\S]*2\.0 KB\/s/)
-          assert.match(await page.locator('.mobile-core-listeners').textContent(), /本地 http\/socks\/udp 0\.0\.0\.0:1145/)
+          assert.equal(await page.locator('.mobile-core-listeners .listener-item > span').textContent(), '监听 本地 http/socks/udp 0.0.0.0:1145')
           assert.match(await page.locator('.mobile-core-version').textContent(), /V7\.25\.5.*X64/)
           const positions = await page.evaluate(() => {
             const box = selector => document.querySelector(selector).getBoundingClientRect()
-            return { brand: box('.brand').right, traffic: box('.mobile-header-traffic').left, node: box('.mobile-core-identity').bottom, listener: box('.mobile-core-listeners').top, version: box('.mobile-core-version').top }
+            return { node: box('.mobile-core-identity').bottom, listener: box('.mobile-core-listeners').top, version: box('.mobile-core-version').top }
           })
-          assert.ok(positions.traffic >= positions.brand, 'traffic follows the brand')
           assert.ok(positions.listener >= positions.node && positions.version > positions.listener, 'listener and version follow current-node identity')
         } else {
           await page.waitForFunction(() => document.querySelector('#runtime-route')?.value === 'route-1')
-          assert.equal(await page.locator('.mobile-header-traffic').isVisible(), false, 'desktop keeps traffic in the original connection strip')
           assert.ok(await page.locator('.connection-strip .listener-list').isVisible())
+          assert.equal(await page.locator('.connection-strip .listener-item > span').textContent(), '监听 本地 http/socks/udp 0.0.0.0:1145')
           assert.ok(await page.locator('.connection-strip .runtime-version').isVisible())
         }
         const node = page.locator('[data-profile-id="node-1"]')
         await node.waitFor()
-        if (width <= 760) {
-          await page.waitForFunction(() => window.__layoutEvents?.listeners.has('traffic'))
-          let trafficRequests = 0
-          const countRequest = () => { trafficRequests++ }
-          page.on('request', countRequest)
-          await page.evaluate(() => window.__layoutEvents.listeners.get('traffic')(new MessageEvent('traffic', {
-            data: JSON.stringify({ proxyUp: 3072, proxyDown: 4096, directUp: 48, directDown: 64 }),
-          })))
-          await page.waitForFunction(() => document.querySelector('.mobile-header-traffic')?.textContent.includes('4.0 KB/s'))
-          assert.match(await page.locator('.mobile-header-traffic').textContent(), /3\.0 KB\/s[\s\S]*4\.0 KB\/s/)
-          assert.equal(trafficRequests, 0, 'header uses existing SSE traffic state without issuing requests')
-          page.off('request', countRequest)
-        }
         const details = node.locator('.mobile-node-details button')
         if (width <= 760) {
           const collapsed = await node.boundingBox()
@@ -134,6 +118,18 @@ try {
           assert.equal(await page.locator('.runtime-strip').count(), 1, 'panel reuses a single RuntimeStrip')
           assert.equal(await page.locator('.connection-strip').count(), 1, 'panel reuses a single ConnectionStrip')
         }
+        await page.waitForLoadState('networkidle')
+        await page.waitForFunction(() => window.__layoutEvents?.listeners.has('traffic'))
+        let trafficRequests = 0
+        const countRequest = () => { trafficRequests++ }
+        page.on('request', countRequest)
+        await page.evaluate(() => window.__layoutEvents.listeners.get('traffic')(new MessageEvent('traffic', {
+          data: JSON.stringify({ proxyUp: 3072, proxyDown: 4096, directUp: 48, directDown: 64 }),
+        })))
+        await page.waitForFunction(() => document.querySelector('.traffic-list')?.textContent.includes('4.0 KB/s'))
+        assert.match(await page.locator('.traffic-list').textContent(), /3\.0 KB\/s[\s\S]*4\.0 KB\/s/)
+        assert.equal(trafficRequests, 0, 'detailed traffic keeps using existing SSE state without issuing requests')
+        page.off('request', countRequest)
         const layout = await page.evaluate(() => {
           const box = selector => document.querySelector(selector).getBoundingClientRect()
           const inner = selector => {
