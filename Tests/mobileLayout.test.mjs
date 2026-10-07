@@ -44,6 +44,23 @@ test('mobile status grids explicitly fill the cards even with short or empty con
   assert.match(css, /\.traffic-list \{ grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/)
 })
 
+test('mobile shows listeners and version after the current node and live traffic after the brand', async () => {
+  const [app, header, status, css] = await Promise.all([
+    source('App.vue'), source('Components/AppHeader.vue'), source('Components/CoreStatus.vue'), source('style.css'),
+  ])
+  assert.match(app, /traffic: runtime\.traffic/)
+  assert.match(header, /v-if="state\.authenticated" class="mobile-header-traffic"/)
+  assert.ok(header.indexOf('class="brand"') < header.indexOf('class="mobile-header-traffic"'))
+  for (const direction of ['proxyUp', 'proxyDown']) assert.ok(header.includes(`actions.formatBytes(state.traffic.${direction})`))
+  assert.ok(status.indexOf('class="mobile-core-node"') < status.indexOf('class="mobile-core-listeners"'))
+  assert.ok(status.indexOf('class="mobile-core-listeners"') < status.indexOf('class="mobile-core-version"'))
+  assert.match(status, /connectionActions\.listenerDescription\(listener\)/)
+  assert.match(status, /connectionState\.runtimeVersion/)
+  assert.match(css, /\.mobile-header-traffic \{ display: none/)
+  assert.match(css, /@media \(max-width: 760px\)[\s\S]*\.mobile-header-traffic \{ display: grid/)
+  assert.match(css, /\.core-panel \.connection-strip \.listener-list, \.core-panel \.connection-strip \.runtime-version \{ display: none/)
+})
+
 test('mobile Core controls are progressively disclosed from the App Bar without duplicating desktop logic', async () => {
   const [app, header, status, panel, css] = await Promise.all([
     source('App.vue'), source('Components/AppHeader.vue'), source('Components/CoreStatus.vue'), source('Components/CorePanel.vue'), source('style.css'),

@@ -47,6 +47,10 @@ onUnmounted(() => {
 <template>
 <header class="app-header">
   <div class="brand" :class="{ unauthenticated: !state.authenticated }"><img class="brand-glyph" :src="state.brandIconSrc" :title="state.brandIconTitle" alt="" /><strong>{{ t('brand') }}</strong></div>
+  <div v-if="state.authenticated" class="mobile-header-traffic" role="group" :aria-label="t('nodes.traffic')">
+    <span :title="t('nodes.proxyUp')" :aria-label="`${t('nodes.proxyUp')}: ${actions.formatBytes(state.traffic.proxyUp)}/s`"><UiIcon name="arrow-up" :size="11" /><b>{{ actions.formatBytes(state.traffic.proxyUp) }}/s</b></span>
+    <span :title="t('nodes.proxyDown')" :aria-label="`${t('nodes.proxyDown')}: ${actions.formatBytes(state.traffic.proxyDown)}/s`"><UiIcon name="arrow-down" :size="11" /><b>{{ actions.formatBytes(state.traffic.proxyDown) }}/s</b></span>
+  </div>
   <nav v-if="state.authenticated" class="main-nav" :aria-label="t('brand')">
     <button v-for="(item, index) in state.navItems" :key="item.id" :class="['nav-tab', { selected: state.activePage === item.id, 'secondary-nav': Number(index) > 2 }]" :aria-current="state.activePage === item.id ? 'page' : undefined" @click="actions.navigate(item.id)">
       <UiIcon class="nav-icon" :name="item.icon" />{{ t(item.key) }}

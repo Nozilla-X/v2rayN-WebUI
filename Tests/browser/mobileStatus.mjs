@@ -17,14 +17,20 @@ try {
         await context.addInitScript(() => {
           localStorage.setItem('v2rayn-api-session:' + encodeURIComponent(location.origin), 'isolated-layout-fixture')
           localStorage.setItem('v2rayn-web-locale', 'zh-CN')
-          window.EventSource = class { addEventListener() {} close() {} }
+          window.EventSource = class {
+            constructor() { this.listeners = new Map(); window.__layoutEvents = this }
+            addEventListener(type, listener) { this.listeners.set(type, listener) }
+            removeEventListener(type) { this.listeners.delete(type) }
+            close() { this.listeners.clear() }
+          }
         })
         const page = await context.newPage()
         const errors = []
         page.on('pageerror', error => errors.push(error.message))
         const fixtures = {
           '/api/setup/status': { setupRequired: false },
-          '/api/status': { coreRunning: running, coreType: 'Xray', runtimeState: running ? 'running' : 'stopped', currentProfileName: name, statisticsEnabled: true, runtime: 'v2rayN - V7.25.5 - X64', traffic: { proxyUp: 0, proxyDown: 0, directUp: 0, directDown: 0 }, listeners: [{ name: 'local', listening: running, listenAddress: '0.0.0.0', port: 1145, protocols: ['http', 'socks', 'udp'] }] },
+          '/api/auth/sse-ticket': { ticket: 'isolated-layout-ticket' },
+          '/api/status': { coreRunning: running, coreType: 'Xray', runtimeState: running ? 'running' : 'stopped', currentProfileName: name, statisticsEnabled: true, runtime: 'v2rayN - V7.25.5 - X64', traffic: { proxyUp: 1024, proxyDown: 2048, directUp: 16, directDown: 32 }, listeners: [{ name: 'local', listening: running, listenAddress: '0.0.0.0', port: 1145, protocols: ['http', 'socks', 'udp'] }] },
           '/api/editor-options': { profiles: { configTypes: ['VLESS'], coreTypes: ['Xray'] } },
           '/api/profiles': [
             { indexId: 'node-1', remarks: name, configType: 'VLESS', protocol: 'vless', address: '192.0.2.99', port: 443, network: 'raw', streamSecurity: 'reality', isCurrent: true, subscriptionName: 'Test group', ipInfo: 'Test IP', delay: 0, speed: 0, todayUp: 308, todayDown: 347, totalUp: 308, totalDown: 347 },
@@ -43,10 +49,39 @@ try {
         if (width <= 760) {
           await page.waitForFunction(running => document.querySelector('.mobile-core-summary strong')?.textContent === (running ? '运行中' : '已停止'), running)
           assert.equal(await page.locator('.runtime-strip, .connection-strip').count(), 0, 'Core cards are not mounted on the main mobile page')
-          assert.ok((await page.locator('.mobile-core-summary').boundingBox()).height <= 44, 'mobile status stays a single lightweight row')
-        } else await page.waitForFunction(() => document.querySelector('#runtime-route')?.value === 'route-1')
+          assert.ok((await page.locator('.mobile-core-summary').boundingBox()).height <= 100, 'mobile identity/listener/version summary stays compact')
+          await page.waitForFunction(() => document.querySelector('.mobile-header-traffic')?.textContent.includes('2.0 KB/s'))
+          assert.ok(await page.locator('.mobile-header-traffic').isVisible(), 'live proxy traffic is visible beside the brand')
+          assert.match(await page.locator('.mobile-header-traffic').textContent(), /1\.0 KB\/s[\s\S]*2\.0 KB\/s/)
+          assert.match(await page.locator('.mobile-core-listeners').textContent(), /本地 http\/socks\/udp 0\.0\.0\.0:1145/)
+          assert.match(await page.locator('.mobile-core-version').textContent(), /V7\.25\.5.*X64/)
+          const positions = await page.evaluate(() => {
+            const box = selector => document.querySelector(selector).getBoundingClientRect()
+            return { brand: box('.brand').right, traffic: box('.mobile-header-traffic').left, node: box('.mobile-core-identity').bottom, listener: box('.mobile-core-listeners').top, version: box('.mobile-core-version').top }
+          })
+          assert.ok(positions.traffic >= positions.brand, 'traffic follows the brand')
+          assert.ok(positions.listener >= positions.node && positions.version > positions.listener, 'listener and version follow current-node identity')
+        } else {
+          await page.waitForFunction(() => document.querySelector('#runtime-route')?.value === 'route-1')
+          assert.equal(await page.locator('.mobile-header-traffic').isVisible(), false, 'desktop keeps traffic in the original connection strip')
+          assert.ok(await page.locator('.connection-strip .listener-list').isVisible())
+          assert.ok(await page.locator('.connection-strip .runtime-version').isVisible())
+        }
         const node = page.locator('[data-profile-id="node-1"]')
         await node.waitFor()
+        if (width <= 760) {
+          await page.waitForFunction(() => window.__layoutEvents?.listeners.has('traffic'))
+          let trafficRequests = 0
+          const countRequest = () => { trafficRequests++ }
+          page.on('request', countRequest)
+          await page.evaluate(() => window.__layoutEvents.listeners.get('traffic')(new MessageEvent('traffic', {
+            data: JSON.stringify({ proxyUp: 3072, proxyDown: 4096, directUp: 48, directDown: 64 }),
+          })))
+          await page.waitForFunction(() => document.querySelector('.mobile-header-traffic')?.textContent.includes('4.0 KB/s'))
+          assert.match(await page.locator('.mobile-header-traffic').textContent(), /3\.0 KB\/s[\s\S]*4\.0 KB\/s/)
+          assert.equal(trafficRequests, 0, 'header uses existing SSE traffic state without issuing requests')
+          page.off('request', countRequest)
+        }
         const details = node.locator('.mobile-node-details button')
         if (width <= 760) {
           const collapsed = await node.boundingBox()
@@ -111,7 +146,9 @@ try {
         assert.ok(layout.pageWidth <= width, `${width} ${scenario}: page overflow`)
         if (width <= 760) {
           for (const group of ['status', 'actions']) assert.ok(Math.abs(layout[group] - layout.statusInner) < 1, `${width} ${scenario}: ${group} shrinks to content width`)
-          for (const group of ['listeners', 'traffic']) assert.ok(Math.abs(layout[group] - layout.connectionInner) < 1, `${width} ${scenario}: ${group} shrinks to content width`)
+          assert.ok(Math.abs(layout.traffic - layout.connectionInner) < 1, `${width} ${scenario}: detailed traffic shrinks to content width`)
+          assert.equal(await page.locator('.core-panel .listener-list').isVisible(), false, 'mobile panel does not duplicate the promoted listeners')
+          assert.equal(await page.locator('.core-panel .runtime-version').isVisible(), false, 'mobile panel does not duplicate the promoted version')
           assert.ok(Math.abs(layout.route - (layout.statusInner - 56)) < 1, 'route select fills the value column')
           assert.ok(layout.controls.every(control => control.height >= 44), 'Core actions retain touch targets')
           assert.ok(layout.title < 200, 'Core panel does not consume the main page layout')

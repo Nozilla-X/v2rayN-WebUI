@@ -30,9 +30,19 @@ onUnmounted(() => query.removeEventListener('change', updateViewport))
 
 <template>
   <section v-if="mobile" class="mobile-core-summary" role="status">
+    <div class="mobile-core-identity">
     <span :class="['status-led', { on: runtimeState.status?.coreRunning }]" aria-hidden="true"></span>
     <strong :class="{ 'danger-text': runtimeStatus === 'faulted' }">{{ t(`core.runtime.${runtimeStatus}`) }}</strong>
     <span class="mobile-core-node" :title="nodeName" :aria-label="`${t('nodes.current')}: ${nodeName}`">{{ nodeName }}</span>
+    </div>
+    <div class="mobile-core-listeners">
+      <strong>{{ t('nodes.listener') }}</strong>
+      <span v-for="listener in connectionState.listeners" :key="listener.name" class="listener-item">
+        <i :class="['status-led', { on: listener.listening }]" aria-hidden="true"></i>{{ listener.name === 'lan' ? t('nodes.lan') : t('nodes.local') }} {{ connectionActions.listenerDescription(listener) }}
+      </span>
+      <span v-if="!connectionState.listeners.length" class="muted">{{ t('coreToolbar.noListener') }}</span>
+    </div>
+    <span v-if="connectionState.runtimeVersion" class="mobile-core-version">{{ connectionState.runtimeVersion }}</span>
   </section>
   <component v-if="!mobile || open" :is="mobile ? CorePanel : 'div'" v-bind="mobile ? {} : { class: 'core-status-host' }" @close="emit('close')">
     <RuntimeStrip :state="runtimeState" :actions="runtimeActions" />

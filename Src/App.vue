@@ -358,8 +358,8 @@ function positionContextMenu(menu: Dict) {
   contextMenuPlacement.value = { left: `${left}px`, top: `${top}px` }
 }
 
-const headerState = reactive({ navItems, brandIconSrc, brandIconTitle, activePage, subscriptions: subscriptions.subscriptions, authenticated, locale, loading, themePreference: theme.preference })
-const headerActions = { navigate, refreshBase, disconnect, setTheme: theme.setPreference, openCorePanel: () => { showCorePanel.value = true } }
+const headerState = reactive({ navItems, brandIconSrc, brandIconTitle, activePage, subscriptions: subscriptions.subscriptions, authenticated, locale, loading, themePreference: theme.preference, traffic: runtime.traffic })
+const headerActions = { navigate, refreshBase, disconnect, setTheme: theme.setPreference, formatBytes, openCorePanel: () => { showCorePanel.value = true } }
 const runtimeStripState = reactive({ status: runtime.status, currentProfile, activeRoutingId: routing.activeRoutingId, routes: routing.routes, busy: runtime.busy })
 const runtimeStripActions = { activateRoute, coreAction: runtime.coreAction }
 const connectionStripState = runtime.connectionStripState
