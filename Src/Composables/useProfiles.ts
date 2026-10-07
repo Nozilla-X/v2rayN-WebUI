@@ -513,7 +513,7 @@ export function useProfiles(options: ApiServices & {
   function formatDelay(value: number) {
     if (value < 0) return t('nodes.timeout')
     if (!value) return t('nodes.delayUntested')
-    return `${value} ms`
+    return String(value)
   }
 
   function reset() {

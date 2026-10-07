@@ -46,18 +46,22 @@ try {
       assert.deepEqual((await request).postDataJSON(), { action, profileIds: expectedIds }, `${width}px ${action} request must use the selected batch`)
       checked++
     }
+    async function clickTestAction(name) {
+      await page.locator('.context-menu .context-flyout-trigger').filter({ hasText: labels.nodes.testMenu }).click()
+      await page.locator('.flyout-menu-popup').getByRole('menuitem', { name }).first().click()
+    }
     for (const [action, key] of [['tcping', 'tcping'], ['realping', 'realping'], ['speedtest', 'speedtest'], ['udpTest', 'udp']]) {
       await openMenu('B')
       assert.equal(await row('A').getAttribute('aria-selected'), 'true')
       assert.equal(await row('B').getAttribute('aria-selected'), 'true')
-      await assertSubmission(action, ['A', 'B'], () => page.locator('.context-menu > button').filter({ hasText: labels.nodes[key] }).click())
+      await assertSubmission(action, ['A', 'B'], () => clickTestAction(labels.nodes[key]))
     }
     if (width <= 760) {
       await openMenu('A', true)
-      await assertSubmission('speedtest', ['A', 'B'], () => page.locator('.context-menu > button').filter({ hasText: labels.nodes.speedtest }).click())
+      await assertSubmission('speedtest', ['A', 'B'], () => clickTestAction(labels.nodes.speedtest))
     }
     await openMenu('C', width <= 760)
-    await assertSubmission('speedtest', ['C'], () => page.locator('.context-menu > button').filter({ hasText: labels.nodes.speedtest }).click())
+    await assertSubmission('speedtest', ['C'], () => clickTestAction(labels.nodes.speedtest))
     assert.equal(await checkbox('A').isChecked(), false)
     assert.equal(await checkbox('B').isChecked(), false)
     await checkbox('C').uncheck()

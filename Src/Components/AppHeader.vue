@@ -67,7 +67,7 @@ onUnmounted(() => {
     <label class="header-control-field"><span>{{ t('theme.label') }}</span><select :value="state.themePreference" class="theme-select" :aria-label="t('theme.label')" @change="actions.setTheme(($event.target as HTMLSelectElement).value)">
       <option value="system">{{ t('theme.system') }}</option><option value="light">{{ t('theme.light') }}</option><option value="dark">{{ t('theme.dark') }}</option>
     </select></label>
-    <button v-if="state.authenticated" class="tool-button" :aria-label="t('common.refresh')" :title="t('common.refresh')" :disabled="state.loading" @click="actions.refreshBase"><UiIcon name="refresh" /></button>
+    <button v-if="state.authenticated" class="tool-button" :aria-label="t('common.refresh')" :title="t('common.refresh')" :disabled="state.loading" @click="actions.refreshBase"><UiIcon name="refresh" /><span class="header-refresh-label">{{ t('common.refresh') }}</span></button>
     <button v-if="state.authenticated" class="tool-button" @click="actions.disconnect">{{ t('auth.disconnect') }}</button>
   </div>
   </div>

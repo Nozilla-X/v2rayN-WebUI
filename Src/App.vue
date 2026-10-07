@@ -651,15 +651,18 @@ function positionOpenContextMenu() {
       <button role="menuitem" :disabled="contextMenu.profile.isCurrent" @click="selectContextProfile">{{ contextMenu.profile.isCurrent ? t('nodes.current') : t('nodes.switch') }}<span class="menu-shortcut">Enter</span></button>
       <button role="menuitem" @click="editContextProfile">{{ t('common.edit') }}<span class="menu-shortcut">Ctrl+D</span></button>
       <button role="menuitem" :disabled="!nodesPageState.selectedIds.length" @click="copySelectedNodes">{{ t('nodes.copySelected') }}</button>
-      <button role="menuitem" class="danger-text" :disabled="!nodesPageState.selectedIds.length" @click="deleteSelectedNodes">{{ t('nodes.removeSelected') }}<span class="menu-shortcut">Back</span></button>
+      <button role="menuitem" class="danger-text" :disabled="!nodesPageState.selectedIds.length" @click="deleteSelectedNodes">{{ t('nodes.removeSelected') }}<span class="menu-shortcut">Backspace</span></button>
       <button role="menuitem" @click="nodesPageActions.runProfileAction('deduplicate')">{{ t('nodes.deduplicate') }}</button>
       <button role="menuitem" @click="nodesPageActions.runProfileAction('remove-invalid')">{{ t('nodes.removeInvalid') }}</button>
       <div class="context-separator"></div>
-      <button role="menuitem" @click="testSelectedNodes('tcping')">{{ t('nodes.tcping') }}<span class="menu-shortcut">Ctrl+O</span></button>
-      <button role="menuitem" @click="testSelectedNodes('realping')">{{ t('nodes.realping') }}<span class="menu-shortcut">Ctrl+R</span></button>
-      <button role="menuitem" @click="testSelectedNodes('speedtest')">{{ t('nodes.speedtest') }}<span class="menu-shortcut">Ctrl+T</span></button>
-      <button role="menuitem" @click="testSelectedNodes('udpTest')">{{ t('nodes.udp') }}</button>
-      <button role="menuitem" @click="nodesPageActions.sortProfiles('DelayVal')">{{ t('nodes.sortByTestResults') }}</button>
+      <FlyoutMenu context :label="t('nodes.testMenu')" @select="contextMenu = null">
+        <button class="action-menu-item" role="menuitem" @click="testSelectedNodes('tcping')">{{ t('nodes.tcping') }}<span class="menu-shortcut">Ctrl+O</span></button>
+        <button class="action-menu-item" role="menuitem" @click="testSelectedNodes('realping')">{{ t('nodes.realping') }}<span class="menu-shortcut">Ctrl+R</span></button>
+        <button class="action-menu-item" role="menuitem" @click="testSelectedNodes('speedtest')">{{ t('nodes.speedtest') }}<span class="menu-shortcut">Ctrl+T</span></button>
+        <button class="action-menu-item" role="menuitem" @click="testSelectedNodes('udpTest')">{{ t('nodes.udp') }}</button>
+        <div class="action-menu-separator" role="separator"></div>
+        <button class="action-menu-item" role="menuitem" @click="nodesPageActions.sortProfiles('DelayVal')">{{ t('nodes.sortByTestResults') }}</button>
+      </FlyoutMenu>
       <div class="context-separator"></div>
       <FlyoutMenu context :label="t('nodes.moveGroup')" :disabled="!nodesPageState.selectedIds.length" @select="contextMenu = null">
         <button v-for="group in nodesPageState.groups" :key="group.id || 'all-target'" class="action-menu-item" role="menuitem" :disabled="!nodesPageState.selectedIds.length" @click="nodesPageActions.moveSelectedToGroup(group.id)">{{ group.name || t('common.allGroups') }}</button>

@@ -88,7 +88,7 @@ function toggleDetails(id: string) {
           <td class="node-security node-badge" :data-label="t('nodes.tls')" :title="t('nodes.tls')">{{ profile.streamSecurity || '—' }}</td>
           <td class="group-cell node-detail-cell" :data-label="t('nodes.groupColumn')" :title="profile.subscriptionName">{{ profile.subscriptionName || t('common.none') }}</td>
           <td :data-label="t('nodes.delay')" :class="['number-cell', 'delay-cell', 'node-metric', { bad: profile.delay < 0 }]">{{ actions.formatDelay(profile.delay) }}</td>
-          <td class="number-cell node-metric" :data-label="t('nodes.speed')">{{ profile.speed ? `${profile.speed} MB/s` : '—' }}</td>
+          <td class="number-cell node-metric" :data-label="t('nodes.speed')">{{ profile.speed ? profile.speed : '—' }}</td>
           <td v-if="showIpInfoColumn" class="ip-cell node-detail-cell" :data-label="t('nodes.ip')" :title="profile.ipInfo">{{ profile.ipInfo || '—' }}</td>
           <td class="number-cell node-detail-cell" :data-label="t('nodes.todayUp')">{{ actions.formatBytes(profile.todayUp) }}</td><td class="number-cell node-detail-cell" :data-label="t('nodes.todayDown')">{{ actions.formatBytes(profile.todayDown) }}</td>
           <td class="number-cell node-detail-cell" :data-label="t('nodes.totalUp')">{{ actions.formatBytes(profile.totalUp) }}</td><td class="number-cell node-detail-cell" :data-label="t('nodes.totalDown')">{{ actions.formatBytes(profile.totalDown) }}</td>

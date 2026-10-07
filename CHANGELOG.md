@@ -21,6 +21,28 @@
 - Mobile save bars align with their actual form fields, without viewport-compensating
   negative margins that could make nested template panels protrude or appear offset.
 
+### Fixes
+
+- Mid-width windows (up to 1360px) keep the full navigation visible on its own row
+  instead of clipping tabs, and the node group toolbar wraps with a stable label row.
+- Desktop node rows expose a visible More action again; the column was previously hidden
+  and actions were only reachable through the context menu or keyboard shortcuts.
+- Subscription bulk update buttons no longer render two identical controls: the group
+  update button is disabled until a specific group is selected, and mobile wording uses
+  consistent full-width parentheses.
+- The mobile nodes context menu groups all test actions into one submenu and hides
+  keyboard shortcut hints that do not apply to touch, shortening the scrollable list.
+- Mobile node cards drop the unit duplication in delay/speed values, use a ghost row
+  action button, and only show the per-group More button on the selected group chip.
+- The mobile App Bar refresh control is labeled instead of a full-width bare icon, and
+  remaining 40px touch targets (disclosures, rule menus, check rows) reach 44px.
+- Maintenance update options use a compact two-column panel instead of a full-width card
+  with dead space; routing strategy selects are capped and regional presets are real chips.
+- Hint, shortcut and footer text uses brighter dim colors in both themes and 10px minimum
+  sizes so small print meets WCAG AA contrast.
+- The remove-selected menu item no longer carries a redundant multi-select suffix, and the
+  delete shortcut is spelled Backspace.
+
 ## [1.0.1] - 2026-10-06
 
 ### Improvements
