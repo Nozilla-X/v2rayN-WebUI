@@ -11,7 +11,7 @@ const emit = defineEmits<{ apply: []; test: [] }>()
   <div class="backend-fields">
     <label class="field-label" for="api-endpoint">{{ t('backend.address') }}</label>
     <div class="inline-field">
-      <input id="api-endpoint" v-model="model" type="text" inputmode="url" autocomplete="url" spellcheck="false" placeholder="http://192.168.1.10:5080" @keydown.enter.prevent="emit('test')" />
+      <input id="api-endpoint" v-model="model" type="text" inputmode="url" autocomplete="url" spellcheck="false" placeholder="https://api.example.com" @keydown.enter.prevent="emit('test')" />
       <button class="button" type="button" @click="emit('apply')">{{ t('backend.apply') }}</button>
       <button class="button primary" type="button" :disabled="props.testing" @click="emit('test')">{{ props.testing ? t('common.working') : t('backend.test') }}</button>
     </div>

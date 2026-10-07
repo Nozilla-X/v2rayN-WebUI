@@ -297,7 +297,8 @@ const currentProfile = computed<Dict | null>(() => {
   return profiles.profiles.value.find((profile) => profile.isCurrent) || null
 })
 const brandIconMode = computed(() => runtime.status.value?.coreRunning ? 'proxy' : 'off')
-const brandIconSrc = computed(() => ({ proxy: '/NotifyIcon2.ico', off: '/NotifyIcon1.ico' })[brandIconMode.value])
+const brandIconSrc = computed(() => ({ proxy: './NotifyIcon2.ico', off: './NotifyIcon1.ico' })[brandIconMode.value])
+const brandLogoSrc = './v2rayN.png'
 const brandIconTitle = computed(() => t(`brandState.${brandIconMode.value}`))
 watch(brandIconSrc, (src) => {
   const favicon = document.querySelector<HTMLLinkElement>('link[rel~="icon"]')
@@ -651,7 +652,7 @@ function positionOpenContextMenu() {
 
     <section v-else-if="setupRequired && !setupAllowedFromRequest" class="auth-wrap">
       <div class="auth-box setup-box">
-        <div class="auth-title"><img class="brand-glyph" src="/v2rayN.png" alt="" /><div><strong>{{ t('setup.title') }}</strong><small>{{ t('brand') }}</small></div></div>
+        <div class="auth-title"><img class="brand-glyph" :src="brandLogoSrc" alt="" /><div><strong>{{ t('setup.title') }}</strong><small>{{ t('brand') }}</small></div></div>
         <p>{{ t('setup.localOnly') }}</p>
         <BackendAddressFields v-model="backend.draft.value" :testing="connectionTesting" :error="backend.error.value" @apply="applyBackend" @test="testConnection" />
       </div>
@@ -659,7 +660,7 @@ function positionOpenContextMenu() {
 
     <section v-else-if="setupRequired" class="auth-wrap">
       <form class="auth-box setup-box" @submit.prevent="configureManagementKey">
-        <div class="auth-title"><img class="brand-glyph" src="/v2rayN.png" alt="" /><div><strong>{{ t('setup.title') }}</strong><small>{{ t('brand') }}</small></div></div>
+        <div class="auth-title"><img class="brand-glyph" :src="brandLogoSrc" alt="" /><div><strong>{{ t('setup.title') }}</strong><small>{{ t('brand') }}</small></div></div>
         <p>{{ t('setup.description') }}</p>
         <BackendAddressFields v-model="backend.draft.value" :testing="connectionTesting" :error="backend.error.value" @apply="applyBackend" @test="testConnection" />
         <div class="form-grid">
@@ -676,7 +677,7 @@ function positionOpenContextMenu() {
     <section v-if="!authenticated" class="auth-wrap">
       <div class="auth-content">
         <form class="auth-box" @submit.prevent="loginToBackend">
-          <div class="auth-title"><img class="brand-glyph" src="/v2rayN.png" alt="" /><div><strong>{{ t('auth.title') }}</strong><small>{{ t('brand') }}</small></div></div>
+          <div class="auth-title"><img class="brand-glyph" :src="brandLogoSrc" alt="" /><div><strong>{{ t('auth.title') }}</strong><small>{{ t('brand') }}</small></div></div>
           <p>{{ t('auth.hint') }}</p>
           <BackendAddressFields v-model="backend.draft.value" :testing="connectionTesting" :error="backend.error.value" @apply="applyBackend" @test="testConnection" />
           <label class="field-label" for="management-key">{{ t('auth.token') }}</label>

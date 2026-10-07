@@ -31,7 +31,7 @@ and must allow the WebUI's exact origin through CORS.
 
 ## Standalone hosting and Backend selection
 
-The same static artifact supports Backend-hosted same-origin access and standalone hosting.
+The same static artifact supports reverse-proxied same-origin access and standalone hosting.
 On the unsigned-in screen, leave **Backend API address** empty for same-origin, or enter an
 absolute HTTP(S) address and click **Use address** / **Test connection**. Examples:
 
@@ -66,12 +66,11 @@ V2RAYN_WEB_ALLOWED_ORIGINS=https://webui.example.com
 Allowed origins are **scheme + host + port**, not URLs with paths. Multiple values are comma
 separated; no wildcard or cookie/credential CORS is supported. Configure each Backend separately.
 An allowed WebUI is trusted to manage that Backend once the user gives it a session.
-For a Backend-hosted WebUI that needs to connect to *another* Backend, also configure the
-hosting Backend's `V2RAYN_WEB_UI_CONNECT_ORIGINS` with explicit API destination origins;
-the hosted UI's default CSP deliberately retains `connect-src 'self'`.
+If the independent static host sets a CSP, its `connect-src` policy must permit the selected API.
+This is a WebUI hosting setting, not Backend configuration.
 
 **First-run setup is not permitted cross-origin**, even for an allowed origin. Configure the
-Management Key on the Backend first, or initialize using its localhost-hosted same-origin UI.
+Management Key on the Backend first, or initialize through a direct loopback API client.
 The UI explains this restriction using `/api/setup/status`.
 
 Sessions are scoped to the normalized endpoint **including its path prefix**. Applying a new
@@ -110,8 +109,7 @@ the recorded browser remote address/address spaces before claiming public-networ
 ## Build and install
 
 Download `v2rayN-WebUI.zip` from a [Release](https://github.com/Nozilla-X/v2rayN-WebUI/releases)
-and extract its contents into `webui/` beside the Backend executable, or into its configured
-WebUI directory:
+and extract its contents into a directory served by an independent static web server:
 
 ```sh
 mkdir -p webui
@@ -137,24 +135,32 @@ dist/
 └── assets/**
 ```
 
-Copy the *contents* of `dist/` into the API's configured WebUI directory (the default is
-`webui/` beside the API executable):
+Copy the *contents* of `dist/` into your static web server's document directory:
 
 ```sh
-mkdir -p /opt/v2rayn/webui
-cp -a dist/. /opt/v2rayn/webui/
+mkdir -p /opt/v2rayn-webui
+cp -a dist/. /opt/v2rayn-webui/
 ```
 
-The API serves the installed static site and uses `index.html` for non-file SPA routes. Replace
-or remove the files in `webui/` to change or uninstall this implementation. The API release and
-self-update packages do not contain or modify that directory.
+The API does not serve or configure these files. Relative static-asset paths support both a
+domain root and a subdirectory. The API release and self-update are independent of this site.
+
+### GitHub Pages
+
+The standalone site is deployed at <https://nozilla-x.github.io/v2rayN-WebUI/> by
+`.github/workflows/pages.yml` on pushes to `main` or manual dispatch. It publishes only `dist/`,
+without a private Backend address, Management Key or session token.
+
+Select your API address on the login screen. For this site, the Backend's exact incoming origin
+is `https://nozilla-x.github.io` (not the repository path). HTTPS-to-HTTP local-network browser
+restrictions still apply; Pages hosting and CORS do not bypass them.
 
 ## API compatibility
 
 This WebUI requires a compatible `v2rayN.WebAPI` (or historical `v2rayN.Web`) API that provides
 the API capabilities `auth.sessions`, `events.sse`, `editor.options`, `profiles`,
 `subscriptions`, `routing`, `dns`, `settings`, `backup.restore`, `core.runtime`, `core.updates`,
-`web.self-update`, and `static-webui`.
+and `web.self-update`.
 
 After authentication, `GET /api/status` returns `webVersion`, `gitCommit`, `runtimeIdentifier`,
 and `capabilities`; the UI keeps the status response as API data and can use these fields when

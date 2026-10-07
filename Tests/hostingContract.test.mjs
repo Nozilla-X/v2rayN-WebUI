@@ -6,7 +6,7 @@ const root = new URL('../', import.meta.url)
 
 test('production UI uses same-origin API calls and Vite only proxies during development', async () => {
   const vite = await readFile(new URL('vite.config.js', root), 'utf8')
-  assert.match(vite, /base:\s*'\/'/)
+  assert.match(vite, /base:\s*'\.\/'/)
   assert.match(vite, /server:\s*\{[\s\S]*proxy:\s*\{[\s\S]*'\/api'/)
   assert.match(vite, /process\.env\.VITE_API_TARGET\s*\|\|\s*'http:\/\/127\.0\.0\.1:5080'/)
 

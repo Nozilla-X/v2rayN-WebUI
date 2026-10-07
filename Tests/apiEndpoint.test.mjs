@@ -228,8 +228,9 @@ test('network calls cannot regress to scattered fetches, and icons/config belong
   }
   await check(new URL('../Src/', import.meta.url))
   const app = await readFile(new URL('../Src/App.vue', import.meta.url), 'utf8')
-  assert.match(app, /proxy: '\/NotifyIcon2.ico', off: '\/NotifyIcon1.ico'/)
-  assert.match(app, /src="\/v2rayN.png"/)
+  assert.match(app, /proxy: '\.\/NotifyIcon2.ico', off: '\.\/NotifyIcon1.ico'/)
+  assert.match(app, /const brandLogoSrc = '\.\/v2rayN.png'/)
+  assert.match(app, /:src="brandLogoSrc"/)
   const index = await readFile(new URL('../index.html', import.meta.url), 'utf8')
-  assert.match(index, /src="\/webui-config.js"/)
+  assert.match(index, /src="\.\/webui-config.js"/)
 })
