@@ -1,60 +1,51 @@
 # Changelog
 
-## [Unreleased]
+## [1.1.0] - 2026-10-09
+
+### Features
+
+- Standalone deployments can select a Backend API address at sign-in, including a
+  path-prefixed reverse proxy. Up to 10 normalized addresses are remembered per browser;
+  history does not store Management Keys or session tokens. Same-origin remains the default.
+- Added a post-build `webui-config.js` deployment default and automated GitHub Pages hosting
+  for the static WebUI, without embedding a private Backend address or credentials.
+- Node rows support file-manager selection: Ctrl/Cmd-click toggles individual nodes,
+  Shift-click selects a range, and Ctrl/Cmd+Shift-click adds a range.
+- Subscription group actions are available from the context menu. Right-click a group or
+  adjacent group-bar space to open it; desktop double-click edits a subscription (the
+  All groups chip opens the menu), while mobile double-click opens the menu.
 
 ### Improvements
 
-- Frontend helper modules are now typed TypeScript sources, with redundant declaration stubs removed.
-- Node rows support file-manager-style selection: Ctrl/Cmd-click toggles individual nodes,
-  Shift-click selects an anchored range, and Ctrl/Cmd+Shift-click adds a range.
-- Subscription group action buttons are removed; right-clicking a group chip or its empty
-  toolbar area opens the context menu. Desktop double-click edits a subscription directly;
-  mobile double-click opens the menu.
-- Mobile node cards vertically align the selection checkbox with the node title.
-- Mobile pages now prioritize nodes and subscriptions: Core controls, routing selection,
-  listeners and traffic move into a Core & status panel under the App Bar's More entry.
-  A lightweight runtime/current-node summary remains visible. Desktop Core strips are unchanged.
-- Mobile node types use small, intrinsic-width capsules beside the name. Transport/security
-  share the endpoint summary instead of occupying a row of stretched button-like boxes.
-- Mobile subscription utilities, column fitting and quick tests move into a Tools menu
-  immediately before Add, keeping the group/search area focused on filtering.
-- Mobile subscription cards now prioritize name/status/update information and disclose
-  URLs and optional configuration only on demand. Update stays primary; edit/share/delete
-  remain available through contextual actions.
-- Routing uses compact rule summaries and batch/import/context menus rather than large
-  repeated button rows. Logs use a narrow-screen feed; maintenance utilities are grouped.
-- Settings, DNS, templates and mobile WebDAV share a consistent save bar above navigation,
-  with duplicate footer explanations removed from mobile and compact form spacing throughout.
-- Mobile save bars align with their actual form fields, without viewport-compensating
-  negative margins that could make nested template panels protrude or appear offset.
-- Mobile layout is denser and rounds its geometry: the group label stays inline with the
-  filter chips, page chrome and section spacing are compressed, and cards, chips, menus
-  and buttons share consistent rounded corners.
-- Mobile node cards keep three rows: identity, endpoint and a metrics line whose trailing
-  chevron expands subscription/IP/traffic details; subscription cards pair the update
-  time with the interval on one line.
+- Continued the responsive redesign: mobile navigation prioritizes common pages; Core
+  controls and status details are grouped under More; node and subscription cards are
+  denser; routing, logs, forms and save controls use layouts suited to narrow screens.
+- Improved node-list workflows with clearer current-node location, visible row actions,
+  browser-safe shortcuts, consistent batch speed tests, and aligned mobile selection controls.
+- Simplified Backend-service wording across the Chinese and English interfaces.
 
 ### Fixes
 
-- Mid-width windows (up to 1360px) keep the full navigation visible on its own row
-  instead of clipping tabs, and the node group toolbar wraps with a stable label row.
-- Desktop node rows expose a visible More action again; the column was previously hidden
-  and actions were only reachable through the context menu or keyboard shortcuts.
-- Subscription bulk update buttons no longer render two identical controls: the group
-  update button is disabled until a specific group is selected, and mobile wording uses
-  consistent full-width parentheses.
-- The mobile nodes context menu groups all test actions into one submenu and hides
-  keyboard shortcut hints that do not apply to touch, shortening the scrollable list.
-- Mobile node cards drop the unit duplication in delay/speed values, use a ghost row
-  action button, and only show the per-group More button on the selected group chip.
-- The mobile App Bar refresh control is labeled instead of a full-width bare icon, and
-  remaining 40px touch targets (disclosures, rule menus, check rows) reach 44px.
-- Maintenance update options use a compact two-column panel instead of a full-width card
-  with dead space; routing strategy selects are capped and regional presets are real chips.
-- Hint, shortcut and footer text uses brighter dim colors in both themes and 10px minimum
-  sizes so small print meets WCAG AA contrast.
-- The remove-selected menu item no longer carries a redundant multi-select suffix, and the
-  delete shortcut is spelled Backspace.
+- Mid-width navigation no longer clips, desktop node actions remain visible, and duplicate
+  subscription update controls are avoided.
+- Mobile node selection no longer selects page text during Shift-range selection; the
+  checkbox aligns with the node title in both selected and unselected cards. Touch targets,
+  card summaries and toolbar layouts are also corrected.
+- Node shortcuts no longer interfere with focused form controls or browser-owned shortcuts;
+  batch tests consistently use the full selected node set.
+
+### Compatibility and security
+
+This remains a frontend-only release; the Backend API contract is unchanged. Same-origin
+hosting continues to work, while standalone cross-origin hosting requires the Backend to
+allow the WebUI origin and remains subject to browser CORS, mixed-content and local-network
+policies. Management Keys are not persisted, and changing Backends clears the old session
+and pending requests.
+
+### Maintenance
+
+- Migrated frontend helper modules from JavaScript to typed TypeScript and consolidated
+  their standalone declaration files without changing runtime behavior.
 
 ## [1.0.1] - 2026-10-06
 
