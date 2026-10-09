@@ -23,7 +23,7 @@ const tabs = [
 
 <template>
   <section class="page settings-page">
-    <div class="page-header page-toolbar"><div class="page-title"><h1>{{ t('settings.title') }}</h1></div><span class="muted">{{ t('settings.restartHint') }}</span></div>
+    <div class="page-header page-toolbar"><div class="page-title"><h1>{{ t('settings.title') }}</h1></div></div>
     <PageFeedback scope="settings" />
     <nav class="section-tabs" :aria-label="t('settings.title')"><button v-for="tab in tabs" :key="tab.id" :aria-pressed="activeTab === tab.id" :class="{ selected: activeTab === tab.id }" @click="activeTab = tab.id">{{ t(tab.key) }}</button></nav>
 
@@ -59,6 +59,6 @@ const tabs = [
 
     <section v-else class="settings-section form-section"><div class="settings-subsection"><div class="section-heading"><div><h2>{{ t('settings.coreTypes') }}</h2><small>{{ t('settings.coreTypesHint') }}</small></div></div><div class="mapping-list"><div v-for="mapping in state.settings.coreTypes || []" :key="mapping.configType" class="mapping-row"><span>{{ mapping.configType }}</span><select v-model="mapping.coreType"><option v-for="core in state.coreTypes" :key="core" :value="core">{{ core === 'sing_box' ? 'sing-box' : core }}</option></select></div></div></div></section>
 
-    <SaveBar sticky :hint="t('settings.singleSaveHint')" :label="t('settings.saveAll')" :busy="state.saving || Boolean(status.writes)" :dirty="dirty" @save="actions.saveAllSettings" />
+    <SaveBar sticky :label="t('settings.saveAll')" :busy="state.saving || Boolean(status.writes)" :dirty="dirty" @save="actions.saveAllSettings" />
   </section>
 </template>

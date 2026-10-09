@@ -574,7 +574,6 @@
     "saveSpeedtest": "儲存測速設定",
     "saveCoreTypes": "儲存 Core 對應",
     "saveRouting": "儲存路由策略",
-    "restartHint": "影響 Core 的設定會先統一驗證，最多自動重新啟動一次後套用。",
     "keepOlderDedupl": "去重時保留序號較小的項",
     "speedTimeout": "測速單個超時值",
     "muxXudp": "Xray Mux XUDP 並行數",
@@ -626,7 +625,6 @@
     "rootCertProvider": "根憑證提供者",
     "coreTab": "Core: 基礎設定",
     "coreTypesHint": "依設定檔協定對應預設 Core。",
-    "singleSaveHint": "所有設定先統一驗證再一次儲存；執行中的 Core 最多重新啟動一次。",
     "saveAll": "儲存設定",
     "allSaved": "設定已儲存",
     "coreApplyFailed": "設定已儲存，但 Core 無法套用；設定連接埠與實際執行連接埠可能不同。"
@@ -641,14 +639,12 @@
     "proxyDetour": "代理 Detour",
     "core": "Core",
     "addProxyOnly": "僅新增代理出站",
-    "templateHint": "僅顯示 Xray 與 sing-box；隱藏的 Core 範本資料保持不變。",
     "coreUnavailable": "Backend 未提供此 Core 的完整設定範本。"
   },
   "maintenance": {
     "title": "更新與備份",
     "coreNames": { "xray": "Xray", "mihomo": "Mihomo", "singBox": "sing-box", "v2rayN": "v2rayN", "other": "Core" },
     "updateSettings": "更新選項",
-    "updateSettingsHint": "v2rayN.WebAPI 使用獨立發布通道，更新套件僅包含後端應用程式檔案；不會包含或覆蓋 Core / Geo 檔案。",
     "saveUpdateSettings": "儲存更新選項",
     "includeCoreUpdate": "包含此 Core 更新",
     "includeGeoFiles": "包含 GeoFiles 更新",

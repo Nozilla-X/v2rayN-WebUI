@@ -619,7 +619,6 @@
     "saveSpeedtest": "Save speed settings",
     "saveCoreTypes": "Save Core mappings",
     "saveRouting": "Save routing strategy",
-    "restartHint": "Core-affecting settings are validated and applied with at most one automatic restart.",
     "savedRestartRequired": "Settings saved; restart Core to apply",
     "invalidPort": "Invalid port range",
     "invalidCoreLogLevel": "Invalid Core log level",
@@ -632,7 +631,6 @@
     "loaded": "Settings loaded",
     "coreTab": "Core: basic settings",
     "coreTypesHint": "Map configuration protocols to their default Core.",
-    "singleSaveHint": "All sections validate before one config save; the running Core restarts at most once.",
     "saveAll": "Save settings",
     "allSaved": "Settings saved",
     "coreApplyFailed": "Settings were saved, but Core could not apply them. The running and configured ports may differ."
@@ -647,14 +645,12 @@
     "addProxyOnly": "Add proxy outbound only",
     "proxyDetour": "Proxy detour",
     "save": "Save template",
-    "templateHint": "Only Xray and sing-box are shown; hidden Core template data remains untouched.",
     "coreUnavailable": "The Backend did not provide a full config template for this Core."
   },
   "maintenance": {
     "title": "Updates and backup",
     "coreNames": { "xray": "Xray", "mihomo": "Mihomo", "singBox": "sing-box", "v2rayN": "v2rayN", "other": "Core" },
     "updateSettings": "Update options",
-    "updateSettingsHint": "v2rayN.WebAPI uses its own release channel and packages containing only backend application files. Updates do not include or replace Core or Geo files.",
     "saveUpdateSettings": "Save update options",
     "includeCoreUpdate": "Include this Core update",
     "includeGeoFiles": "Include GeoFiles update",

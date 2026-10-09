@@ -338,7 +338,7 @@ body:has(.core-panel-shade) { overflow: hidden; }
 .mobile-rule-fallback { display: none; }
 .desktop-webdav-actions { display: contents; }
 .mobile-webdav-actions, .mobile-statistics-menu { display: none; }
-.mobile-subscription-status, .mobile-subscription-interval, .subscription-table td.mobile-subscription-actions, .mobile-rule-actions, .mobile-rule-menu, .mobile-rule-outbound, .mobile-log-menu, .mobile-update-actions, .mobile-form-note { display: none; }
+.mobile-subscription-status, .mobile-subscription-interval, .subscription-table td.mobile-subscription-actions, .mobile-rule-actions, .mobile-rule-menu, .mobile-rule-outbound, .mobile-log-menu, .mobile-update-actions { display: none; }
 .action-dropdown.icon-only > .action-menu-trigger { width: var(--control-height); padding-inline: 0; }
 .mobile-node-port, .mobile-node-type, .mobile-node-transport, .profile-table td.mobile-node-details { display: none; }
 .empty-row { height: var(--empty-height) !important; color: var(--text-muted) !important; text-align: center; font-size: var(--font-label); }
@@ -871,10 +871,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .page-header .page-title { flex: 1; min-width: 0; }
   .page-header > .muted { flex-basis: 100%; font-size: var(--font-label); }
   .save-bar { position: sticky; z-index: 3; bottom: calc(var(--mobile-nav-height) + env(safe-area-inset-bottom)); width: 100%; min-width: 0; min-height: 60px; flex-wrap: nowrap; align-items: center; gap: var(--space-2); padding: var(--space-2) 0; margin: var(--space-3) 0 0; border: 0; border-top: 1px solid var(--border); background: var(--surface); }
-  .save-bar > .save-bar-hint { display: none; }
   .save-bar > .button { min-width: 128px; min-height: var(--control-height); padding-inline: var(--space-4); margin-left: auto; }
   .save-bar.settings-global-footer { margin-inline: 0; padding: var(--space-2) 0; border: 0; border-top: 1px solid var(--border); background: var(--surface); }
-  .mobile-form-note { display: block; }
   .section-heading > div { min-width: 0; }
   .section-heading small { overflow-wrap: anywhere; }
   .desktop-subscription-tools, .desktop-routing-tools { display: none; }

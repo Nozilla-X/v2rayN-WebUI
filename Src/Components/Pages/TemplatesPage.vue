@@ -27,9 +27,8 @@ const currentTemplate = computed(() => state.templates.find((template: Record<st
       <div class="template-options"><label class="check-inline"><UiCheckbox v-model="currentTemplate.enabled" />{{ t('templates.enabled') }}</label><label>{{ t('templates.remarks') }}<input v-model="currentTemplate.remarks" /></label><label class="check-inline"><UiCheckbox v-model="currentTemplate.addProxyOnly" />{{ t('templates.addProxyOnly') }}</label><label>{{ t('templates.proxyDetour') }}<input v-model="currentTemplate.proxyDetour" /></label></div>
       <label class="template-code-label">{{ t('templates.config') }}<textarea v-code-editor="() => !status.writes && actions.saveTemplate(currentTemplate)" v-model="currentTemplate.config" class="code-area template-code" spellcheck="false" /></label>
       <label class="template-code-label">{{ t('templates.tunConfig') }}<textarea v-code-editor="() => !status.writes && actions.saveTemplate(currentTemplate)" v-model="currentTemplate.tunConfig" class="code-area template-code" spellcheck="false" /></label>
-       <p class="mobile-form-note field-hint">{{ t('templates.templateHint') }}</p>
-       <p class="field-hint">{{ t('polish.editorKeyboard') }}</p>
-       <SaveBar submit :busy="Boolean(status.writes)" :dirty="dirty" :hint="t('templates.templateHint')" />
+        <p class="field-hint">{{ t('polish.editorKeyboard') }}</p>
+        <SaveBar submit :busy="Boolean(status.writes)" :dirty="dirty" />
     </form>
     <p v-else class="muted empty-inline">{{ t('templates.coreUnavailable') }}</p>
   </section>

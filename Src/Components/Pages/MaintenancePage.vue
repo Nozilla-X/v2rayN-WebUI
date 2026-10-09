@@ -27,7 +27,7 @@ const refreshMaintenance = () => run(() => actions.loadMaintenance())
 
     <section v-if="activeTab === 'updates'" class="settings-section">
       <div class="panel update-preferences">
-        <div class="section-heading"><div><h2>{{ t('maintenance.updateSettings') }}</h2><small>{{ t('maintenance.updateSettingsHint') }}</small></div></div>
+        <div class="section-heading"><div><h2>{{ t('maintenance.updateSettings') }}</h2></div></div>
         <div class="settings-checks">
           <label class="check-inline"><UiCheckbox v-model="state.updateSettings.useProxy" />{{ t('maintenance.useProxy') }}</label>
           <span class="desktop-update-actions">
