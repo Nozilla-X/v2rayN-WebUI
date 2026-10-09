@@ -907,10 +907,14 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 }
 .backend-fields .inline-field { flex-wrap: wrap; }
 .backend-fields .inline-field input { min-width: 140px; }
-.backend-history-trigger { margin-top: var(--space-1); }
-.history-row { display: flex; align-items: center; gap: var(--space-2); }
-.history-row .profile-picker-choice { flex: 1 1 auto; min-width: 0; }
-.history-row .profile-picker-choice strong { font-weight: var(--weight-medium); overflow-wrap: anywhere; }
+.combo { position: relative; flex: 1 1 140px; min-width: 0; display: flex; }
+.combo input { flex: 1 1 auto; min-width: 0; padding-right: 26px; }
+.combo-toggle { position: absolute; top: 50%; right: 2px; transform: translateY(-50%); width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: var(--radius-control); background: transparent; color: var(--text-muted); }
+.combo-toggle:hover:not(:disabled) { background: var(--surface-hover); color: var(--text-primary); }
+.combo-menu { position: absolute; z-index: 30; top: calc(100% + var(--space-1)); left: 0; right: 0; max-height: 240px; overflow: auto; display: grid; align-content: start; gap: 1px; padding: var(--space-1); border: var(--border-width) solid var(--border-strong); border-radius: var(--radius-overlay); background: var(--menu-surface); box-shadow: var(--shadow-menu); }
+.history-row { display: flex; align-items: center; gap: var(--space-1); }
+.history-choice { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.history-note { margin: 0; padding: var(--space-1) var(--space-2); }
 
 /* Polish: low-height status surfaces and explicit state, not another card layer. */
 @media (min-width: 761px) {
@@ -935,6 +939,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .save-bar .draft-status { flex: 1; }
   .subscription-progress { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
   .compact-filter, .compact-filter .compact-select { max-width: 100%; }
+  .combo-toggle { width: 32px; height: 32px; }
+  .combo input { padding-right: 36px; }
 }
 @media (max-width: 460px) {
   .nodes-page-toolbar .page-title { flex-basis: 100%; }
