@@ -7,11 +7,13 @@ import UiIcon from './UiIcon.vue'
 withDefaults(defineProps<{
   label: string
   prefix?: string
+  icon?: string
   variant?: 'default' | 'primary'
   disabled?: boolean
   iconOnly?: boolean
 }>(), {
   prefix: '',
+  icon: '',
   variant: 'default',
   disabled: false,
   iconOnly: false,
@@ -104,7 +106,7 @@ onUnmounted(() => {
       @click.stop="toggle"
     >
       <UiIcon v-if="prefix === 'plus'" name="plus" />
-      <UiIcon v-if="iconOnly" name="more" />
+      <UiIcon v-if="iconOnly" :name="icon || 'more'" />
       <template v-else>{{ label }}<UiIcon class="menu-caret" name="chevron-down" :size="12" /></template>
     </button>
     <div v-if="open" ref="popup" class="action-menu-popup" :style="popupStyle" role="menu" @keydown="onPopupKeydown" @menu-escape.stop="onMenuEscape" @click="closeFromClick">

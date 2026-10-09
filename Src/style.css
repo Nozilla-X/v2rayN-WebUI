@@ -608,8 +608,12 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .update-state { color: var(--success); font-size: var(--font-caption); }
 .danger-note { color: var(--danger); }
 .logs-options { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--space-2); padding: 0 0 var(--space-1); }
-.logs-options .muted { font-size: var(--font-caption); }
 .log-toolbar { flex-wrap: wrap; }
+.log-stream-controls { display: flex; align-items: center; flex: 0 0 auto; gap: var(--space-2); }
+.log-search .action-dropdown.icon-only > .action-menu-trigger { color: var(--text-muted); border-color: transparent; background: transparent; }
+.log-search .action-dropdown.icon-only > .action-menu-trigger:hover:not(:disabled) { color: var(--text-primary); border-color: transparent; background: var(--surface-hover); }
+.log-level-option[aria-checked="true"] { color: var(--accent-text); background: var(--accent-soft); }
+.log-level-option[aria-checked="true"] .ui-icon { color: var(--accent); }
 .logs-page .log-table-wrap { min-height: 0; }
 .log-table .check-cell { width: 28px; }
 .log-table .selected { background: var(--table-row-selected); }

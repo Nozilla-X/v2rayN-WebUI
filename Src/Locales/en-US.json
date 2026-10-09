@@ -16,17 +16,15 @@
     "latestVersion": "Available version",
     "pauseLogs": "Pause live logs",
     "resumeLogs": "Resume live logs",
-    "pausedHint": "Live display paused. The Backend keeps recording; resume loads recent entries.",
     "followLogs": "Jump to latest",
     "invalidRegex": "Invalid regular expression",
     "logFilterHint": "Search supports regular expressions. Example level filter: (?i)\\b(error|warning)\\b",
-    "logLevels": "Level filter",
+    "logLevels": "Filter log level",
     "levelAll": "All levels",
     "levelErrors": "Error / fatal text",
     "levelWarnings": "Warning text",
     "levelInfo": "Info text",
     "levelDebug": "Debug / trace text",
-    "levelHint": "Filters message text with the existing Backend regex; not structured log severity.",
     "editorKeyboard": "Tab inserts two spaces · Shift+Tab leaves the editor · Ctrl+Enter saves",
     "noResults": "No matching entries",
     "targetWeb": "Backend service",
@@ -771,8 +769,7 @@
     "copySelected": "Copy selected",
     "copyPage": "Copy current page",
     "copyAll": "Copy all",
-    "autoScroll": "Auto-scroll to bottom",
-    "regexHint": "The filter supports regular expressions. Copy all exports every page matching the current filter."
+    "autoScroll": "Auto-scroll to bottom"
   },
   "status": {
     "online": "Backend online",

@@ -16,17 +16,15 @@
     "latestVersion": "可用版本",
     "pauseLogs": "暫停即時日誌",
     "resumeLogs": "恢復即時日誌",
-    "pausedHint": "已暫停即時顯示。後端繼續記錄；恢復時載入最近日誌。",
     "followLogs": "跳至最新",
     "invalidRegex": "正規表示式無效",
     "logFilterHint": "搜尋支援正規表示式，例如按級別文字篩選：(?i)\\b(error|warning)\\b",
-    "logLevels": "級別文字篩選",
+    "logLevels": "篩選日誌級別",
     "levelAll": "全部級別",
     "levelErrors": "Error / fatal 文字",
     "levelWarnings": "Warning 文字",
     "levelInfo": "Info 文字",
     "levelDebug": "Debug / trace 文字",
-    "levelHint": "使用現有後端正規表示式篩選訊息文字，並非結構化日誌級別。",
     "editorKeyboard": "Tab 插入兩個空格 · Shift+Tab 離開編輯器 · Ctrl+Enter 儲存",
     "noResults": "沒有符合的記錄",
     "targetWeb": "後端服務",
@@ -765,8 +763,7 @@
     "copySelected": "複製所選",
     "copyPage": "複製目前頁",
     "copyAll": "複製全部",
-    "autoScroll": "自動捲動至底部",
-    "regexHint": "篩選器支援正規表示式；「複製全部」會匯出目前篩選結果的所有分頁。"
+    "autoScroll": "自動捲動至底部"
   },
   "status": {
     "statisticsOff": "統計未啟用",

@@ -139,16 +139,21 @@ try {
         await page.waitForFunction(() => !document.querySelector('.draft-status.dirty'))
       }
       if (id === 'logs') {
+        assert.equal(await page.locator('.log-toolbar .log-stream-controls').count(), 1, 'live controls are in the top toolbar')
+        assert.equal(await page.locator('.log-search .log-level-dropdown').count(), 1, 'level filter is attached to the search box')
         await page.getByRole('button', { name: 'Pause live logs', exact: true }).click()
         const before = await page.locator('.log-table tbody').innerText()
         await page.evaluate(() => window.__auditSource.listeners.get('log')({ data: JSON.stringify({ timestamp: '2026-10-09T00:00:00Z', source: 'Xray', message: 'must not append while paused' }) }))
         assert.equal(await page.locator('.log-table tbody').innerText(), before)
+        assert.equal(await page.locator('.logs-options .muted').count(), 0, 'log helper copy is removed')
+        assert.equal(await page.locator('.logs-page .field-hint').count(), 0, 'paused-state helper copy is removed')
         await shot(id, 'paused')
         await page.getByRole('button', { name: 'Resume live logs', exact: true }).click()
-        await page.locator('.compact-filter select').selectOption('errors')
+        await page.locator('.log-search .action-menu-trigger').click()
+        await page.getByRole('menuitemradio', { name: 'Error / fatal text' }).click()
         const filter = await page.locator('.log-search input').inputValue()
         assert.equal(new RegExp(filter).test('ERROR fixture'), true)
-        await shot(id, 'level-text-filter')
+        await shot(id, 'level-dropdown-filter')
       }
       if (id === 'dns') {
         await page.locator('.dns-page .section-tabs button').nth(2).click()
