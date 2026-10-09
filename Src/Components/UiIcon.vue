@@ -37,7 +37,6 @@ const paths: Record<string, string[]> = {
   'arrow-up': ['M8 13V3', 'm4 7 4-4 4 4'],
   'arrow-down': ['M8 3v10', 'm4 9 4 4 4-4'],
   more: ['M3.2 8h.01 M8 8h.01 M12.8 8h.01'],
-  'check-all': ['M2.5 2.5h9v9h-9z', 'm4.5 6.8 2 2 4-4', 'm8.5 12.2 1.4 1.3 3.6-3.7'],
   play: ['m5 3 8 5-8 5z'],
   stop: ['M3.5 3.5h9v9h-9z'],
   share: ['M5.5 8h5', 'm8.5 5 3 3-3 3', 'M3 3.5h2 M3 12.5h2'],
