@@ -1,4 +1,4 @@
-export function planSelectedMoves(orderedIds, selectedIds, direction) {
+export function planSelectedMoves(orderedIds: readonly string[], selectedIds: readonly string[], direction: string): string[] {
   const selected = new Set(selectedIds)
   const order = [...orderedIds]
   const items = order.filter((id) => selected.has(id))
@@ -8,7 +8,7 @@ export function planSelectedMoves(orderedIds, selectedIds, direction) {
   if (move !== 'up' && move !== 'down') return items
 
   if (move === 'down') items.reverse()
-  const moves = []
+  const moves: string[] = []
   for (const id of items) {
     const index = order.indexOf(id)
     const next = index + (move === 'up' ? -1 : 1)

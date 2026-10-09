@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { deleteSelectedRoutingRules } from '../Src/Composables/batchRuleDeletion.js'
+import { deleteSelectedRoutingRules } from '../Src/Composables/batchRuleDeletion.ts'
 
 function makeOptions(overrides = {}) {
   const state = { deleting: false, selectedIds: ['r1'], requests: [], reloads: 0, notices: [], errors: [] }

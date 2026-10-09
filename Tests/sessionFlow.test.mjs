@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { classifyLoginResponse, connectEstablishedSession } from '../Src/Composables/sessionFlow.js'
+import { classifyLoginResponse, connectEstablishedSession } from '../Src/Composables/sessionFlow.ts'
 
 test('login response distinguishes invalid credentials from backend unavailability', () => {
   assert.equal(classifyLoginResponse(401, { code: 'management_key_invalid' }), 'invalid-key')

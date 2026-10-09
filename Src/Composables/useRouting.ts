@@ -1,9 +1,9 @@
 import { computed, reactive, ref } from 'vue'
 import type { ApiServices, Dict, ErrorHandler, Notice, Translate } from './types'
-import { deleteSelectedRoutingRules as runBatchRuleDeletion } from './batchRuleDeletion.js'
-import { createUuid } from './uuid.mjs'
-import { planSelectedMoves } from './movementOrder.js'
-import { buildRoutingRuleBody } from './routingRulePayloads.js'
+import { deleteSelectedRoutingRules as runBatchRuleDeletion } from './batchRuleDeletion.ts'
+import { createUuid } from './uuid.ts'
+import { planSelectedMoves } from './movementOrder.ts'
+import { buildRoutingRuleBody } from './routingRulePayloads.ts'
 
 export function useRouting(options: ApiServices & {
   t: Translate

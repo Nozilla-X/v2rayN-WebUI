@@ -4,6 +4,13 @@
 
 ### Improvements
 
+- Frontend helper modules are now typed TypeScript sources, with redundant declaration stubs removed.
+- Node rows support file-manager-style selection: Ctrl/Cmd-click toggles individual nodes,
+  Shift-click selects an anchored range, and Ctrl/Cmd+Shift-click adds a range.
+- Subscription group action buttons are removed; right-clicking a group chip or its empty
+  toolbar area opens the context menu. Desktop double-click edits a subscription directly;
+  mobile double-click opens the menu.
+- Mobile node cards vertically align the selection checkbox with the node title.
 - Mobile pages now prioritize nodes and subscriptions: Core controls, routing selection,
   listeners and traffic move into a Core & status panel under the App Bar's More entry.
   A lightweight runtime/current-node summary remains visible. Desktop Core strips are unchanged.

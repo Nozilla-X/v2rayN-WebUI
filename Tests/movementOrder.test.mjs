@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { planSelectedMoves } from '../Src/Composables/movementOrder.js'
+import { planSelectedMoves } from '../Src/Composables/movementOrder.ts'
 
 function applyMoves(order, selected, direction) {
   const result = [...order]

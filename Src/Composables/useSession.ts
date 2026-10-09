@@ -1,6 +1,6 @@
 import { onUnmounted, ref, watch, type Ref } from 'vue'
 import type { RequestApi, ErrorHandler, Notice, Translate } from './types'
-import { classifyLoginResponse, connectEstablishedSession } from './sessionFlow.js'
+import { classifyLoginResponse, connectEstablishedSession } from './sessionFlow.ts'
 import { useApi, type ApiClient } from './useApi'
 import { sessionStorageKey } from './apiEndpoint'
 

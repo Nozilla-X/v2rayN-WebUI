@@ -5,7 +5,7 @@ import {
   maximumLogMessageCharacters,
   maximumPendingLogEntries,
   takeLogBatch,
-} from '../Src/Composables/logBatch.js'
+} from '../Src/Composables/logBatch.ts'
 
 test('high-frequency log intake remains bounded and flushes in batches', () => {
   const pending = []

@@ -1,6 +1,6 @@
 import { reactive, ref, type Ref } from 'vue'
 import type { ApiServices, Dict, ErrorHandler, Notice, Translate } from './types'
-import { nullableNumber } from './settingsPayloads.js'
+import { nullableNumber } from './settingsPayloads.ts'
 
 export function useSubscriptions(options: ApiServices & {
   t: Translate

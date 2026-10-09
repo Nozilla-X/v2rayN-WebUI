@@ -5,7 +5,7 @@ import {
   buildSpeedSettingsBody,
   nullableNumber,
   normalizeNullableNumbers,
-} from '../Src/Composables/settingsPayloads.js'
+} from '../Src/Composables/settingsPayloads.ts'
 
 test('nullableNumber preserves null and empty values as null', () => {
   assert.equal(nullableNumber(null), null)

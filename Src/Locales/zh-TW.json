@@ -9,7 +9,7 @@
     "locateCurrent": "定位目前節點",
     "testing": "測速進行中 · 結果即時更新",
     "clearSearch": "清除搜尋",
-    "nodeKeyboard": "節點列焦點：A 全選 · C 複製連結 · E 編輯 · S 分享 · 1–6 測速 · Shift+F10 選單",
+    "nodeKeyboard": "Ctrl/Cmd+點選切換 · Shift+點選連續選取 · A 全選 · C 複製連結 · E 編輯 · S 分享 · 1–6 測速 · Shift+F10 選單",
     "updating": "正在更新…",
     "progressHint": "進度由後端回報，目前沒有百分比。",
     "currentVersion": "目前版本",
@@ -29,7 +29,7 @@
     "levelHint": "使用現有後端正規表示式篩選訊息文字，並非結構化日誌級別。",
     "editorKeyboard": "Tab 插入兩個空格 · Shift+Tab 離開編輯器 · Ctrl+Enter 儲存",
     "noResults": "沒有符合的記錄",
-    "targetWeb": "後端服務 · 不是 WebUI",
+    "targetWeb": "後端服務",
     "targetCore": "代理 Core",
     "targetGeo": "Geo 資料檔案"
   },

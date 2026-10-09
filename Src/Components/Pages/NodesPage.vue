@@ -5,7 +5,7 @@ import ActionDropdown from '../ActionDropdown.vue'
 import UiIcon from '../UiIcon.vue'
 import UiCheckbox from '../UiCheckbox.vue'
 import type { UiProps } from '../types'
-import { shouldRenderIpInfoColumn } from '../../Composables/ipInfoColumn.js'
+import { shouldRenderIpInfoColumn } from '../../Composables/ipInfoColumn.ts'
 import PageFeedback from '../UI/PageFeedback.vue'
 import { usePageRequests } from '../../UI/useUiRequests'
 
@@ -40,18 +40,43 @@ function toggleDetails(id: string) {
   if (expandedProfiles.value.has(id)) expandedProfiles.value.delete(id)
   else expandedProfiles.value.add(id)
 }
+function selectGroupOnClick(event: MouseEvent, group: Record<string, any>) {
+  if (event.detail > 1 || state.selectedGroup === group.id) return
+  actions.changeGroup(group.id)
+}
+function openGroupOnDoubleClick(event: MouseEvent, group: Record<string, any>) {
+  if (window.matchMedia('(max-width: 760px)').matches) {
+    actions.openSubscriptionContext(event, group)
+    return
+  }
+  const subscription = state.subscriptions.find((item: Record<string, any>) => item.id === group.id)
+  if (subscription) void actions.openEditSubscription(subscription)
+  else actions.openSubscriptionContext(event, group)
+}
+function openSelectedGroupContext(event: MouseEvent) {
+  const group = state.groups.find((item: Record<string, any>) => (item.id || '') === state.selectedGroup)
+    || state.groups.find((item: Record<string, any>) => item.isCurrent)
+    || state.groups[0]
+  if (group) actions.openSubscriptionContext(event, group)
+}
+function preventRangeTextSelection(event: MouseEvent) {
+  if (!event.shiftKey || event.button !== 0) return
+  const target = event.target
+  if (target instanceof Element && target.closest('button, input, select, a')) return
+  event.preventDefault()
+  window.getSelection()?.removeAllRanges()
+}
 </script>
 
 <template>
 <section class="page nodes-page">
   <div class="group-toolbar toolbar">
     <span class="toolbar-label">{{ t('nodes.group') }}</span>
-    <div class="group-chips">
-       <span v-for="group in state.groups" :key="group.id || 'all'" class="group-chip-wrap" @contextmenu.prevent.stop="actions.openSubscriptionContext($event, group)">
-          <button :class="['group-chip', { selected: state.selectedGroup === group.id }]" :aria-pressed="state.selectedGroup === group.id" :title="group.name || t('common.allGroups')" @click="actions.changeGroup(group.id)">
-           {{ group.name || t('common.allGroups') }}<small>{{ group.profileCount }}</small>
-         </button>
-         <button class="tool-button group-chip-more" :aria-label="t('common.more')" :title="t('common.more')" @click.stop="actions.openSubscriptionContext($event, group)"><UiIcon name="more" /></button>
+     <div class="group-chips" @contextmenu.prevent.stop="openSelectedGroupContext($event)">
+       <span v-for="group in state.groups" :key="group.id || 'all'" class="group-chip-wrap" @contextmenu.prevent.stop="actions.openSubscriptionContext($event, group)" @dblclick.prevent.stop="openGroupOnDoubleClick($event, group)">
+          <button :class="['group-chip', { selected: state.selectedGroup === group.id }]" :aria-pressed="state.selectedGroup === group.id" :title="group.name || t('common.allGroups')" @click="selectGroupOnClick($event, group)">
+            {{ group.name || t('common.allGroups') }}<small>{{ group.profileCount }}</small>
+          </button>
        </span>
     </div>
     <button class="tool-button node-toolbar-action" :disabled="!selectedSubscription" :aria-label="t('subscriptions.editSubscription')" :title="t('subscriptions.editSubscription')" @click="selectedSubscription && actions.openEditSubscription(selectedSubscription)"><UiIcon name="edit" /></button>
@@ -108,7 +133,7 @@ function toggleDetails(id: string) {
         <th class="actions-cell">{{ t('nodes.actions') }}</th>
       </tr></thead>
       <tbody>
-        <tr v-for="profile in state.filteredProfiles" :key="profile.indexId" :data-profile-id="profile.indexId" :tabindex="state.focusedProfileId === profile.indexId ? 0 : -1" :aria-current="profile.isCurrent ? 'true' : undefined" :aria-selected="state.selectedIds.includes(profile.indexId)" :class="{ current: profile.isCurrent, selected: state.selectedIds.includes(profile.indexId), 'details-open': expandedProfiles.has(profile.indexId) }" @focus="actions.setFocusedProfile(profile.indexId)" @click="actions.focusProfile($event, profile)" @keydown="actions.handleRowKeydown($event, profile)" @dblclick="actions.selectProfile(profile)" @contextmenu.stop.prevent="actions.openContext($event, profile)">
+        <tr v-for="profile in state.filteredProfiles" :key="profile.indexId" :data-profile-id="profile.indexId" :tabindex="state.focusedProfileId === profile.indexId ? 0 : -1" :aria-current="profile.isCurrent ? 'true' : undefined" :aria-selected="state.selectedIds.includes(profile.indexId)" :class="{ current: profile.isCurrent, selected: state.selectedIds.includes(profile.indexId), 'details-open': expandedProfiles.has(profile.indexId) }" @focus="actions.setFocusedProfile(profile.indexId)" @mousedown="preventRangeTextSelection($event)" @click="actions.focusProfile($event, profile)" @keydown="actions.handleRowKeydown($event, profile)" @dblclick="actions.selectProfile(profile)" @contextmenu.stop.prevent="actions.openContext($event, profile)">
           <td class="check-cell"><label class="node-select-label" @click.stop @dblclick.stop><UiCheckbox :model-value="state.selectedIds.includes(profile.indexId)" :aria-label="profile.remarks || profile.address" @change="actions.toggleProfile(profile.indexId)" @click.stop /></label></td>
           <td class="node-protocol node-badge" :data-label="t('nodes.type')" :title="t('nodes.type')"><span class="protocol-code">{{ profile.protocol }}</span></td>
           <td class="remark-cell" :data-label="t('nodes.remarks')"><UiIcon v-if="profile.isCurrent" class="current-marker" name="check" :size="12" :title="t('nodes.current')" /><span class="remark-text" :title="profile.remarks">{{ profile.remarks || '—' }}</span><span v-if="profile.protocol" class="mobile-node-type" :aria-label="`${t('nodes.type')}: ${profile.protocol}`">{{ profile.protocol }}</span></td>

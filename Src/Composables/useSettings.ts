@@ -1,8 +1,8 @@
 import { reactive, ref, type Ref } from 'vue'
 import type { ApiServices, Dict, ErrorHandler, Notice } from './types'
 import type { Translate } from './types'
-import { buildApplicationSettingsBody, buildCoreSettingsBody, buildSettingsApplyBody, buildSpeedSettingsBody } from './settingsPayloads.js'
-import { saveSettingsAndReload } from './settingsSaveFlow.js'
+import { buildApplicationSettingsBody, buildCoreSettingsBody, buildSettingsApplyBody, buildSpeedSettingsBody } from './settingsPayloads.ts'
+import { saveSettingsAndReload } from './settingsSaveFlow.ts'
 
 export function useSettings(options: ApiServices & {
   t: Translate

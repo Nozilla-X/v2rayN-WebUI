@@ -1,4 +1,5 @@
-import { nullableNumber } from './settingsPayloads.js'
+import { nullableNumber } from './settingsPayloads.ts'
+import type { Dict } from './types'
 
 const nullableTextFields = [
   'ports', 'flow', 'vlessEncryption', 'ssMethod', 'wgPublicKey', 'wgPresharedKey',
@@ -12,17 +13,17 @@ const nullableTransportTextFields = [
   'grpcServiceName', 'grpcMode', 'kcpHeaderType', 'kcpSeed',
 ]
 
-function nullWhenEmpty(value) {
+function nullWhenEmpty(value: unknown): unknown {
   return value === '' ? null : value
 }
 
-function positiveIntString(value) {
+function positiveIntString(value: unknown): string | null {
   const number = nullableNumber(value)
   return number != null && Number.isInteger(number) && number > 0 ? String(number) : null
 }
 
-export function normalizeProfileProtocolExtra(value, configType) {
-  const extra = { ...value }
+export function normalizeProfileProtocolExtra(value: Dict, configType: string): Dict {
+  const extra: Dict = { ...value }
   for (const field of nullableTextFields) {
     if (Object.hasOwn(extra, field)) extra[field] = nullWhenEmpty(extra[field])
   }
@@ -47,8 +48,8 @@ export function normalizeProfileProtocolExtra(value, configType) {
   return extra
 }
 
-export function normalizeProfileTransportExtra(value) {
-  const extra = { ...value }
+export function normalizeProfileTransportExtra(value: Dict): Dict {
+  const extra: Dict = { ...value }
   for (const field of nullableTransportTextFields) {
     if (Object.hasOwn(extra, field)) extra[field] = nullWhenEmpty(extra[field])
   }

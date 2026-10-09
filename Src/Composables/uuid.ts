@@ -1,4 +1,6 @@
-export function createUuid(cryptoApi = globalThis.crypto) {
+type CryptoApi = Pick<Crypto, 'getRandomValues'> & Partial<Pick<Crypto, 'randomUUID'>>
+
+export function createUuid(cryptoApi: CryptoApi | undefined = globalThis.crypto): string {
   const randomUUID = cryptoApi?.randomUUID
   if (typeof randomUUID === 'function') return randomUUID.call(cryptoApi)
 

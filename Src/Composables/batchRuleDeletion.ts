@@ -1,4 +1,20 @@
-export async function deleteSelectedRoutingRules(options) {
+import type { Dict, ErrorHandler, Notice, RequestApi } from './types'
+
+export async function deleteSelectedRoutingRules(options: {
+  selectedRuleIds: string[]
+  routingRules: Dict[]
+  routingId: string
+  isDeleting: () => boolean
+  setDeleting: (value: boolean) => void
+  confirm: (message: string) => Promise<boolean>
+  confirmMessage: string
+  request: RequestApi
+  operationMessage: (payload: Dict) => string
+  showNotice: Notice
+  showError: ErrorHandler
+  clearSelection: () => void
+  loadRules: () => Promise<void>
+}): Promise<boolean> {
   const selectedIds = [...options.selectedRuleIds]
   if (options.isDeleting() || !selectedIds.length || !options.routingId) return false
 

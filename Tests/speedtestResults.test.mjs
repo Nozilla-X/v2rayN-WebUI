@@ -3,7 +3,7 @@ import test from 'node:test'
 import { readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
-import { mergeSpeedTestResult } from '../Src/Composables/speedtestResults.js'
+import { mergeSpeedTestResult } from '../Src/Composables/speedtestResults.ts'
 
 const useEventsPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../Src/Composables/useEvents.ts')
 

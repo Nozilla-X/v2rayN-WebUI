@@ -1,5 +1,5 @@
-export function createEventRefresh(refresh, delayMs = 500) {
-  let timer
+export function createEventRefresh(refresh: () => Promise<void>, delayMs = 500): { request: () => void; clear: () => void } {
+  let timer: ReturnType<typeof setTimeout> | undefined
   let pending = false
   let running = false
   let generation = 0

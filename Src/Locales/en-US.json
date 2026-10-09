@@ -9,7 +9,7 @@
     "locateCurrent": "Locate current node",
     "testing": "Speed test running · results update live",
     "clearSearch": "Clear search",
-    "nodeKeyboard": "Node row focus: A select · C copy links · E edit · S share · 1–6 test · Shift+F10 menu",
+    "nodeKeyboard": "Ctrl/Cmd-click toggles · Shift-click selects a range · A select all · C copy links · E edit · S share · 1–6 test · Shift+F10 menu",
     "updating": "Updating…",
     "progressHint": "Progress is reported by the Backend; no percentage is available.",
     "currentVersion": "Current version",
@@ -29,7 +29,7 @@
     "levelHint": "Filters message text with the existing Backend regex; not structured log severity.",
     "editorKeyboard": "Tab inserts two spaces · Shift+Tab leaves the editor · Ctrl+Enter saves",
     "noResults": "No matching entries",
-    "targetWeb": "Backend service · not the WebUI",
+    "targetWeb": "Backend service",
     "targetCore": "Proxy Core",
     "targetGeo": "Geo data files"
   },

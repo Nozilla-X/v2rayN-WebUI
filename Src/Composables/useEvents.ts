@@ -1,7 +1,7 @@
 import { onUnmounted, watch, type Ref } from 'vue'
 import type { Dict, RequestApi, Notice, Translate } from './types'
-import { enqueueLogEntry, takeLogBatch } from './logBatch.js'
-import { createEventRefresh } from './eventRefresh.js'
+import { enqueueLogEntry, takeLogBatch } from './logBatch.ts'
+import { createEventRefresh } from './eventRefresh.ts'
 import { resolveApiUrl } from './apiEndpoint'
 
 export function useEvents(options: {

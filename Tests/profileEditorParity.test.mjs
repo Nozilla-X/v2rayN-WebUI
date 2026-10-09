@@ -3,7 +3,7 @@ import test from 'node:test'
 import { readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
-import { normalizeProfileProtocolExtra, normalizeProfileTransportExtra } from '../Src/Composables/profilePayloads.js'
+import { normalizeProfileProtocolExtra, normalizeProfileTransportExtra } from '../Src/Composables/profilePayloads.ts'
 
 const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../Src')
 

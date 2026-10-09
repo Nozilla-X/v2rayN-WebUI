@@ -1,10 +1,10 @@
 import { computed, reactive, ref, type Ref } from 'vue'
 import type { ApiError, ApiServices, Dict, ErrorHandler, Notice, Translate } from './types'
 import { canonicalNetwork } from '../profileEditorOptions'
-import { normalizeProfileProtocolExtra, normalizeProfileTransportExtra } from './profilePayloads.js'
-import { normalizeNullableNumbers } from './settingsPayloads.js'
-import { mergeSpeedTestResult as mergeSpeedTestResultIntoRows } from './speedtestResults.js'
-import { planSelectedMoves } from './movementOrder.js'
+import { normalizeProfileProtocolExtra, normalizeProfileTransportExtra } from './profilePayloads.ts'
+import { normalizeNullableNumbers } from './settingsPayloads.ts'
+import { mergeSpeedTestResult as mergeSpeedTestResultIntoRows } from './speedtestResults.ts'
+import { planSelectedMoves } from './movementOrder.ts'
 
 const groupIncompatibleProfileFields = [
   'address', 'port', 'password', 'username', 'network', 'headerType', 'requestHost', 'path',
@@ -37,6 +37,7 @@ export function useProfiles(options: ApiServices & {
   const filter = ref('')
   const selectedIds = ref<string[]>([])
   const focusedProfileId = ref('')
+  let selectionAnchorId = ''
   const sorting = ref({ column: '', ascending: true })
   const importForm = ref<Dict>({ content: '', subscriptionId: '', isSubscription: false })
   const profileForm = ref<Dict>({})
@@ -115,6 +116,8 @@ export function useProfiles(options: ApiServices & {
       await options.request('/api/profile-groups/current', { method: 'PUT', body: { subscriptionId: groupId || null } })
       selectedGroup.value = groupId
       selectedIds.value = []
+      selectionAnchorId = ''
+      focusedProfileId.value = ''
       await loadProfiles()
     } catch (error) { options.showError(error) }
   }
@@ -163,6 +166,7 @@ export function useProfiles(options: ApiServices & {
 
   function toggleProfile(id: string) {
     selectedIds.value = selectedIds.value.includes(id) ? selectedIds.value.filter((item) => item !== id) : [...selectedIds.value, id]
+    selectionAnchorId = id
   }
 
   function toggleAllVisible() {
@@ -181,13 +185,41 @@ export function useProfiles(options: ApiServices & {
   function focusProfile(event: MouseEvent, profile: Dict) {
     const target = event.target
     if (target instanceof Element && target.closest('button, input, select, a')) return
+    const previousFocusId = focusedProfileId.value
     focusedProfileId.value = profile.indexId
-    if (!selectedIds.value.includes(profile.indexId)) selectedIds.value = [profile.indexId]
+    const visibleIds = filteredProfiles.value.map((item) => item.indexId)
+    const profileIndex = visibleIds.indexOf(profile.indexId)
+    const additive = event.ctrlKey || event.metaKey
+    if (event.shiftKey) {
+      const anchorIndex = [selectionAnchorId, previousFocusId]
+        .map((id) => visibleIds.indexOf(id))
+        .find((index) => index >= 0) ?? profileIndex
+      const start = anchorIndex < 0 ? profileIndex : Math.min(anchorIndex, profileIndex)
+      const end = anchorIndex < 0 ? profileIndex : Math.max(anchorIndex, profileIndex)
+      const next = new Set(additive ? selectedIds.value : [])
+      visibleIds.slice(start, end + 1).forEach((id) => next.add(id))
+      const visibleSet = new Set(visibleIds)
+      selectedIds.value = [
+        ...visibleIds.filter((id) => next.has(id)),
+        ...[...next].filter((id) => !visibleSet.has(id)),
+      ]
+    } else if (additive) {
+      selectedIds.value = selectedIds.value.includes(profile.indexId)
+        ? selectedIds.value.filter((id) => id !== profile.indexId)
+        : [...selectedIds.value, profile.indexId]
+      selectionAnchorId = profile.indexId
+    } else {
+      selectedIds.value = [profile.indexId]
+      selectionAnchorId = profile.indexId
+    }
     ;(event.currentTarget as HTMLElement).focus({ preventScroll: true })
   }
 
   function openContextAt(x: number, y: number, profile: Dict) {
-    if (!selectedIds.value.includes(profile.indexId)) selectedIds.value = [profile.indexId]
+    if (!selectedIds.value.includes(profile.indexId)) {
+      selectedIds.value = [profile.indexId]
+      selectionAnchorId = profile.indexId
+    }
     focusedProfileId.value = profile.indexId
     options.contextMenu.value = { x: Math.min(x, window.innerWidth - 250), y: Math.min(y, window.innerHeight - 280), profile }
   }
@@ -547,6 +579,7 @@ export function useProfiles(options: ApiServices & {
     selectedGroup.value = ''
     filter.value = ''
     selectedIds.value = []
+    selectionAnchorId = ''
     focusedProfileId.value = ''
     sorting.value = { column: '', ascending: true }
     importForm.value = { content: '', subscriptionId: '', isSubscription: false }

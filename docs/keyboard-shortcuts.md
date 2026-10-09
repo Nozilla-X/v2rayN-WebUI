@@ -3,6 +3,13 @@
 Click/focus a node row first. These shortcuts apply only to the node table, never
 to inputs, editors, buttons, menus, dialogs, another page or an active IME composition.
 
+Node rows also support file-manager-style mouse selection:
+
+- Click a row to select only that node.
+- Ctrl/Cmd-click toggles an individual node without clearing the rest of the selection.
+- Shift-click selects the contiguous range from the last selection anchor; Ctrl/Cmd+Shift-click
+  adds that range to the existing selection.
+
 | Key | Action |
 | --- | --- |
 | A | Select all visible nodes |

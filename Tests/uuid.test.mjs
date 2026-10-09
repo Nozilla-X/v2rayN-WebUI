@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { createUuid } from '../Src/Composables/uuid.mjs'
+import { createUuid } from '../Src/Composables/uuid.ts'
 
 test('createUuid uses the native randomUUID implementation when available', () => {
   const expected = '123e4567-e89b-42d3-a456-426614174000'

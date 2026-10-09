@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { buildRoutingRuleBody } from '../Src/Composables/routingRulePayloads.js'
+import { buildRoutingRuleBody } from '../Src/Composables/routingRulePayloads.ts'
 
 const rule = { id: 'rule-1', enabled: true, type: 'field', remarks: 'old', outboundTag: 'proxy', domain: ['old.example'] }
 const form = { ...rule, domainText: 'old.example', inboundTagText: '', protocolText: '', ipText: '', processText: '' }

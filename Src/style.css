@@ -271,8 +271,7 @@ body:has(.core-panel-shade) { overflow: hidden; }
 .toolbar-label { color: var(--text-muted); white-space: nowrap; font-size: var(--font-label); }
 .group-chips { flex: 1; min-width: 0; flex-wrap: wrap; }
 .group-chip { min-height: var(--control-height); display: inline-flex; align-items: center; gap: var(--space-1); padding: 0 var(--space-2); color: var(--text); border: 1px solid var(--border-strong); border-radius: var(--radius-control); background: var(--button-surface); font-size: var(--font-label); }
-.group-chip-wrap { display: inline-flex; align-items: center; gap: var(--space-1); }
-.group-chip-more { width: 24px; height: 24px; }
+.group-chip-wrap { display: inline-flex; align-items: center; }
 .group-chip:hover { background: var(--surface-hover); }
 .group-chip.selected { color: var(--accent-text); border-color: var(--accent-border); background: var(--accent-soft); }
 .group-chip small { color: var(--text-muted); font-size: var(--font-caption); }
@@ -659,7 +658,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .profile-table tbody tr.current.selected { background: var(--table-current-selected); border-color: var(--accent-border); box-shadow: inset 2px 0 var(--accent); }
   .profile-table td { display: flex; align-items: flex-start; gap: var(--space-1); min-width: 0; height: auto; min-height: 0; padding: var(--space-1) 0; border: 0 !important; text-align: left; white-space: normal; overflow-wrap: anywhere; font-size: var(--font-label); }
   .profile-table td:not(.check-cell)::before { content: attr(data-label); flex: 0 0 auto; color: var(--text-muted); font-size: var(--font-caption); line-height: var(--line-height); }
-  .profile-table td.check-cell { position: absolute; inset: var(--space-2) auto auto var(--space-1); z-index: 1; width: 32px; height: var(--control-height); min-height: 0; justify-content: center; padding: 0; border: 0 !important; }
+  .profile-table td.check-cell { position: absolute; inset: 0 auto auto var(--space-1); z-index: 1; width: 32px; height: var(--control-height); min-height: 0; justify-content: center; padding: 0; border: 0 !important; }
   .profile-table td.check-cell::before { content: none; }
   .profile-table td.number-cell { text-align: left; }
   .profile-table td.empty-row { grid-column: 1 / -1; justify-content: center; min-height: var(--empty-height); margin-left: 0; }
@@ -780,9 +779,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .page-title { min-height: 32px; }
   .toolbar-main, .page-header .toolbar, .page-toolbar .toolbar { justify-content: flex-start; gap: var(--space-2); }
   .group-chip { border-radius: var(--radius-control); }
-  .group-chip-more { display: none; }
-  .group-chip-wrap:has(.group-chip.selected) .group-chip-more { display: inline-flex; }
-  .group-chip-more, .selection-clear, .clear-search { min-width: var(--control-height); min-height: var(--control-height); }
+  .selection-clear, .clear-search { min-width: var(--control-height); min-height: var(--control-height); }
   .form-grid label, .form-label, .dns-core-column > label:not(.check-inline), .settings-multi-select { gap: var(--space-2); }
   .settings-sniffing-row { grid-template-columns: minmax(0, 1fr); gap: var(--space-4); }
   .settings-sniffing-row .settings-multi-select { grid-column: auto; }
@@ -799,7 +796,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .routing-strategy-bar { flex-wrap: wrap; gap: var(--space-3); padding: var(--panel-padding); }
   .rule-import-options, .section-heading, .subpanel-heading, .update-core-row { flex-wrap: wrap; }
   .node-select-label { display: flex; justify-content: center; align-items: center; width: 32px; height: 40px; }
-  .profile-table td.remark-cell { grid-column: 1 / -1; grid-row: 1; max-width: none; min-height: 40px; padding: 0 46px 0 28px; gap: 5px; }
+  .profile-table td.remark-cell { grid-column: 1 / -1; grid-row: 1; align-items: center; max-width: none; min-height: 40px; padding: 0 46px 0 28px; gap: 5px; }
   .profile-table .remark-text { min-width: 0; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; font-size: var(--font-body); font-weight: var(--weight-heading); line-height: var(--line-height); overflow-wrap: anywhere; }
   .profile-table tr.details-open .remark-text { -webkit-line-clamp: unset; }
   .core-panel .current-runtime-name { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
