@@ -446,7 +446,6 @@
     "name": "别名",
     "url": "可选地址（URL）",
     "ruleCount": "规则数量",
-    "default": "活动规则集",
     "create": "添加规则集",
     "edit": "编辑规则集",
     "importProfiles": "一键导入规则集",

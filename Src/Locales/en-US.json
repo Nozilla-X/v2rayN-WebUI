@@ -446,7 +446,6 @@
     "name": "Remarks",
     "url": "Optional URL",
     "ruleCount": "Rule count",
-    "default": "Active rule set",
     "create": "Add rule set",
     "edit": "Edit rule set",
     "importProfiles": "Import Rules",

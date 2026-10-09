@@ -440,7 +440,6 @@
     "name": "別名",
     "url": "可選位址（URL）",
     "ruleCount": "規則數量",
-    "default": "活動規則集",
     "create": "新增規則集",
     "edit": "編輯規則集",
     "importProfiles": "一鍵匯入規則集",

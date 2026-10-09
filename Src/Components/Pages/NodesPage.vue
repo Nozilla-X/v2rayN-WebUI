@@ -152,10 +152,10 @@ function preventRangeTextSelection(event: MouseEvent) {
           <td class="row-actions" :data-label="t('nodes.actions')" @dblclick.stop><button class="tool-button row-more" :aria-label="t('nodes.actions')" :title="t('nodes.actions')" @click.stop="actions.openContext($event, profile)"><UiIcon name="more" /></button></td>
           <td class="mobile-node-details" @dblclick.stop><button type="button" :aria-label="t(expandedProfiles.has(profile.indexId) ? 'nodes.collapseDetails' : 'nodes.showDetails')" :aria-expanded="expandedProfiles.has(profile.indexId)" @click.stop="toggleDetails(profile.indexId)"><span class="mobile-details-label">{{ t(expandedProfiles.has(profile.indexId) ? 'nodes.collapseDetails' : 'nodes.showDetails') }}</span><UiIcon name="chevron-down" :size="12" /></button></td>
         </tr>
-        <tr v-if="!state.filteredProfiles.length"><td :colspan="showIpInfoColumn ? 16 : 15" class="empty-row">{{ status.reads ? t('common.loading') : state.filter ? t('common.noResults') : t('nodes.noProfile') }}<button v-if="state.filter && !status.reads" class="link-button" @click="state.filter = ''; reloadProfiles()">{{ t('polish.clearSearch') }}</button><button v-else-if="!status.reads" class="link-button" @click="actions.openAddProfile">{{ t('nodes.addNode') }}</button></td></tr>
+        <tr v-if="!state.filteredProfiles.length"><td :colspan="showIpInfoColumn ? 15 : 14" class="empty-row">{{ status.reads ? t('common.loading') : state.filter ? t('common.noResults') : t('nodes.noProfile') }}<button v-if="state.filter && !status.reads" class="link-button" @click="state.filter = ''; reloadProfiles()">{{ t('polish.clearSearch') }}</button><button v-else-if="!status.reads" class="link-button" @click="actions.openAddProfile">{{ t('nodes.addNode') }}</button></td></tr>
       </tbody>
     </table>
   </div>
-  <div class="table-footer"><span id="nodes-search-hint">{{ t('nodes.regexHint') }}</span><span>{{ t('polish.nodeKeyboard') }}</span></div>
+  <div class="table-footer"><span id="nodes-search-hint">{{ t('nodes.regexHint') }}</span><span class="node-keyboard-hint">{{ t('polish.nodeKeyboard') }}</span></div>
 </section>
 </template>
