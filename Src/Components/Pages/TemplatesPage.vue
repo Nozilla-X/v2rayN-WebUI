@@ -21,8 +21,8 @@ const currentTemplate = computed(() => state.templates.find((template: Record<st
 <template>
   <section class="page templates-page">
     <div class="page-header page-toolbar"><div class="page-title"><h1>{{ t('templates.title') }}</h1></div><button class="button" :disabled="Boolean(status.reads || status.writes)" @click="reloadTemplates">{{ t('common.refresh') }}</button></div>
-    <nav class="section-tabs" :aria-label="t('templates.title')"><button :aria-pressed="activeCore === 'Xray'" :class="{ selected: activeCore === 'Xray' }" @click="activeCore = 'Xray'">Xray</button><button :aria-pressed="activeCore === 'sing_box'" :class="{ selected: activeCore === 'sing_box' }" @click="activeCore = 'sing_box'">sing-box</button></nav>
     <PageFeedback scope="templates" />
+    <nav class="section-tabs" :aria-label="t('templates.title')"><button :aria-pressed="activeCore === 'Xray'" :class="{ selected: activeCore === 'Xray' }" @click="activeCore = 'Xray'">Xray</button><button :aria-pressed="activeCore === 'sing_box'" :class="{ selected: activeCore === 'sing_box' }" @click="activeCore = 'sing_box'">sing-box</button></nav>
     <form v-if="currentTemplate" class="template-editor panel" @submit.prevent="actions.saveTemplate(currentTemplate)">
       <div class="template-options"><label class="check-inline"><UiCheckbox v-model="currentTemplate.enabled" />{{ t('templates.enabled') }}</label><label>{{ t('templates.remarks') }}<input v-model="currentTemplate.remarks" /></label><label class="check-inline"><UiCheckbox v-model="currentTemplate.addProxyOnly" />{{ t('templates.addProxyOnly') }}</label><label>{{ t('templates.proxyDetour') }}<input v-model="currentTemplate.proxyDetour" /></label></div>
       <label class="template-code-label">{{ t('templates.config') }}<textarea v-code-editor="() => !status.writes && actions.saveTemplate(currentTemplate)" v-model="currentTemplate.config" class="code-area template-code" spellcheck="false" /></label>

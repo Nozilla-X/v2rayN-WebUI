@@ -109,8 +109,10 @@ function preventRangeTextSelection(event: MouseEvent) {
       <ActionDropdown :label="t('nodes.addMenu')" prefix="plus" variant="primary"><button class="action-menu-item" role="menuitem" @click="actions.openAddProfile">{{ t('nodes.addNode') }}</button><button class="action-menu-item" role="menuitem" @click="actions.openImportProfiles">{{ t('nodes.importNodes') }}…</button></ActionDropdown>
     </div>
   </div>
-  <PageFeedback v-if="!testing || status.error" scope="nodes" />
-  <div v-if="testing" class="operation-status" role="status"><span class="status-led on"></span>{{ t('polish.testing') }}<button class="link-button danger-text" @click="actions.stopSpeedTests">{{ t('nodes.stopTest') }}</button><span v-if="status.reads || status.writes" class="muted speedtest-refresh">{{ t('common.loading') }}</span></div>
+  <div class="nodes-feedback-slot">
+    <PageFeedback v-if="!testing || status.error" scope="nodes" />
+    <div v-if="testing" class="operation-status" role="status"><span class="status-led on"></span><span class="operation-status-label">{{ t('polish.testing') }}</span><button class="link-button danger-text" @click="actions.stopSpeedTests">{{ t('nodes.stopTest') }}</button><span v-if="status.reads || status.writes" class="muted speedtest-refresh">{{ t('common.loading') }}</span></div>
+  </div>
 
   <div ref="tableWrap" class="table-container table-wrap" :aria-busy="Boolean(status.reads)" :class="{ 'auto-fit-columns': autoFitColumns }">
     <table class="profile-table">

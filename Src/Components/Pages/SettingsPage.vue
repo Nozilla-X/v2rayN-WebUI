@@ -24,8 +24,8 @@ const tabs = [
 <template>
   <section class="page settings-page">
     <div class="page-header page-toolbar"><div class="page-title"><h1>{{ t('settings.title') }}</h1></div><span class="muted">{{ t('settings.restartHint') }}</span></div>
-    <nav class="section-tabs" :aria-label="t('settings.title')"><button v-for="tab in tabs" :key="tab.id" :aria-pressed="activeTab === tab.id" :class="{ selected: activeTab === tab.id }" @click="activeTab = tab.id">{{ t(tab.key) }}</button></nav>
     <PageFeedback scope="settings" />
+    <nav class="section-tabs" :aria-label="t('settings.title')"><button v-for="tab in tabs" :key="tab.id" :aria-pressed="activeTab === tab.id" :class="{ selected: activeTab === tab.id }" @click="activeTab = tab.id">{{ t(tab.key) }}</button></nav>
 
     <section v-if="activeTab === 'core'" class="settings-section">
       <div class="form-section settings-subsection"><h2>{{ t('settings.inbound') }}</h2><div class="form-grid three-col">

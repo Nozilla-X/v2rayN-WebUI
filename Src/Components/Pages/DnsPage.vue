@@ -39,8 +39,8 @@ const tabs = [
 <template>
   <section class="page dns-page">
     <div class="page-header page-toolbar"><div class="page-title"><h1>{{ t('dns.title') }}</h1></div><button class="button" :disabled="Boolean(status.reads || status.writes)" @click="reloadDns">{{ t('common.refresh') }}</button></div>
-    <nav class="section-tabs" :aria-label="t('dns.title')"><button v-for="tab in tabs" :key="tab.id" :aria-pressed="activeTab === tab.id" :class="{ selected: activeTab === tab.id }" @click="activeTab = tab.id">{{ t(tab.key) }}</button></nav>
     <PageFeedback scope="dns" />
+    <nav class="section-tabs" :aria-label="t('dns.title')"><button v-for="tab in tabs" :key="tab.id" :aria-pressed="activeTab === tab.id" :class="{ selected: activeTab === tab.id }" @click="activeTab = tab.id">{{ t(tab.key) }}</button></nav>
 
     <section v-if="activeTab === 'basic'" class="settings-section form-section">
       <p v-if="!isSimpleDnsEnabled" class="inline-warning" role="status">{{ t('dns.customDnsConflict') }}</p>

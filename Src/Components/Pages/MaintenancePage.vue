@@ -22,8 +22,8 @@ const refreshMaintenance = () => run(() => actions.loadMaintenance())
 <template>
   <section class="page maintenance-page">
     <div class="page-header page-toolbar"><div class="page-title"><h1>{{ t('maintenance.title') }}</h1></div><button class="button" @click="refreshMaintenance">{{ t('common.refresh') }}</button></div>
-    <nav class="section-tabs" :aria-label="t('maintenance.title')"><button :aria-pressed="activeTab === 'updates'" :class="{ selected: activeTab === 'updates' }" @click="activeTab = 'updates'">{{ t('maintenance.updates') }}</button><button :aria-pressed="activeTab === 'backup'" :class="{ selected: activeTab === 'backup' }" @click="activeTab = 'backup'">{{ t('maintenance.backupRestore') }}</button></nav>
     <PageFeedback scope="maintenance" />
+    <nav class="section-tabs" :aria-label="t('maintenance.title')"><button :aria-pressed="activeTab === 'updates'" :class="{ selected: activeTab === 'updates' }" @click="activeTab = 'updates'">{{ t('maintenance.updates') }}</button><button :aria-pressed="activeTab === 'backup'" :class="{ selected: activeTab === 'backup' }" @click="activeTab = 'backup'">{{ t('maintenance.backupRestore') }}</button></nav>
 
     <section v-if="activeTab === 'updates'" class="settings-section">
       <div class="panel update-preferences">
