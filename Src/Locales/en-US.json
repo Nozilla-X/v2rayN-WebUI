@@ -35,6 +35,10 @@
   },
   "brand": "v2rayN Web",
   "backend": {
+    "history": "Connection history",
+    "chooseHistory": "Choose a previous Backend address",
+    "removeHistory": "Remove this address from history",
+    "historyPrivacy": "Recent addresses are stored only in this browser. Management Keys are not saved in history.",
     "address": "Backend API address",
     "apply": "Use address",
     "test": "Test connection",

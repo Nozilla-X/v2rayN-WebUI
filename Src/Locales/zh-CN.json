@@ -35,6 +35,10 @@
   },
   "brand": "v2rayN Web",
   "backend": {
+    "history": "历史连接地址",
+    "chooseHistory": "选择曾连接的 Backend 地址",
+    "removeHistory": "删除当前地址的历史记录",
+    "historyPrivacy": "最近的地址仅保存在此浏览器中，历史记录不保存管理 Key。",
     "address": "Backend API 地址",
     "apply": "使用地址",
     "test": "测试连接",

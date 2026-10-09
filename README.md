@@ -56,6 +56,12 @@ The shipped value is `''` (same-origin). A saved user selection overrides this d
 default. Serve the config file without long-lived caching. No particular public dashboard
 domain is hard-coded in the application.
 
+Each browser also keeps a local history of recently used Backend addresses (up to 10,
+most recent first) so they can be reselected from the login screen or removed
+individually. History is plain `localStorage` for this WebUI origin only; it never
+stores Management Keys or session tokens, and selecting an entry does not connect
+automatically.
+
 For an independent site at `https://webui.example.com`, configure the Backend:
 
 ```ini

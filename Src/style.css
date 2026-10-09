@@ -907,6 +907,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 }
 .backend-fields .inline-field { flex-wrap: wrap; }
 .backend-fields .inline-field input { min-width: 140px; }
+.backend-history select { flex: 1; min-width: 0; min-height: var(--control-height); padding: var(--space-1) var(--space-2); color: var(--text); border: var(--border-width) solid var(--border-strong); border-radius: var(--radius-control); background: var(--surface-input); font-size: var(--font-input); }
 
 /* Polish: low-height status surfaces and explicit state, not another card layer. */
 @media (min-width: 761px) {

@@ -190,6 +190,7 @@ async function testConnection() {
     const { response, payload } = await api.publicRequest('/api/health', { signal: AbortSignal.timeout(10000) })
     if (!response.ok || payload?.status !== 'ok') throw new Error(t('backend.notApi'))
     if (generation !== connectionGeneration) return
+    backend.remember()
     await session.loadSetupStatus()
     if (generation === connectionGeneration) showNotice(t('backend.reachable'))
   } catch (error) {
@@ -202,9 +203,19 @@ async function testConnection() {
 async function loginToBackend() {
   const key = session.managementKeyDraft.value
   if (applyBackend()) {
+    const generation = connectionGeneration
+    const address = backend.base.value
     session.managementKeyDraft.value = key
     await session.login()
+    if (generation === connectionGeneration && address === backend.base.value && authenticated.value && sessionToken.value) backend.remember(address)
   }
+}
+
+async function configureAndRemember() {
+  const generation = connectionGeneration
+  const address = backend.base.value
+  await session.configureManagementKey()
+  if (generation === connectionGeneration && address === backend.base.value && authenticated.value && sessionToken.value) backend.remember(address)
 }
 
 const {
@@ -294,9 +305,9 @@ const modalBindings = {
 }
 const sessionScreenState = reactive({
   setupStatusReady, setupRequired, setupAllowedFromRequest, setupKey, setupConfirmKey, setupSubmitting, setupError, managementKeyDraft,
-  backendDraft: backend.draft, backendError: backend.error, connectionTesting,
+  backendDraft: backend.draft, backendError: backend.error, backendHistory: backend.history, connectionTesting,
 })
-const sessionScreenActions = { applyBackend, testConnection, loginToBackend, configureManagementKey }
+const sessionScreenActions = { applyBackend, testConnection, loginToBackend, configureManagementKey: configureAndRemember, forgetBackendAddress: backend.forget }
 const shellReady = computed(() => setupStatusReady.value && !setupRequired.value)
 useGlobalShortcuts({
   activePage, contextMenu, nodes: nodes.contextActions,
