@@ -68,7 +68,7 @@ try {
     await checkbox('A').check()
     await checkbox('B').check()
     await row('A').locator('.remark-cell').click()
-    for (const [action, shortcut] of [['tcping', 'Control+o'], ['realping', 'Control+r'], ['speedtest', 'Control+t']]) {
+    for (const [action, shortcut] of [['tcping', '1'], ['realping', '2'], ['speedtest', '3'], ['udpTest', '4'], ['fastRealping', '5'], ['mixedtest', '6']]) {
       await assertSubmission(action, ['A', 'B'], () => page.keyboard.press(shortcut))
     }
     if (width <= 760) {

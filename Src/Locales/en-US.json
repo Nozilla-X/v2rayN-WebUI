@@ -9,7 +9,7 @@
     "locateCurrent": "Locate current node",
     "testing": "Speed test running · results update live",
     "clearSearch": "Clear search",
-    "nodeKeyboard": "Ctrl+A select · Ctrl+O/R/T test · Shift+F10 menu",
+    "nodeKeyboard": "Node row focus: A select · C copy links · E edit · S share · 1–6 test · Shift+F10 menu",
     "updating": "Updating…",
     "progressHint": "Progress is reported by the Backend; no percentage is available.",
     "currentVersion": "Current version",

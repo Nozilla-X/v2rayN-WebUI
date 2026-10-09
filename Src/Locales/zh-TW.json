@@ -9,7 +9,7 @@
     "locateCurrent": "定位目前節點",
     "testing": "測速進行中 · 結果即時更新",
     "clearSearch": "清除搜尋",
-    "nodeKeyboard": "Ctrl+A 全選 · Ctrl+O/R/T 測速 · Shift+F10 選單",
+    "nodeKeyboard": "節點列焦點：A 全選 · C 複製連結 · E 編輯 · S 分享 · 1–6 測速 · Shift+F10 選單",
     "updating": "正在更新…",
     "progressHint": "進度由後端回報，目前沒有百分比。",
     "currentVersion": "目前版本",

@@ -52,6 +52,9 @@ export function useProfiles(options: ApiServices & {
   const editingProfileId = ref('')
   const profileModalError = ref('')
   let profilesLoadSequence = 0
+  let testResultRevision = 0
+  const testResultFields = ['delay', 'speed', 'ipInfo'] as const
+  const liveTestResults = new Map<string, Partial<Record<typeof testResultFields[number], { revision: number; value: unknown }>>>()
 
   const protocolTypes = ref<string[]>([])
   const coreTypes = ref<string[]>([])
@@ -85,11 +88,21 @@ export function useProfiles(options: ApiServices & {
 
   async function loadProfiles() {
     const sequence = ++profilesLoadSequence
+    const resultRevision = testResultRevision
     const groupId = selectedGroup.value
     const query = filter.value.trim()
     const path = options.queryPath('/api/profiles', { subscriptionId: groupId, filter: query })
     const rows = await options.data(path) || []
     if (sequence !== profilesLoadSequence || groupId !== selectedGroup.value || query !== filter.value.trim()) return
+    const rowMap = new Map<string, Dict>(rows.map((row: Dict) => [row.indexId, row]))
+    for (const [id, fields] of liveTestResults) {
+      const row = rowMap.get(id)
+      if (!row) { liveTestResults.delete(id); continue }
+      for (const field of testResultFields) {
+        const result = fields[field]
+        if (result && result.revision > resultRevision) row[field] = result.value
+      }
+    }
     profiles.value = rows
     selectedIds.value = selectedIds.value.filter((id) => profiles.value.some((profile) => profile.indexId === id))
     if (!profiles.value.some((profile) => profile.indexId === focusedProfileId.value)) {
@@ -136,7 +149,16 @@ export function useProfiles(options: ApiServices & {
   }
 
   function applySpeedTestResult(result: Dict) {
-    return mergeSpeedTestResultIntoRows(profiles.value, result)
+    const merged = mergeSpeedTestResultIntoRows(profiles.value, result)
+    if (!merged) return false
+    const fields = liveTestResults.get(result.indexId) || {}
+    for (const field of testResultFields) {
+      if (result[field] !== null && result[field] !== undefined && result[field] !== '') {
+        fields[field] = { revision: ++testResultRevision, value: result[field] }
+      }
+    }
+    liveTestResults.set(result.indexId, fields)
+    return true
   }
 
   function toggleProfile(id: string) {
@@ -517,6 +539,8 @@ export function useProfiles(options: ApiServices & {
   }
 
   function reset() {
+    liveTestResults.clear()
+    testResultRevision = 0
     profilesLoadSequence += 1
     profiles.value = []
     groups.value = []

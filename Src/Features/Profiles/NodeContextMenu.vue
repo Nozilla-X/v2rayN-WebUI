@@ -48,17 +48,19 @@ onUnmounted(() => window.removeEventListener('resize', positionOpenContextMenu))
     </template>
     <template v-else>
       <button role="menuitem" :disabled="contextMenu.profile.isCurrent" @click="selectContextProfile">{{ contextMenu.profile.isCurrent ? t('nodes.current') : t('nodes.switch') }}<span class="menu-shortcut">Enter</span></button>
-      <button role="menuitem" @click="editContextProfile">{{ t('common.edit') }}<span class="menu-shortcut">Ctrl+D</span></button>
+      <button role="menuitem" @click="editContextProfile">{{ t('common.edit') }}<span class="menu-shortcut">E</span></button>
       <button role="menuitem" :disabled="!nodesPageState.selectedIds.length" @click="copySelectedNodes">{{ t('nodes.copySelected') }}</button>
-      <button role="menuitem" class="danger-text" :disabled="!nodesPageState.selectedIds.length" @click="deleteSelectedNodes">{{ t('nodes.removeSelected') }}<span class="menu-shortcut">Backspace</span></button>
+      <button role="menuitem" class="danger-text" :disabled="!nodesPageState.selectedIds.length" @click="deleteSelectedNodes">{{ t('nodes.removeSelected') }}<span class="menu-shortcut">Delete</span></button>
       <button role="menuitem" @click="nodesPageActions.runProfileAction('deduplicate')">{{ t('nodes.deduplicate') }}</button>
       <button role="menuitem" @click="nodesPageActions.runProfileAction('remove-invalid')">{{ t('nodes.removeInvalid') }}</button>
       <div class="context-separator"></div>
       <FlyoutMenu context :label="t('nodes.testMenu')" @select="contextMenu = null">
-        <button class="action-menu-item" role="menuitem" @click="testSelectedNodes('tcping')">{{ t('nodes.tcping') }}<span class="menu-shortcut">Ctrl+O</span></button>
-        <button class="action-menu-item" role="menuitem" @click="testSelectedNodes('realping')">{{ t('nodes.realping') }}<span class="menu-shortcut">Ctrl+R</span></button>
-        <button class="action-menu-item" role="menuitem" @click="testSelectedNodes('speedtest')">{{ t('nodes.speedtest') }}<span class="menu-shortcut">Ctrl+T</span></button>
-        <button class="action-menu-item" role="menuitem" @click="testSelectedNodes('udpTest')">{{ t('nodes.udp') }}</button>
+        <button class="action-menu-item" role="menuitem" @click="testSelectedNodes('tcping')">{{ t('nodes.tcping') }}<span class="menu-shortcut">1</span></button>
+        <button class="action-menu-item" role="menuitem" @click="testSelectedNodes('realping')">{{ t('nodes.realping') }}<span class="menu-shortcut">2</span></button>
+        <button class="action-menu-item" role="menuitem" @click="testSelectedNodes('speedtest')">{{ t('nodes.speedtest') }}<span class="menu-shortcut">3</span></button>
+        <button class="action-menu-item" role="menuitem" @click="testSelectedNodes('udpTest')">{{ t('nodes.udp') }}<span class="menu-shortcut">4</span></button>
+        <button class="action-menu-item" role="menuitem" @click="testSelectedNodes('fastRealping')">{{ t('nodes.fastRealping') }}<span class="menu-shortcut">5</span></button>
+        <button class="action-menu-item" role="menuitem" @click="testSelectedNodes('mixedtest')">{{ t('nodes.mixedtest') }}<span class="menu-shortcut">6</span></button>
         <div class="action-menu-separator" role="separator"></div>
         <button class="action-menu-item" role="menuitem" @click="nodesPageActions.sortProfiles('DelayVal')">{{ t('nodes.sortByTestResults') }}</button>
       </FlyoutMenu>
@@ -72,14 +74,14 @@ onUnmounted(() => window.removeEventListener('resize', positionOpenContextMenu))
         <button class="action-menu-item" role="menuitem" @click="moveSelectedNodes('down')">{{ t('nodes.down') }}<span class="menu-shortcut">D</span></button>
         <button class="action-menu-item" role="menuitem" @click="moveSelectedNodes('bottom')">{{ t('nodes.bottom') }}<span class="menu-shortcut">B</span></button>
       </FlyoutMenu>
-      <button role="menuitem" :disabled="!nodesPageState.filteredProfiles.length" @click="selectAllNodes">{{ t('nodes.selectAll') }}<span class="menu-shortcut">Ctrl+A</span></button>
+      <button role="menuitem" :disabled="!nodesPageState.filteredProfiles.length" @click="selectAllNodes">{{ t('nodes.selectAll') }}<span class="menu-shortcut">A</span></button>
       <div class="context-separator"></div>
-      <button role="menuitem" :disabled="!nodesPageState.selectedIds.length" @click="shareSelectedNodes">{{ t('nodes.shareProfile') }}<span class="menu-shortcut">Ctrl+F</span></button>
+      <button role="menuitem" :disabled="!nodesPageState.selectedIds.length" @click="shareSelectedNodes">{{ t('nodes.shareProfile') }}<span class="menu-shortcut">S</span></button>
       <FlyoutMenu context :label="t('nodes.exportMenu')" :disabled="!nodesPageState.selectedIds.length" @select="contextMenu = null">
         <button class="action-menu-item" role="menuitem" :disabled="!nodesPageState.selectedIds.length" @click="nodesPageActions.exportFullConfig">{{ t('nodes.exportFullConfig') }}</button>
         <button class="action-menu-item" role="menuitem" :disabled="!nodesPageState.selectedIds.length" @click="nodesPageActions.exportFullConfigToClipboard">{{ t('nodes.exportFullConfigClipboard') }}</button>
         <div class="action-menu-separator" role="separator"></div>
-        <button class="action-menu-item" role="menuitem" :disabled="!nodesPageState.selectedIds.length" @click="copySelectedShareLinks">{{ t('nodes.exportShareLinkClipboard') }}<span class="menu-shortcut">Ctrl+C</span></button>
+        <button class="action-menu-item" role="menuitem" :disabled="!nodesPageState.selectedIds.length" @click="copySelectedShareLinks">{{ t('nodes.exportShareLinkClipboard') }}<span class="menu-shortcut">C</span></button>
         <button class="action-menu-item" role="menuitem" :disabled="!nodesPageState.selectedIds.length" @click="nodesPageActions.exportShareLinksBase64">{{ t('nodes.exportShareLinkBase64') }}</button>
         <button class="action-menu-item" role="menuitem" :disabled="!nodesPageState.selectedIds.length" @click="nodesPageActions.exportInnerUris">{{ t('nodes.exportInnerUri') }}</button>
       </FlyoutMenu>

@@ -52,8 +52,9 @@ watcher, copied draft, extra load on mount or automatic save/update.
   and the first-stage CSS tokens. No forwarding-only Input/Select/Switch/Table wrappers
   were introduced, avoiding changes to `.number`, nullable options, validation and table semantics.
 - `UI/useFeedback.ts`: Toast queue/timers and confirmation queue extracted unchanged.
-- `UI/useGlobalShortcuts.ts`: original keyboard mapping, editable-target guards and Escape
-  priority. Modal closures are supplied in the former order by the application assembler.
+- `UI/useGlobalShortcuts.ts`: row-scoped [browser-safe keys](keyboard-shortcuts.md),
+  editable-target guards and the original Escape priority. Modal closures are supplied
+  in the former order by the application assembler; node actions no longer bind Ctrl/Alt/Meta chords.
 
 The module-extraction phase required no new styles. Third-stage presentation feedback
 and UI polish are documented in [polish-audit.md](polish-audit.md).

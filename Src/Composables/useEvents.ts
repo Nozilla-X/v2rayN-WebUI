@@ -181,8 +181,13 @@ export function useEvents(options: {
       listen('traffic', (event) => {
       if (options.status.value) options.status.value.traffic = JSON.parse((event as MessageEvent).data)
       })
+      listen('speedtest-started', () => operationsRefresh.request())
       listen('speedtest-result', (event) => {
-        options.onSpeedTestResult(JSON.parse((event as MessageEvent).data) as Dict)
+        const result = JSON.parse((event as MessageEvent).data) as Dict
+        options.onSpeedTestResult(result)
+        // Empty IDs are Backend-wide notifications (completion, stop or failure),
+        // not profile rows. Reconcile actual operation state without guessing rawLog language.
+        if (!result.indexId) operationsRefresh.request()
       })
       listen('core-update-progress', (event) => {
         const progress = JSON.parse((event as MessageEvent).data) as Dict

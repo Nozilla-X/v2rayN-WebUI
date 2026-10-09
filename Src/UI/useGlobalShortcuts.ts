@@ -45,36 +45,35 @@ export function useGlobalShortcuts(options: {
     return true
   }
   function handleGlobalKeydown(event: KeyboardEvent) {
+    if (event.isComposing) return
     if (closeTopLayerOnEscape(event)) return
     if (options.activePage.value !== 'nodes' || isEditableTarget(event.target)) return
     if (document.querySelector('.modal-shade, .context-menu, .action-menu-popup')) return
+    if (!(event.target instanceof Element) || !event.target.closest('.profile-table [data-profile-id]')) return
+    // Browser/OS shortcuts cannot all be canceled (e.g. Ctrl+T). Never bind them.
+    if (event.ctrlKey || event.altKey || event.metaKey || event.shiftKey) return
     const key = event.key.toLowerCase()
-    const control = event.ctrlKey && !event.shiftKey && !event.altKey && !event.metaKey
     let handled = true
     const actions = options.nodes
-    if (control) {
-      switch (key) {
-        case 'a': actions.selectAllNodes(); break
-        case 'c': actions.copySelectedShareLinks(); break
-        case 'd': actions.editContextProfile(); break
-        case 'f': actions.shareSelectedNodes(); break
-        case 'o': actions.testSelectedNodes('tcping'); break
-        case 'r': actions.testSelectedNodes('realping'); break
-        case 't': actions.testSelectedNodes('speedtest'); break
-        default: handled = false
-      }
-    } else if (!event.ctrlKey && !event.altKey && !event.metaKey) {
-      switch (key) {
-        case 'enter': actions.selectContextProfile(); break
-        case 'backspace':
-        case 'delete': actions.deleteSelectedNodes(); break
-        case 't': actions.moveSelectedNodes('top'); break
-        case 'u': actions.moveSelectedNodes('up'); break
-        case 'd': actions.moveSelectedNodes('down'); break
-        case 'b': actions.moveSelectedNodes('bottom'); break
-        default: handled = false
-      }
-    } else handled = false
+    switch (key) {
+      case 'a': actions.selectAllNodes(); break
+      case 'c': actions.copySelectedShareLinks(); break
+      case 'e': actions.editContextProfile(); break
+      case 's': actions.shareSelectedNodes(); break
+      case '1': actions.testSelectedNodes('tcping'); break
+      case '2': actions.testSelectedNodes('realping'); break
+      case '3': actions.testSelectedNodes('speedtest'); break
+      case '4': actions.testSelectedNodes('udpTest'); break
+      case '5': actions.testSelectedNodes('fastRealping'); break
+      case '6': actions.testSelectedNodes('mixedtest'); break
+      case 'enter': actions.selectContextProfile(); break
+      case 'delete': actions.deleteSelectedNodes(); break
+      case 't': actions.moveSelectedNodes('top'); break
+      case 'u': actions.moveSelectedNodes('up'); break
+      case 'd': actions.moveSelectedNodes('down'); break
+      case 'b': actions.moveSelectedNodes('bottom'); break
+      default: handled = false
+    }
     if (handled) event.preventDefault()
   }
   onMounted(() => document.addEventListener('keydown', handleGlobalKeydown, true))

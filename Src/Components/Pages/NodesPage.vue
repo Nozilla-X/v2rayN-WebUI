@@ -25,6 +25,13 @@ const testing = computed(() => state.operations.includes('speedtest'))
 function locateCurrent() {
   const row = [...(tableWrap.value?.querySelectorAll<HTMLElement>('[data-profile-id]') || [])].find(item => item.dataset.profileId === currentVisible.value?.indexId)
   row?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+  const wrap = tableWrap.value
+  const header = wrap?.querySelector('thead')
+  if (row && wrap && header) {
+    const visibleTop = wrap.getBoundingClientRect().top + wrap.clientTop + header.getBoundingClientRect().height
+    const covered = visibleTop - row.getBoundingClientRect().top
+    if (covered > 0) wrap.scrollTop = Math.max(0, wrap.scrollTop - covered)
+  }
   row?.focus({ preventScroll: true })
 }
 function sortState(column: string) { return state.sorting?.column === column ? (state.sorting.ascending ? 'ascending' : 'descending') : 'none' }
@@ -77,8 +84,8 @@ function toggleDetails(id: string) {
       <ActionDropdown :label="t('nodes.addMenu')" prefix="plus" variant="primary"><button class="action-menu-item" role="menuitem" @click="actions.openAddProfile">{{ t('nodes.addNode') }}</button><button class="action-menu-item" role="menuitem" @click="actions.openImportProfiles">{{ t('nodes.importNodes') }}…</button></ActionDropdown>
     </div>
   </div>
-  <PageFeedback scope="nodes" />
-  <div v-if="testing" class="operation-status" role="status"><span class="status-led on"></span>{{ t('polish.testing') }}<button class="link-button danger-text" @click="actions.stopSpeedTests">{{ t('nodes.stopTest') }}</button></div>
+  <PageFeedback v-if="!testing || status.error" scope="nodes" />
+  <div v-if="testing" class="operation-status" role="status"><span class="status-led on"></span>{{ t('polish.testing') }}<button class="link-button danger-text" @click="actions.stopSpeedTests">{{ t('nodes.stopTest') }}</button><span v-if="status.reads || status.writes" class="muted speedtest-refresh">{{ t('common.loading') }}</span></div>
 
   <div ref="tableWrap" class="table-container table-wrap" :aria-busy="Boolean(status.reads)" :class="{ 'auto-fit-columns': autoFitColumns }">
     <table class="profile-table">

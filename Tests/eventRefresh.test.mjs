@@ -51,6 +51,24 @@ test('pausing live logs freezes intake without disconnecting SSE or pausing runt
   assert.notEqual(source.closed, true)
 })
 
+test('speedtest start and empty-ID terminal notifications reconcile actual running operations', async t => {
+  const results = []
+  const { source, calls, clock } = await eventFixture(t, { onSpeedTestResult: result => results.push(result) })
+  source.emit('speedtest-started', { action: 'tcping', profileIds: ['fixture-a'] })
+  clock.tick(500)
+  await settle()
+  assert.equal(calls.operations, 1)
+  source.emit('speedtest-result', { indexId: 'fixture-a', delay: 123, speed: null })
+  clock.tick(500)
+  await settle()
+  assert.equal(calls.operations, 1, 'numeric packets update rows without causing an operation request storm')
+  source.emit('speedtest-result', { indexId: '', delay: null, speed: null, rawResult: 'Backend-wide terminal fixture' })
+  clock.tick(500)
+  await settle()
+  assert.equal(calls.operations, 2, 'completion must remove the stale speedtest-running state')
+  assert.equal(results[0].delay, 123)
+})
+
 async function eventFixture(t, extra = {}) {
   const harness = createSourceHarness()
   const clock = fakeClock()

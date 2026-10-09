@@ -653,7 +653,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .table-wrap.auto-fit-columns .profile-table, .profile-table { width: 100%; min-width: 0; display: block; table-layout: fixed; white-space: normal; }
   .profile-table thead { display: none; }
   .profile-table tbody { display: grid; gap: var(--page-gap); }
-  .profile-table tbody tr { position: relative; min-width: 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: var(--space-1); padding: var(--panel-padding); border: 1px solid var(--border); border-radius: var(--radius-card); background: var(--surface); }
+  .profile-table tbody tr { position: relative; min-width: 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: var(--space-1); padding: var(--panel-padding); border: 1px solid var(--border); border-radius: var(--radius-card); background: var(--surface); scroll-margin-bottom: calc(var(--mobile-nav-height) + env(safe-area-inset-bottom) + var(--space-2)); }
   .profile-table tbody tr.current { background: var(--table-row-current); border-color: var(--success-border); box-shadow: inset 2px 0 var(--success); }
   .profile-table tbody tr.selected { background: var(--table-row-selected); border-color: var(--accent-border); }
   .profile-table tbody tr.current.selected { background: var(--table-current-selected); border-color: var(--accent-border); box-shadow: inset 2px 0 var(--accent); }

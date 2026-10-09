@@ -46,7 +46,7 @@ try {
     const row = page.locator('[data-profile-id="B"]')
     await row.waitFor()
     await row.locator('.remark-cell').click()
-    await page.keyboard.press('Control+d')
+    await page.keyboard.press('e')
     const dialog = page.locator('.modal-panel')
     await dialog.waitFor()
     // UiDialog must preserve focus trapping, and forward the native form submit once.

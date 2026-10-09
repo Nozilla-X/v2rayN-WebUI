@@ -33,7 +33,7 @@ test('feedback keeps the bounded Toast queue, deduplication and confirmation ord
   assert.deepEqual(feedback.toasts.value, [])
 })
 
-test('keyboard mapping, editable-target guards, modal priority and listener cleanup stay unchanged', async t => {
+test('row-scoped single-key actions avoid browser shortcuts and preserve guards, modal priority and cleanup', async t => {
   const harness = createSourceHarness()
   let disposed = false
   const previous = { document: globalThis.document, Element: globalThis.Element }
@@ -44,7 +44,10 @@ test('keyboard mapping, editable-target guards, modal priority and listener clea
     addEventListener: (name, handler, capture) => { assert.equal(capture, true); listeners.set(name, handler) },
     removeEventListener: (name, handler, capture) => { assert.equal(capture, true); assert.equal(listeners.get(name), handler); listeners.delete(name) },
   }
-  globalThis.Element = class { constructor(editable = false) { this.editable = editable } closest() { return this.editable ? {} : null } }
+  globalThis.Element = class {
+    constructor(editable = false, row = true) { this.editable = editable; this.row = row }
+    closest(selector) { return selector === '.profile-table [data-profile-id]' ? (this.row ? {} : null) : (this.editable ? {} : null) }
+  }
   t.after(async () => {
     if (!disposed) await harness.dispose()
     for (const [name, value] of Object.entries(previous)) {
@@ -76,16 +79,24 @@ test('keyboard mapping, editable-target guards, modal priority and listener clea
   key('Escape')
   key('Escape')
   assert.deepEqual(calls.splice(0), [['confirmation'], ['modal', 0], ['modal', 1]])
-  for (const [letter, action, arg] of [['a', 'selectAllNodes'], ['c', 'copySelectedShareLinks'], ['d', 'editContextProfile'], ['f', 'shareSelectedNodes'], ['o', 'testSelectedNodes', 'tcping'], ['r', 'testSelectedNodes', 'realping'], ['t', 'testSelectedNodes', 'speedtest']]) {
-    assert.equal(key(letter, { ctrlKey: true }).prevented, true)
+  for (const [letter, action, arg] of [['a', 'selectAllNodes'], ['c', 'copySelectedShareLinks'], ['e', 'editContextProfile'], ['s', 'shareSelectedNodes'], ['1', 'testSelectedNodes', 'tcping'], ['2', 'testSelectedNodes', 'realping'], ['3', 'testSelectedNodes', 'speedtest'], ['4', 'testSelectedNodes', 'udpTest'], ['5', 'testSelectedNodes', 'fastRealping'], ['6', 'testSelectedNodes', 'mixedtest']]) {
+    assert.equal(key(letter).prevented, true)
     assert.deepEqual(calls.pop(), arg ? [action, arg] : [action])
   }
-  for (const [letter, action, arg] of [['Enter', 'selectContextProfile'], ['Backspace', 'deleteSelectedNodes'], ['Delete', 'deleteSelectedNodes'], ['t', 'moveSelectedNodes', 'top'], ['u', 'moveSelectedNodes', 'up'], ['d', 'moveSelectedNodes', 'down'], ['b', 'moveSelectedNodes', 'bottom']]) {
+  for (const [letter, action, arg] of [['Enter', 'selectContextProfile'], ['Delete', 'deleteSelectedNodes'], ['t', 'moveSelectedNodes', 'top'], ['u', 'moveSelectedNodes', 'up'], ['d', 'moveSelectedNodes', 'down'], ['b', 'moveSelectedNodes', 'bottom']]) {
     assert.equal(key(letter).prevented, true)
     assert.deepEqual(calls.pop(), arg ? [action, arg] : [action])
   }
   assert.equal(key('a', { ctrlKey: true, target: new Element(true) }).prevented, false)
   assert.equal(key('a', { ctrlKey: true, shiftKey: true }).prevented, false)
+  for (const letter of ['a', 'c', 'd', 'f', 'o', 'r', 't', 'w', 'l', 'n', 'p']) assert.equal(key(letter, { ctrlKey: true }).prevented, false)
+  assert.equal(key('Backspace').prevented, false)
+  assert.equal(key('1', { target: new Element(false, false) }).prevented, false)
+  assert.equal(key('1', { target: new Element(true) }).prevented, false)
+  assert.equal(key('1', { isComposing: true }).prevented, false)
+  assert.equal(key('1', { altKey: true }).prevented, false)
+  assert.equal(key('1', { metaKey: true }).prevented, false)
+  assert.equal(key('1', { shiftKey: true }).prevented, false)
   activePage.value = 'settings'
   assert.equal(key('Delete').prevented, false)
   activePage.value = 'nodes'
@@ -116,4 +127,7 @@ test('Shell and extracted editor sections retain native structure and shared sta
   for (const section of ['ProfileGroupSection', 'ProfileTransportSection', 'ProfileSecuritySection']) assert.match(profile, new RegExp(`<${section}[^>]*:state="state"`))
   assert.match(profile, /canonicalizeProtocolChange\(configType\)/)
   assert.match(profile, /@submit\.prevent="actions\.saveProfile"/)
+  const hints = [...menu.matchAll(/<span class="menu-shortcut">([^<]+)<\/span>/g)].map(match => match[1])
+  assert.equal(new Set(hints).size, hints.length, 'right-click hints must not assign overlapping keys')
+  assert.ok(hints.every(hint => !hint.includes('Ctrl+') && hint !== 'Backspace'))
 })
