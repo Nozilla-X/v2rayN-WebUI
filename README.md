@@ -18,6 +18,15 @@ npm run typecheck
 npm run build
 ```
 
+Refresh the README desktop/mobile screenshots with isolated fixture data (no live Backend):
+
+```sh
+PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers npx playwright install chromium
+npm run screenshots
+```
+
+Playwright's browser download and optional local screenshot artifacts are ignored by Git.
+
 To use a locally running API while developing, start the Vite server and point its development
 proxy at the API. The default target is `http://127.0.0.1:5080`; override it when needed:
 

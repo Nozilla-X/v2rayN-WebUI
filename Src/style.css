@@ -921,7 +921,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .profile-table td.address-cell, .profile-table td.group-cell, .profile-table td.ip-cell { display: table-cell; }
 }
 .page-feedback { min-height: var(--feedback-height); display: flex; align-items: center; color: var(--text-muted); font-size: var(--font-label); overflow-wrap: anywhere; }
-.nodes-feedback-slot { min-height: var(--control-height); }
+.nodes-feedback-slot { min-height: var(--feedback-height); }
 .operation-status { min-width: 0; min-height: var(--control-height); display: flex; align-items: center; flex-wrap: nowrap; gap: var(--space-2); margin: 0; color: var(--accent-text); font-size: var(--font-label); }
 .operation-status-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .operation-status .link-button, .operation-status .speedtest-refresh { flex: 0 0 auto; }

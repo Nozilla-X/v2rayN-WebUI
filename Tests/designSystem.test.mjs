@@ -37,6 +37,13 @@ test('native table cells override the inline text bottom alignment', () => {
   assert.ok(cells.nodes.some(declaration => declaration.prop === 'vertical-align' && declaration.value === 'middle'))
 })
 
+test('idle nodes feedback spacing matches other pages while active status retains control height', () => {
+  const feedbackSlot = css.nodes.find(rule => rule.type === 'rule' && rule.selector === '.nodes-feedback-slot')
+  const operationStatus = css.nodes.find(rule => rule.type === 'rule' && rule.selector === '.operation-status')
+  assert.equal(feedbackSlot.nodes.find(declaration => declaration.prop === 'min-height')?.value, 'var(--feedback-height)')
+  assert.equal(operationStatus.nodes.find(declaration => declaration.prop === 'min-height')?.value, 'var(--control-height)')
+})
+
 test('all eight page views share the page header and have no private style blocks', async () => {
   const directory = new URL('../Src/Components/Pages/', import.meta.url)
   const files = (await readdir(directory)).filter(name => name.endsWith('.vue'))
