@@ -16,7 +16,7 @@ const actions = props.actions
 const allRoutesSelected = computed(() => state.routes.length > 0 && state.selectedRouteIds.length === state.routes.length)
 const allRulesSelected = computed(() => state.routingRules.length > 0 && state.selectedRuleIds.length === state.routingRules.length)
 const ruleImportInput = ref<HTMLInputElement | null>(null)
-const { dirty, status, allowDiscard, run } = useDraftState('routing', () => ({ strategies: state.routingForm, rules: { id: state.selectedRoutingId, raw: state.rulesRaw } }), () => ({ strategies: state.routingForm, rules: state.routingRules }), path => path === '/api/settings/routing' ? ['strategies'] : path.endsWith('/rules') ? ['rules'] : [])
+const { dirty, status, allowDiscard, run } = useDraftState('routing', () => ({ strategies: state.routingForm, rules: state.rulesRaw }), () => ({ strategies: state.routingForm, rules: state.routingRules }), path => path === '/api/settings/routing' ? ['strategies'] : path.endsWith('/rules') ? ['rules'] : [])
 async function selectRoute(id: string) { if (id === state.selectedRoutingId || await allowDiscard(t('polish.discardChanges'))) await run(() => actions.selectRoutingProfile(id)) }
 async function reloadRouting() { if (await allowDiscard(t('polish.discardChanges'))) await run(() => actions.loadRouting()) }
 function ruleSummary(rule: Record<string, any>) {
