@@ -34,6 +34,7 @@ try {
     await row('C').waitFor()
     await checkbox('A').check()
     await checkbox('B').check()
+    assert.equal(await page.locator('.node-batch-actions').count(), 0, 'batch commands use the row context menu instead of a duplicate toolbar')
 
     async function openMenu(id, mobileEntry = false) {
       if (mobileEntry) await row(id).locator('.row-more').click()
@@ -74,7 +75,7 @@ try {
     if (width <= 760) {
       const tools = page.locator('.mobile-node-tools')
       const trigger = tools.locator('.action-menu-trigger')
-      const add = page.locator('.nodes-page-toolbar .toolbar-main > .action-dropdown:not(.mobile-node-tools):not(.node-batch-actions) .action-menu-trigger')
+      const add = page.locator('.nodes-page-toolbar .toolbar-main > .action-dropdown:not(.mobile-node-tools) .action-menu-trigger')
       const toolsBounds = await trigger.boundingBox()
       const addBounds = await add.boundingBox()
       assert.ok(toolsBounds.x + toolsBounds.width <= addBounds.x, 'Tools belongs immediately before Add')

@@ -938,7 +938,6 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .skip-link:focus { left: var(--space-3); }
 @media (max-width: 760px) {
   .nodes-page-toolbar .toolbar-main { max-width: 100%; }
-  .node-batch-actions .action-menu-trigger { white-space: normal; }
   .save-bar .draft-status { flex: 1; }
   .subscription-progress { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
   .compact-filter, .compact-filter .compact-select { max-width: 100%; }

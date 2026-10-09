@@ -60,11 +60,15 @@ test('speedtest submission snapshots selection and does not fall back to testing
 })
 
 test('context-menu speedtests use the same selection resolver as keyboard shortcuts', async () => {
-  const source = await readFile(new URL('../Src/Features/Profiles/NodeContextMenu.vue', import.meta.url), 'utf8')
-  const shortcuts = await readFile(new URL('../Src/UI/useGlobalShortcuts.ts', import.meta.url), 'utf8')
+  const [source, shortcuts, nodesPage] = await Promise.all([
+    readFile(new URL('../Src/Features/Profiles/NodeContextMenu.vue', import.meta.url), 'utf8'),
+    readFile(new URL('../Src/UI/useGlobalShortcuts.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../Src/Components/Pages/NodesPage.vue', import.meta.url), 'utf8'),
+  ])
   for (const action of ['tcping', 'realping', 'speedtest', 'udpTest']) {
     assert.ok(source.includes(`@click="testSelectedNodes('${action}')"`))
   }
   assert.doesNotMatch(source, /testSelectedNodes\('[^']+', contextMenu\.profile\)/)
   for (const action of ['tcping', 'realping', 'speedtest']) assert.ok(shortcuts.includes(`actions.testSelectedNodes('${action}')`))
+  assert.doesNotMatch(nodesPage, /node-batch-actions/, 'batch commands stay in the selection-aware context menu')
 })

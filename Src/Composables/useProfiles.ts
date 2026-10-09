@@ -59,14 +59,6 @@ export function useProfiles(options: ApiServices & {
 
   const protocolTypes = ref<string[]>([])
   const coreTypes = ref<string[]>([])
-  const testActions = [
-    { id: 'tcping', key: 'nodes.tcping' },
-    { id: 'realping', key: 'nodes.realping' },
-    { id: 'fastRealping', key: 'nodes.fastRealping' },
-    { id: 'udpTest', key: 'nodes.udp' },
-    { id: 'speedtest', key: 'nodes.speedtest' },
-    { id: 'mixedtest', key: 'nodes.mixedtest' },
-  ]
 
   // The backend owns filtering so its ServiceLib regex semantics are preserved.
   const filteredProfiles = computed(() => profiles.value)
@@ -598,7 +590,7 @@ export function useProfiles(options: ApiServices & {
     profileModalError.value = ''
   }
 
-  const nodesPageState = reactive({ filteredProfiles, profiles, selectedGroup, groups, filter, selectedIds, focusedProfileId, allVisibleSelected, sorting, operations: options.operations, testActions })
+  const nodesPageState = reactive({ filteredProfiles, profiles, selectedGroup, groups, filter, selectedIds, focusedProfileId, allVisibleSelected, sorting, operations: options.operations })
   const profileModalState = reactive({ showProfileForm, profileForm, profileAdvancedJson, profileModalError, editingProfileId, protocolTypes, coreTypes, profileCatalog, groupChildIds, groups, editorOptions })
   const importProfilesModalState = reactive({ showImportForm, importForm, groups })
   const exportModalState = reactive({ showExportDialog, exportOptions, exportContent })

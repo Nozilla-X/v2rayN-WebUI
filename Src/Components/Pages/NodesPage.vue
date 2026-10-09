@@ -91,12 +91,6 @@ function preventRangeTextSelection(event: MouseEvent) {
     <div class="page-title"><h1>{{ t('nodes.title') }}</h1><span class="count-tag">{{ state.filteredProfiles.length }}</span><span v-if="state.selectedIds.length" class="selection-summary"><strong>{{ t('common.selected', { count: state.selectedIds.length }) }}</strong><button class="selection-clear" :aria-label="t('common.clearSelection')" :title="t('common.clearSelection')" @click="state.selectedIds = []"><UiIcon name="close" :size="12" /></button></span></div>
     <div class="toolbar-main">
       <button class="tool-button locate-current" :disabled="!currentVisible" :aria-label="t('polish.locateCurrent')" :title="t('polish.locateCurrent')" @click="locateCurrent"><UiIcon name="check" /></button>
-      <ActionDropdown v-if="state.selectedIds.length" class="node-batch-actions" :label="t('routing.batchActions')">
-        <button v-for="test in state.testActions" :key="test.id" class="action-menu-item" role="menuitem" @click="actions.startSpeedTest(test.id, [...state.selectedIds])">{{ t(test.key) }}</button>
-        <div class="action-menu-separator" role="separator"></div>
-        <button class="action-menu-item" role="menuitem" @click="actions.shareSelected">{{ t('nodes.shareProfile') }}</button>
-        <button class="action-menu-item danger" role="menuitem" @click="actions.runProfileAction('delete')">{{ t('common.deleteSelected', { count: state.selectedIds.length }) }}</button>
-      </ActionDropdown>
       <ActionDropdown class="mobile-node-tools" :label="t('nodes.toolsMenu')">
         <button class="action-menu-item" role="menuitem" :disabled="!selectedSubscription" @click="selectedSubscription && actions.openEditSubscription(selectedSubscription)">{{ t('subscriptions.editSubscription') }}</button>
         <button class="action-menu-item" role="menuitem" @click="actions.openAddSubscription">{{ t('subscriptions.addSubscription') }}</button>
