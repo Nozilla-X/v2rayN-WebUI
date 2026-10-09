@@ -5,12 +5,16 @@ address (existing behavior) and `v2rayn-api-endpoint-history` as an ordered list
 up to 10 previously used, normalized addresses.
 
 - The login, first-run setup and local-only screens share
-  `Components/BackendAddressFields.vue`, which renders the history selector.
+  `Components/BackendAddressFields.vue`, which renders a **Connection history** button
+  (with a count) that opens `Components/BackendHistoryDialog.vue` — a picker dialog
+  where an address can be chosen or removed. The dialog closes on selection, Escape or
+  backdrop click, and returns focus to the button.
 - History is written only after a successful `Test connection`, login or first-run
   setup. Choosing an entry updates the address and reuses the existing address-switch
   flow (session cancellation, request abort, endpoint-scoped storage); it never
   connects automatically.
-- The remove button deletes the currently selected entry from this browser only.
+- Each dialog entry has its own remove button; removing keeps the dialog open until it
+  is closed, and the list stays this-browser only.
 - Entries are normalized with `normalizeApiBase`: credentials, query strings,
   fragments, non-HTTP(S) schemes and duplicates never enter the list. Path prefixes
   are preserved when present.
@@ -21,6 +25,6 @@ up to 10 previously used, normalized addresses.
   ignored rather than stored, and blocked storage degrades to an empty list.
 
 Checks: `Tests/backendHistory.test.mjs` (storage, migration, dedup, limit, blocked
-storage) and `Tests/browser/backendHistory.mjs` (select, remove, remember after test
-connection and login, key exclusion, desktop/mobile screenshots). Reviewed captures
-are in [screenshots/backend-history/](screenshots/backend-history/).
+storage) and `Tests/browser/backendHistory.mjs` (dialog select, per-entry remove,
+empty state, remember after test connection and login, key exclusion, desktop/mobile
+screenshots). Reviewed captures are in [screenshots/backend-history/](screenshots/backend-history/).

@@ -11,6 +11,7 @@ if (output) await mkdir(output, { recursive: true })
 const HISTORY_KEY = 'v2rayn-api-endpoint-history'
 const fixtureAddress = 'https://203.0.113.9:5080'
 const tokenKey = 'v2rayn-api-session:' + encodeURIComponent(fixtureAddress)
+const seeded = ['http://127.0.0.1:5080', 'https://203.0.113.7:5080']
 let checked = 0
 try {
   for (const width of [390, 1440]) {
@@ -19,7 +20,7 @@ try {
       localStorage.setItem('v2rayn-api-endpoint-history', JSON.stringify(history))
       localStorage.setItem('v2rayn-web-locale', 'en-US')
       window.EventSource = class { addEventListener() {} close() {} }
-    }, { history: ['http://127.0.0.1:5080', 'https://203.0.113.7:5080'] })
+    }, { history: seeded })
     const page = await context.newPage()
     const errors = []
     let logins = 0
@@ -55,28 +56,46 @@ try {
     const history = () => page.evaluate(key => JSON.parse(localStorage.getItem(key) || '[]'), HISTORY_KEY)
     await page.goto(base)
     await page.locator('.auth-box').waitFor()
-    const selector = page.locator('#backend-history')
-    await selector.waitFor()
-    assert.equal(await selector.locator('option').count(), 3, 'placeholder plus two stored addresses')
-    assert.equal(await page.locator('#api-endpoint').inputValue(), '')
-    await shot('login-history')
-    await selector.selectOption('https://203.0.113.7:5080')
+    const trigger = page.locator('.backend-history-trigger')
+    const dialog = page.locator('.profile-picker-panel')
+    const rows = page.locator('.history-row')
+    await trigger.waitFor()
+    assert.equal(await trigger.locator('.count-tag').innerText(), String(seeded.length))
+    assert.equal(await page.locator('#backend-history').count(), 0, 'history lives behind the button, not inline')
+    await trigger.click()
+    await dialog.waitFor()
+    assert.equal(await rows.count(), 2)
+    await shot('login-history-dialog')
+    // Selecting an entry fills the address, closes the dialog and never connects on its own.
+    await rows.filter({ hasText: '203.0.113.7:5080' }).locator('button').first().click()
+    await dialog.waitFor({ state: 'detached' })
     assert.equal(await page.locator('#api-endpoint').inputValue(), 'https://203.0.113.7:5080')
+    assert.equal(await trigger.evaluate(element => document.activeElement === element), true, 'focus returns to the history button')
     await page.waitForTimeout(250)
     assert.equal(logins, 0, 'choosing a history entry must not sign in')
     assert.equal(healthChecks, 0, 'choosing a history entry must not test the connection')
-    const remove = page.getByRole('button', { name: labels.backend.removeHistory, exact: true })
-    assert.equal(await remove.isEnabled(), true)
-    await remove.click()
-    assert.equal(await selector.locator('option').count(), 2)
+    await shot('login-history-selected')
+    // Removal keeps the dialog open and updates this browser only; the empty state is explicit.
+    await trigger.click()
+    await dialog.waitFor()
+    await rows.filter({ hasText: '203.0.113.7:5080' }).getByRole('button', { name: labels.backend.removeHistory, exact: true }).click()
+    assert.equal(await rows.count(), 1)
     assert.deepEqual(await history(), ['http://127.0.0.1:5080'])
-    assert.equal(await remove.isDisabled(), true, 'nothing selected means nothing to remove')
-    await shot('login-history-removed')
+    await rows.filter({ hasText: '127.0.0.1:5080' }).getByRole('button', { name: labels.backend.removeHistory, exact: true }).click()
+    assert.equal(await rows.count(), 0)
+    assert.ok(await page.locator('.profile-picker-panel', { hasText: labels.backend.historyEmpty }).isVisible())
+    assert.deepEqual(await history(), [])
+    await shot('login-history-empty')
+    await page.keyboard.press('Escape')
+    await dialog.waitFor({ state: 'detached' })
+    assert.equal(await trigger.count(), 0, 'the history button hides while nothing is saved')
+    // A successful test connection records the address again.
     await page.locator('#api-endpoint').fill(fixtureAddress)
     await page.getByRole('button', { name: labels.backend.test, exact: true }).click()
     await page.locator('.toast', { hasText: labels.backend.reachable }).waitFor()
+    assert.deepEqual(await history(), [fixtureAddress])
+    assert.equal(await trigger.locator('.count-tag').innerText(), '1')
     await shot('login-history-remembered')
-    assert.deepEqual(await history(), [fixtureAddress, 'http://127.0.0.1:5080'])
     assert.equal(healthChecks, 1)
     // A successful sign-in records the address too and never stores the Management Key.
     const managementKey = 'ui-history-fixture-key'
@@ -85,7 +104,7 @@ try {
     await page.locator('[data-profile-id="C"]').waitFor()
     assert.equal(logins, 1)
     assert.ok(await page.evaluate(key => Boolean(localStorage.getItem(key)), tokenKey), 'endpoint-scoped session token exists')
-    assert.deepEqual(await history(), [fixtureAddress, 'http://127.0.0.1:5080'])
+    assert.deepEqual(await history(), [fixtureAddress])
     assert.equal(await page.evaluate(secret => Object.values(localStorage).some(value => String(value).includes(secret)), managementKey), false, 'Management Key never enters storage')
     await shot('workspace-after-history-login')
     assert.deepEqual(errors, [])
@@ -93,4 +112,4 @@ try {
     await context.close()
   }
 } finally { await browser.close() }
-console.log(`Backend history browser regression: ${checked} viewports (select, remove, remember, sign-in, key exclusion) passed.`)
+console.log(`Backend history browser regression: ${checked} viewports (dialog select, per-entry remove, empty state, remember, sign-in, key exclusion) passed.`)

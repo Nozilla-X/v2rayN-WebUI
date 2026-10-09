@@ -57,10 +57,10 @@ default. Serve the config file without long-lived caching. No particular public 
 domain is hard-coded in the application.
 
 Each browser also keeps a local history of recently used Backend addresses (up to 10,
-most recent first) so they can be reselected from the login screen or removed
-individually. History is plain `localStorage` for this WebUI origin only; it never
-stores Management Keys or session tokens, and selecting an entry does not connect
-automatically.
+most recent first). The **Connection history** button next to the address field opens
+a picker dialog to reuse or remove entries. History is plain `localStorage` for this
+WebUI origin only; it never stores Management Keys or session tokens, and choosing an
+entry applies the address without connecting automatically.
 
 For an independent site at `https://webui.example.com`, configure the Backend:
 

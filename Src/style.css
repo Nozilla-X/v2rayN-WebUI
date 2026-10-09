@@ -907,7 +907,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 }
 .backend-fields .inline-field { flex-wrap: wrap; }
 .backend-fields .inline-field input { min-width: 140px; }
-.backend-history select { flex: 1; min-width: 0; min-height: var(--control-height); padding: var(--space-1) var(--space-2); color: var(--text); border: var(--border-width) solid var(--border-strong); border-radius: var(--radius-control); background: var(--surface-input); font-size: var(--font-input); }
+.backend-history-trigger { margin-top: var(--space-1); }
+.history-row { display: flex; align-items: center; gap: var(--space-2); }
+.history-row .profile-picker-choice { flex: 1 1 auto; min-width: 0; }
+.history-row .profile-picker-choice strong { font-weight: var(--weight-medium); overflow-wrap: anywhere; }
 
 /* Polish: low-height status surfaces and explicit state, not another card layer. */
 @media (min-width: 761px) {

@@ -39,6 +39,7 @@
     "chooseHistory": "選擇曾連線的 Backend 位址",
     "removeHistory": "刪除目前位址的歷史記錄",
     "historyPrivacy": "最近的位址僅儲存在此瀏覽器中，歷史記錄不儲存管理 Key。",
+    "historyEmpty": "尚無歷史連線位址。",
     "address": "Backend API 位址",
     "apply": "使用位址",
     "test": "測試連線",

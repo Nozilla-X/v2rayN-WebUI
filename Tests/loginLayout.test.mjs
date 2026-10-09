@@ -12,7 +12,7 @@ test('API connection fields belong above the Management Key in the original logi
   assert.match(loginForm, /type="submit"[\s\S]*?t\('auth\.connect'\)/)
   const fields = await readFile(new URL('../Src/Components/BackendAddressFields.vue', import.meta.url), 'utf8')
   assert.doesNotMatch(fields, /<form\b/)
-  assert.equal((fields.match(/type="button"/g) || []).length, 3, 'apply/test/history removal must never submit the login form')
+  assert.equal((fields.match(/type="button"/g) || []).length, 3, 'apply, test and history buttons must never submit the login form')
   assert.match(fields, /@keydown\.enter\.prevent="emit\('test'\)"/)
 })
 
