@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { createSourceHarness } from './helpers/loadSource.mjs'
+import { ref } from 'vue'
 
 function fakeClock() {
   let now = 0
@@ -31,6 +32,24 @@ function fakeClock() {
 async function settle() {
   for (let index = 0; index < 12; index += 1) await Promise.resolve()
 }
+
+test('pausing live logs freezes intake without disconnecting SSE or pausing runtime events', async t => {
+  const paused = ref(true)
+  const logs = ref([])
+  const status = ref({})
+  const { source, sources, clock } = await eventFixture(t, { activePage: ref('logs'), logsPaused: paused, logs, status })
+  source.emit('log', { message: 'hidden while paused' })
+  source.emit('traffic', { proxyUp: 123 })
+  clock.tick(100)
+  assert.deepEqual(logs.value, [])
+  assert.equal(status.value.traffic.proxyUp, 123)
+  paused.value = false
+  source.emit('log', { message: 'visible after resume' })
+  clock.tick(100)
+  assert.equal(logs.value[0].message, 'visible after resume')
+  assert.equal(sources.length, 1)
+  assert.notEqual(source.closed, true)
+})
 
 async function eventFixture(t, extra = {}) {
   const harness = createSourceHarness()

@@ -31,7 +31,7 @@ test('all context speedtests retain the full selection when opened on a selected
   const { app, calls, openContext } = createApp(t)
   app.profiles.selectedIds.value = ['A', 'B']
   openContext('B')
-  for (const action of ['tcping', 'realping', 'speedtest', 'udpTest']) app.testSelectedNodes(action)
+  for (const action of ['tcping', 'realping', 'speedtest', 'udpTest']) app.nodes.contextActions.testSelectedNodes(action)
   assert.deepEqual(calls, ['tcping', 'realping', 'speedtest', 'udpTest'].map(action => ({ action, ids: ['A', 'B'] })))
   assert.deepEqual(app.profiles.selectedIds.value, ['A', 'B'])
 })
@@ -40,7 +40,7 @@ test('right-clicking an unselected node deliberately replaces the previous selec
   const { app, calls, openContext } = createApp(t)
   app.profiles.selectedIds.value = ['A', 'B']
   openContext('C')
-  app.testSelectedNodes('speedtest')
+  app.nodes.contextActions.testSelectedNodes('speedtest')
   assert.deepEqual(app.profiles.selectedIds.value, ['C'])
   assert.deepEqual(calls, [{ action: 'speedtest', ids: ['C'] }])
 })
@@ -49,20 +49,22 @@ test('speedtest submission snapshots selection and does not fall back to testing
   const { app, calls, openContext } = createApp(t)
   app.profiles.selectedIds.value = ['A', 'B']
   openContext('A')
-  app.testSelectedNodes('realping')
+  app.nodes.contextActions.testSelectedNodes('realping')
   app.profiles.selectedIds.value.push('C')
   assert.deepEqual(calls[0].ids, ['A', 'B'])
   app.profiles.selectedIds.value = []
   app.profiles.profiles.value = []
   app.contextMenu.value = null
-  app.testSelectedNodes('speedtest')
+  app.nodes.contextActions.testSelectedNodes('speedtest')
   assert.equal(calls.length, 1)
 })
 
 test('context-menu speedtests use the same selection resolver as keyboard shortcuts', async () => {
-  const source = await readFile(new URL('../Src/App.vue', import.meta.url), 'utf8')
+  const source = await readFile(new URL('../Src/Features/Profiles/NodeContextMenu.vue', import.meta.url), 'utf8')
+  const shortcuts = await readFile(new URL('../Src/UI/useGlobalShortcuts.ts', import.meta.url), 'utf8')
   for (const action of ['tcping', 'realping', 'speedtest', 'udpTest']) {
     assert.ok(source.includes(`@click="testSelectedNodes('${action}')"`))
   }
   assert.doesNotMatch(source, /testSelectedNodes\('[^']+', contextMenu\.profile\)/)
+  for (const action of ['tcping', 'realping', 'speedtest']) assert.ok(shortcuts.includes(`actions.testSelectedNodes('${action}')`))
 })

@@ -136,7 +136,9 @@ test('saving keeps selected targets and prerelease targets separate and excludes
 
 test('the Maintenance UI shows per-target prerelease controls only for supported targets', async () => {
   const page = await readFile(path.join(root, 'Src/Components/Pages/MaintenancePage.vue'), 'utf8')
+  const webSection = await readFile(path.join(root, 'Src/Features/Maintenance/WebUpdateSection.vue'), 'utf8')
   assert.match(page, /v-if="target\.supportsPreRelease"[\s\S]*?actions\.setPreReleaseTarget\(target\.coreType, \$event\)/)
-  assert.match(page, /v-if="state\.updateSettings\.webTarget"[\s\S]*?setPreReleaseTarget\(webTargetType, \$event\)/)
+  assert.match(page, /<WebUpdateSection :state="state" :actions="actions"/)
+  assert.match(webSection, /v-if="state\.updateSettings\.webTarget"[\s\S]*?setPreReleaseTarget\(webTargetType, \$event\)/)
   assert.doesNotMatch(page, /v-model="state\.updateSettings\.preRelease"/)
 })

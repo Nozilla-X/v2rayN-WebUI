@@ -16,13 +16,14 @@ test('mobile global controls reuse one set of controls behind an accessible dism
 })
 
 test('mobile navigation exposes common destinations and keeps every other destination in More', async () => {
-  const [header, css] = await Promise.all([source('Components/AppHeader.vue'), source('style.css')])
+  const [header, css] = await Promise.all([source('Components/Shell/AppNavigation.vue'), source('style.css')])
   assert.match(header, /'secondary-nav': Number\(index\) > 2/)
   assert.match(header, /v-for="item in state\.navItems\.slice\(3\)"/)
   assert.match(header, /:aria-current="state\.activePage === item\.id \? 'page' : undefined"/)
   assert.match(css, /\.main-nav \{ position: fixed;[^}]*grid-template-columns: repeat\(4, minmax\(0, 1fr\)\)/)
   assert.match(css, /\.app-shell:has\(\.main-nav\)[^}]*safe-area-inset-bottom/)
-  assert.match(css, /\.settings-global-footer \{ bottom: calc\(64px \+ env\(safe-area-inset-bottom\)\)/)
+  assert.match(css, /--mobile-nav-height: 64px/)
+  assert.match(css, /\.settings-global-footer \{ bottom: calc\(var\(--mobile-nav-height\) \+ env\(safe-area-inset-bottom\)\)/)
 })
 
 test('runtime retains all operations while mobile promotes the applicable primary operation', async () => {
@@ -85,10 +86,11 @@ test('mobile forms use one column and scrolling tabs keep touch targets without 
   const css = await source('style.css')
   assert.match(css, /\.form-grid\.three-col \{ grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/)
   assert.match(css, /@media \(max-width: 760px\)[\s\S]*\.form-grid\.two-col, \.form-grid\.three-col \{ grid-template-columns: minmax\(0, 1fr\)/)
-  assert.match(css, /:root \{ --control-height-touch: 44px/)
+  assert.match(css, /--control-height-touch: 44px/)
+  assert.match(css, /:root \{ --control-height: var\(--control-height-touch\)/)
   assert.match(css, /\.settings-sniffing-row \{ grid-template-columns: minmax\(0, 1fr\)/)
   assert.match(css, /\.section-tabs \{[^}]*overflow-x: auto/)
-  assert.match(css, /\.section-tabs button \{ min-height: 44px; padding: 0 16px/)
+  assert.match(css, /\.section-tabs button \{ min-height: var\(--control-height\); padding: 0 var\(--space-4\)/)
 })
 
 test('subscription and routing cards preserve all desktop data and row actions on mobile', async () => {
@@ -127,12 +129,13 @@ test('settings, DNS and templates share a save bar with one click/submit path an
     source('Components/Pages/SettingsPage.vue'), source('Components/Pages/DnsPage.vue'), source('Components/Pages/TemplatesPage.vue'), source('Components/SaveBar.vue'), source('style.css'),
   ])
   assert.match(settings, /<SaveBar sticky[^>]*@save="actions\.saveAllSettings"/)
-  assert.match(dns, /<SaveBar @save="actions\.saveSimpleDns"/)
-  assert.match(dns, /<SaveBar @save="actions\.saveDnsProfile\(activeDnsProfile\)"/)
+  assert.match(dns, /<SaveBar[^>]*@save="actions\.saveSimpleDns"/)
+  assert.match(dns, /<SaveBar[^>]*@save="saveProfile\(activeDnsProfile\)"/)
+  assert.match(dns, /await actions\.saveDnsProfile\(profile\)/)
   assert.match(templates, /<SaveBar submit/)
   assert.match(bar, /:type="submit \? 'submit' : 'button'"/)
   assert.match(css, /\.save-bar > \.save-bar-hint \{ display: none/)
-  assert.match(css, /\.save-bar > \.button \{ min-width: 128px; min-height: 44px/)
+  assert.match(css, /\.save-bar > \.button \{ min-width: 128px; min-height: var\(--control-height\)/)
   assert.match(css, /\.save-bar \{[^}]*width: 100%; min-width: 0/)
   assert.doesNotMatch(css, /\.template-editor \.save-bar \{ margin-inline: -/)
   assert.doesNotMatch(css, /\.save-bar[^}]*margin(?:-inline)?:[^;]*-16px/)
@@ -156,7 +159,8 @@ test('mobile protocol type is an intrinsic-width capsule, not a full-width butto
   const [page, css] = await Promise.all([source('Components/Pages/NodesPage.vue'), source('style.css')])
   assert.match(page, /class="remark-cell"[^\n]*class="mobile-node-type"/)
   assert.match(page, /class="node-endpoint-value"[^\n]*class="mobile-node-transport"/)
-  assert.match(css, /\.mobile-node-type \{ display: inline-flex; flex: 0 0 auto;[^}]*border-radius: 999px/)
+  assert.match(css, /--radius-badge: 999px/)
+  assert.match(css, /\.mobile-node-type \{ display: inline-flex; flex: 0 0 auto;[^}]*border-radius: var\(--radius-badge\)/)
   assert.match(css, /\.profile-table td\.node-badge \{ display: none/)
   assert.match(css, /\.node-endpoint-value \{ flex: 1 1 170px; min-width: 0; overflow-wrap: anywhere/)
 })

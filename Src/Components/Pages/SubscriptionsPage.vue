@@ -5,12 +5,17 @@ import ActionDropdown from '../ActionDropdown.vue'
 import type { UiProps } from '../types'
 import UiIcon from '../UiIcon.vue'
 import UiCheckbox from '../UiCheckbox.vue'
+import PageFeedback from '../UI/PageFeedback.vue'
+import { usePageRequests } from '../../UI/useUiRequests'
 
 const { t } = useI18n()
 const props = defineProps<UiProps>()
 const state = props.state
 const actions = props.actions
 const expanded = ref(new Set<string>())
+const { status } = usePageRequests('subscriptions')
+function isUpdating(id: string) { return state.operations?.includes('') || state.operations?.includes(id) || Boolean(status.writes && status.started?.path.endsWith(`/${encodeURIComponent(id)}/update`)) }
+function progressText(id: string) { return state.progress?.[id] || state.progress?.[''] || '' }
 function toggleDetails(id: string) {
   if (expanded.value.has(id)) expanded.value.delete(id)
   else expanded.value.add(id)
@@ -25,14 +30,16 @@ function toggleDetails(id: string) {
        <button class="action-menu-item" role="menuitem" @click="actions.updateSubscriptions(null, state.subscriptionUseProxy)">{{ t(actions.subscriptionUpdateMessageKey(null, state.subscriptionUseProxy)) }}</button>
        <button class="action-menu-item" role="menuitem" :disabled="!state.selectedGroup" @click="actions.updateSubscriptions(state.selectedGroup, state.subscriptionUseProxy)">{{ t(state.subscriptionUseProxy ? 'subscriptions.updateGroupViaProxy' : 'subscriptions.updateGroup') }}</button>
      </ActionDropdown>
-   </div></div>
+    </div></div>
+  <PageFeedback scope="subscriptions" />
+  <p v-if="state.operations?.some((id: string) => id === '' || state.subscriptions.some((item: Record<string, any>) => item.id === id))" class="operation-status" role="status">{{ t('polish.updating') }} <span class="muted">{{ t('polish.progressHint') }}</span></p>
   <div class="table-container subscription-table-wrap"><table class="data-table subscription-table"><thead><tr><th>{{ t('subscriptions.name') }}</th><th>{{ t('subscriptions.url') }}</th><th>{{ t('common.enabled') }}</th><th>{{ t('subscriptions.interval') }}</th><th>{{ t('subscriptions.updated') }}</th><th>{{ t('subscriptions.userAgent') }}</th><th>{{ t('subscriptions.filter') }}</th><th>{{ t('nodes.actions') }}</th></tr></thead><tbody>
      <tr v-for="item in state.subscriptions" :key="item.id" :data-subscription-id="item.id" :class="{ 'details-open': expanded.has(item.id) }">
        <td class="strong-cell subscription-identity" :data-label="t('subscriptions.name')"><span>{{ item.remarks }}</span><span class="mobile-subscription-status" :class="{ enabled: item.enabled }">{{ t(item.enabled ? 'common.enabled' : 'common.disabled') }}</span></td>
        <td class="url-cell subscription-detail" :class="{ 'empty-detail': !item.url }" :title="item.url" :data-label="t('subscriptions.url')">{{ item.url }}</td>
-       <td class="subscription-enabled" :data-label="t('common.enabled')">{{ item.enabled ? t('common.enabled') : t('common.disabled') }}</td>
+        <td class="subscription-enabled" :data-label="t('common.enabled')"><span class="state-badge" :class="{ success: item.enabled }">{{ item.enabled ? t('common.enabled') : t('common.disabled') }}</span></td>
        <td class="subscription-interval" :data-label="t('subscriptions.interval')"><span class="desktop-subscription-interval">{{ item.autoUpdateInterval }}</span><span class="mobile-subscription-interval">{{ Number(item.autoUpdateInterval) > 0 ? t('subscriptions.intervalSummary', { minutes: item.autoUpdateInterval }) : t('subscriptions.manualUpdate') }}</span></td>
-       <td class="subscription-updated" :data-label="t('subscriptions.updated')">{{ item.updateTime ? actions.formatDate(item.updateTime) : t('subscriptions.neverUpdated') }}</td>
+        <td class="subscription-updated" :data-label="t('subscriptions.updated')"><span>{{ item.updateTime ? actions.formatDate(item.updateTime) : t('subscriptions.neverUpdated') }}</span><span v-if="isUpdating(item.id)" class="subscription-progress" role="status" :title="progressText(item.id)">{{ progressText(item.id) || t('polish.updating') }}</span></td>
        <td class="subscription-detail" :class="{ 'empty-detail': !item.userAgent }" :data-label="t('subscriptions.userAgent')">{{ item.userAgent || '—' }}</td>
        <td class="subscription-detail" :class="{ 'empty-detail': !item.filter }" :data-label="t('subscriptions.filter')">{{ item.filter || '—' }}</td>
        <td class="row-actions desktop-subscription-actions" :data-label="t('nodes.actions')"><button class="link-button danger-text" @click="actions.deleteSubscription(item)">{{ t('common.delete') }}</button><button class="link-button" @click="actions.openEditSubscription(item)">{{ t('common.edit') }}</button><button class="link-button" @click="actions.shareSubscription(item)">{{ t('subscriptions.share') }}</button><button class="link-button" @click="actions.updateSubscription(item.id)">{{ t(state.subscriptionUseProxy ? 'subscriptions.updateViaProxy' : 'subscriptions.update') }}</button></td>
@@ -47,7 +54,7 @@ function toggleDetails(id: string) {
          </div>
        </td>
      </tr>
-    <tr v-if="!state.subscriptions.length"><td colspan="8" class="empty-row">{{ t('subscriptions.noSubscriptions') }}</td></tr>
+     <tr v-if="!state.subscriptions.length"><td colspan="8" class="empty-row">{{ status.reads ? t('common.loading') : t('subscriptions.noSubscriptions') }}<button v-if="!status.reads" class="link-button" @click="actions.openAddSubscription">{{ t('subscriptions.addSubscription') }}</button></td></tr>
   </tbody></table></div>
 </section>
 </template>

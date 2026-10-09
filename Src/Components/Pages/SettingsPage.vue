@@ -4,12 +4,15 @@ import { useI18n } from 'vue-i18n'
 import type { UiProps } from '../types'
 import UiCheckbox from '../UiCheckbox.vue'
 import SaveBar from '../SaveBar.vue'
+import PageFeedback from '../UI/PageFeedback.vue'
+import { useDraftState } from '../../UI/useDraftState'
 
 const { t } = useI18n()
 const props = defineProps<UiProps>()
 const state = props.state
 const actions = props.actions
 const activeTab = ref('core')
+const { dirty, status } = useDraftState('settings', () => ({ settings: { inbound: state.inboundForm, core: state.coreForm, app: state.appForm, speed: state.speedForm, mappings: state.settings.coreTypes } }), () => [state.inboundForm, state.coreForm, state.appForm, state.speedForm, state.settings], () => [])
 const tabs = [
   { id: 'core', key: 'settings.coreTab' },
   { id: 'application', key: 'settings.application' },
@@ -21,7 +24,8 @@ const tabs = [
 <template>
   <section class="page settings-page">
     <div class="page-header page-toolbar"><div class="page-title"><h1>{{ t('settings.title') }}</h1></div><span class="muted">{{ t('settings.restartHint') }}</span></div>
-    <nav class="section-tabs" :aria-label="t('settings.title')"><button v-for="tab in tabs" :key="tab.id" :class="{ selected: activeTab === tab.id }" @click="activeTab = tab.id">{{ t(tab.key) }}</button></nav>
+    <nav class="section-tabs" :aria-label="t('settings.title')"><button v-for="tab in tabs" :key="tab.id" :aria-pressed="activeTab === tab.id" :class="{ selected: activeTab === tab.id }" @click="activeTab = tab.id">{{ t(tab.key) }}</button></nav>
+    <PageFeedback scope="settings" />
 
     <section v-if="activeTab === 'core'" class="settings-section">
       <div class="form-section settings-subsection"><h2>{{ t('settings.inbound') }}</h2><div class="form-grid three-col">
@@ -55,6 +59,6 @@ const tabs = [
 
     <section v-else class="settings-section form-section"><div class="settings-subsection"><div class="section-heading"><div><h2>{{ t('settings.coreTypes') }}</h2><small>{{ t('settings.coreTypesHint') }}</small></div></div><div class="mapping-list"><div v-for="mapping in state.settings.coreTypes || []" :key="mapping.configType" class="mapping-row"><span>{{ mapping.configType }}</span><select v-model="mapping.coreType"><option v-for="core in state.coreTypes" :key="core" :value="core">{{ core === 'sing_box' ? 'sing-box' : core }}</option></select></div></div></div></section>
 
-    <SaveBar sticky :hint="t('settings.singleSaveHint')" :label="t('settings.saveAll')" :busy="state.saving" @save="actions.saveAllSettings" />
+    <SaveBar sticky :hint="t('settings.singleSaveHint')" :label="t('settings.saveAll')" :busy="state.saving || Boolean(status.writes)" :dirty="dirty" @save="actions.saveAllSettings" />
   </section>
 </template>

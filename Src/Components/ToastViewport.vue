@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { NoticeKind } from '../Composables/types'
 import UiIcon from './UiIcon.vue'
+import UiIconButton from './UI/UiIconButton.vue'
 
 defineProps<{
   toasts: Array<{ id: number; message: string; kind: NoticeKind }>
@@ -21,9 +22,9 @@ const emit = defineEmits<{ dismiss: [id: number] }>()
       aria-atomic="true"
     >
       <span class="toast-message">{{ toast.message }}</span>
-      <button class="tool-button toast-close" type="button" :aria-label="closeLabel" @click="emit('dismiss', toast.id)">
+      <UiIconButton class="toast-close" type="button" :aria-label="closeLabel" @click="emit('dismiss', toast.id)">
         <UiIcon name="close" />
-      </button>
+      </UiIconButton>
     </div>
   </div>
 </template>

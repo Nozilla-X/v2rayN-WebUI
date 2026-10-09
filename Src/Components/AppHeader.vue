@@ -3,7 +3,7 @@ import { onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { UiProps } from './types'
 import UiIcon from './UiIcon.vue'
-import ActionDropdown from './ActionDropdown.vue'
+import AppNavigation from './Shell/AppNavigation.vue'
 
 const { t } = useI18n()
 const props = defineProps<UiProps>()
@@ -47,15 +47,7 @@ onUnmounted(() => {
 <template>
 <header class="app-header">
   <div class="brand" :class="{ unauthenticated: !state.authenticated }"><img class="brand-glyph" :src="state.brandIconSrc" :title="state.brandIconTitle" alt="" /><strong>{{ t('brand') }}</strong></div>
-  <nav v-if="state.authenticated" class="main-nav" :aria-label="t('brand')">
-    <button v-for="(item, index) in state.navItems" :key="item.id" :class="['nav-tab', { selected: state.activePage === item.id, 'secondary-nav': Number(index) > 2 }]" :aria-current="state.activePage === item.id ? 'page' : undefined" @click="actions.navigate(item.id)">
-      <UiIcon class="nav-icon" :name="item.icon" />{{ t(item.key) }}
-      <span v-if="item.id === 'subscriptions'" class="nav-badge">{{ state.subscriptions.length }}</span>
-    </button>
-    <ActionDropdown class="mobile-nav-more" :class="{ selected: state.navItems.slice(3).some((item: any) => item.id === state.activePage) }" :label="t('header.more')">
-      <button v-for="item in state.navItems.slice(3)" :key="item.id" class="action-menu-item" role="menuitem" :aria-current="state.activePage === item.id ? 'page' : undefined" @click="actions.navigate(item.id)"><UiIcon :name="item.icon" />{{ t(item.key) }}</button>
-    </ActionDropdown>
-  </nav>
+  <AppNavigation v-if="state.authenticated" :state="state" :actions="actions" />
   <div ref="controls" class="header-controls" :class="{ open: controlsOpen }">
     <button type="button" class="tool-button header-more" :aria-label="t('header.more')" :aria-expanded="controlsOpen" aria-controls="global-controls" @click="controlsOpen = !controlsOpen"><UiIcon name="more" /></button>
     <div id="global-controls" class="header-right">

@@ -12,6 +12,8 @@ export function useEvents(options: {
   logTotal: Ref<number>
   logPage: Ref<number>
   logPageSize: number
+  logsPaused?: Ref<boolean>
+  onSubscriptionProgress?: (progress: Dict) => void
   request: RequestApi
   resolveUrl?: (path: string) => string
   networkFailureMessage?: () => string
@@ -102,7 +104,7 @@ export function useEvents(options: {
   function flushLogBatch() {
     clearTimeout(logFlushTimer)
     logFlushTimer = undefined
-    if (options.activePage.value !== 'logs') {
+    if (options.activePage.value !== 'logs' || options.logsPaused?.value) {
       clearPendingLogQueue()
       return
     }
@@ -117,7 +119,7 @@ export function useEvents(options: {
   }
 
   function enqueueLog(entry: Dict) {
-    if (options.activePage.value !== 'logs') return
+    if (options.activePage.value !== 'logs' || options.logsPaused?.value) return
     if (typeof entry.generation === 'number' && entry.generation < minimumLogGeneration) return
     enqueueLogEntry(pendingLogs, entry)
     if (pendingLogs.length >= 100) {
@@ -229,6 +231,8 @@ export function useEvents(options: {
           }
         }
         if (eventName === 'profiles-changed' || eventName === 'subscription-progress') {
+          if (eventName === 'subscription-progress') options.onSubscriptionProgress?.(JSON.parse((event as MessageEvent).data))
+          operationsRefresh.request()
           void options.loadGroups().then(options.loadProfiles).then(options.loadSubscriptions).catch(() => {})
         }
         if (eventName === 'settings-changed' || eventName === 'core-state') {

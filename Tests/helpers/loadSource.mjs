@@ -15,8 +15,11 @@ export function createSourceHarness() {
   const mounted = []
   const unmounted = []
   const scope = vue.effectScope()
+  const provided = new Map()
   const hooks = {
     ...vue,
+    provide: (key, value) => provided.set(key, value),
+    inject: (key, fallback) => provided.has(key) ? provided.get(key) : fallback,
     onMounted: (callback) => mounted.push(callback),
     onUnmounted: (callback) => unmounted.push(callback),
   }

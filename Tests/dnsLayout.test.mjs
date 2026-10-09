@@ -9,7 +9,8 @@ const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '.
 
 test('DNS settings use full workspace width without removing the workspace cap or responsive form grids', async () => {
   const css = await readFile(stylePath, 'utf8')
-  assert.match(css, /\.workspace\s*\{\s*width:\s*min\(100%,\s*1880px\)/)
+  assert.match(css, /--workspace-max:\s*1880px/)
+  assert.match(css, /\.workspace\s*\{\s*width:\s*min\(100%,\s*var\(--workspace-max\)\)/)
   assert.match(css, /\.dns-page \.settings-section\s*\{\s*width:\s*100%;\s*max-width:\s*none;\s*\}/)
   assert.match(css, /\.dns-core-section\s*\{\s*width:\s*100%;\s*\}/)
   assert.doesNotMatch(css, /\.dns-page \.settings-section\s*\{[^}]*max-width:\s*(?:1180|860)px/)
@@ -68,7 +69,7 @@ test('sniffing options share one aligned row and routing selects use the standar
   ])
   assert.match(page, /class="wide-field settings-sniffing-row"[\s\S]*?state\.inboundForm\.sniffingEnabled[\s\S]*?class="settings-multi-select"/)
   assert.match(css, /\.settings-sniffing-row\s*\{[^}]*grid-template-columns:\s*subgrid[^}]*align-items:\s*end/)
-  assert.match(css, /\.routing-strategy-bar input, \.routing-strategy-bar select\s*\{[^}]*min-height:\s*var\(--control-height\)/)
+  assert.match(css, /\.routing-strategy-bar input, \.routing-strategy-bar select[^\{]*\{[^}]*min-height:\s*var\(--control-height\)/)
   assert.match(css, /\.routing-strategy-bar > \.button\s*\{\s*min-height:\s*var\(--control-height\)/)
   assert.match(css, /@media\s*\(max-width:\s*460px\)[\s\S]*?\.settings-sniffing-row \.settings-multi-select\s*\{\s*grid-column:\s*auto/)
 })

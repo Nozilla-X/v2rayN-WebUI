@@ -8,11 +8,15 @@ import { normalizeProfileProtocolExtra, normalizeProfileTransportExtra } from '.
 const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../Src')
 
 test('profile editor option values come from the Web API and profile fields remain editable', async () => {
-  const [options, composable, modal] = await Promise.all([
+  const [options, composable, ...editorSections] = await Promise.all([
     readFile(path.join(sourceRoot, 'profileEditorOptions.ts'), 'utf8'),
     readFile(path.join(sourceRoot, 'Composables/useProfiles.ts'), 'utf8'),
     readFile(path.join(sourceRoot, 'Components/Modals/ProfileModal.vue'), 'utf8'),
+    readFile(path.join(sourceRoot, 'Features/Profiles/ProfileGroupSection.vue'), 'utf8'),
+    readFile(path.join(sourceRoot, 'Features/Profiles/ProfileTransportSection.vue'), 'utf8'),
+    readFile(path.join(sourceRoot, 'Features/Profiles/ProfileSecuritySection.vue'), 'utf8'),
   ])
+  const modal = editorSections.join('\n')
 
   assert.match(composable, /options\.data\('\/api\/editor-options'\)/)
   assert.match(composable, /editorOptions\.value\.configTypes/)

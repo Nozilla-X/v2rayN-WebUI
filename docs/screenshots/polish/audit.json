@@ -1,0 +1,506 @@
+[
+  {
+    "width": 320,
+    "height": 844,
+    "module": "nodes",
+    "state": "default"
+  },
+  {
+    "width": 320,
+    "height": 844,
+    "module": "nodes",
+    "state": "batch-selection"
+  },
+  {
+    "width": 320,
+    "height": 844,
+    "module": "nodes",
+    "state": "loading"
+  },
+  {
+    "width": 320,
+    "height": 844,
+    "module": "nodes",
+    "state": "error"
+  },
+  {
+    "width": 320,
+    "height": 844,
+    "module": "nodes",
+    "state": "empty-search"
+  },
+  {
+    "width": 320,
+    "height": 844,
+    "module": "subscriptions",
+    "state": "default"
+  },
+  {
+    "width": 320,
+    "height": 844,
+    "module": "subscriptions",
+    "state": "update-progress"
+  },
+  {
+    "width": 320,
+    "height": 844,
+    "module": "routing",
+    "state": "default"
+  },
+  {
+    "width": 320,
+    "height": 844,
+    "module": "settings",
+    "state": "default"
+  },
+  {
+    "width": 320,
+    "height": 844,
+    "module": "settings",
+    "state": "dirty"
+  },
+  {
+    "width": 320,
+    "height": 844,
+    "module": "settings",
+    "state": "save-error-draft-retained"
+  },
+  {
+    "width": 320,
+    "height": 844,
+    "module": "dns",
+    "state": "default"
+  },
+  {
+    "width": 320,
+    "height": 844,
+    "module": "dns",
+    "state": "multiple-core-drafts"
+  },
+  {
+    "width": 320,
+    "height": 844,
+    "module": "dns",
+    "state": "cross-core-save-confirmation"
+  },
+  {
+    "width": 320,
+    "height": 844,
+    "module": "maintenance",
+    "state": "default"
+  },
+  {
+    "width": 320,
+    "height": 844,
+    "module": "logs",
+    "state": "default"
+  },
+  {
+    "width": 320,
+    "height": 844,
+    "module": "logs",
+    "state": "paused"
+  },
+  {
+    "width": 320,
+    "height": 844,
+    "module": "logs",
+    "state": "level-text-filter"
+  },
+  {
+    "width": 320,
+    "height": 844,
+    "module": "templates",
+    "state": "default"
+  },
+  {
+    "width": 320,
+    "height": 844,
+    "module": "templates",
+    "state": "keyboard-dirty"
+  },
+  {
+    "width": 320,
+    "height": 844,
+    "module": "runtime",
+    "state": "default"
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "module": "nodes",
+    "state": "default"
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "module": "nodes",
+    "state": "batch-selection"
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "module": "nodes",
+    "state": "loading"
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "module": "nodes",
+    "state": "error"
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "module": "nodes",
+    "state": "empty-search"
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "module": "subscriptions",
+    "state": "default"
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "module": "subscriptions",
+    "state": "update-progress"
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "module": "routing",
+    "state": "default"
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "module": "settings",
+    "state": "default"
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "module": "settings",
+    "state": "dirty"
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "module": "settings",
+    "state": "save-error-draft-retained"
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "module": "dns",
+    "state": "default"
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "module": "dns",
+    "state": "multiple-core-drafts"
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "module": "dns",
+    "state": "cross-core-save-confirmation"
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "module": "maintenance",
+    "state": "default"
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "module": "logs",
+    "state": "default"
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "module": "logs",
+    "state": "paused"
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "module": "logs",
+    "state": "level-text-filter"
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "module": "templates",
+    "state": "default"
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "module": "templates",
+    "state": "keyboard-dirty"
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "module": "runtime",
+    "state": "default"
+  },
+  {
+    "width": 1920,
+    "height": 1080,
+    "module": "nodes",
+    "state": "default"
+  },
+  {
+    "width": 1920,
+    "height": 1080,
+    "module": "nodes",
+    "state": "batch-selection"
+  },
+  {
+    "width": 1920,
+    "height": 1080,
+    "module": "nodes",
+    "state": "loading"
+  },
+  {
+    "width": 1920,
+    "height": 1080,
+    "module": "nodes",
+    "state": "error"
+  },
+  {
+    "width": 1920,
+    "height": 1080,
+    "module": "nodes",
+    "state": "empty-search"
+  },
+  {
+    "width": 1920,
+    "height": 1080,
+    "module": "subscriptions",
+    "state": "default"
+  },
+  {
+    "width": 1920,
+    "height": 1080,
+    "module": "subscriptions",
+    "state": "update-progress"
+  },
+  {
+    "width": 1920,
+    "height": 1080,
+    "module": "routing",
+    "state": "default"
+  },
+  {
+    "width": 1920,
+    "height": 1080,
+    "module": "settings",
+    "state": "default"
+  },
+  {
+    "width": 1920,
+    "height": 1080,
+    "module": "settings",
+    "state": "dirty"
+  },
+  {
+    "width": 1920,
+    "height": 1080,
+    "module": "settings",
+    "state": "save-error-draft-retained"
+  },
+  {
+    "width": 1920,
+    "height": 1080,
+    "module": "dns",
+    "state": "default"
+  },
+  {
+    "width": 1920,
+    "height": 1080,
+    "module": "dns",
+    "state": "multiple-core-drafts"
+  },
+  {
+    "width": 1920,
+    "height": 1080,
+    "module": "dns",
+    "state": "cross-core-save-confirmation"
+  },
+  {
+    "width": 1920,
+    "height": 1080,
+    "module": "maintenance",
+    "state": "default"
+  },
+  {
+    "width": 1920,
+    "height": 1080,
+    "module": "logs",
+    "state": "default"
+  },
+  {
+    "width": 1920,
+    "height": 1080,
+    "module": "logs",
+    "state": "paused"
+  },
+  {
+    "width": 1920,
+    "height": 1080,
+    "module": "logs",
+    "state": "level-text-filter"
+  },
+  {
+    "width": 1920,
+    "height": 1080,
+    "module": "templates",
+    "state": "default"
+  },
+  {
+    "width": 1920,
+    "height": 1080,
+    "module": "templates",
+    "state": "keyboard-dirty"
+  },
+  {
+    "width": 1920,
+    "height": 1080,
+    "module": "runtime",
+    "state": "default"
+  },
+  {
+    "width": 2560,
+    "height": 1440,
+    "module": "nodes",
+    "state": "default"
+  },
+  {
+    "width": 2560,
+    "height": 1440,
+    "module": "nodes",
+    "state": "batch-selection"
+  },
+  {
+    "width": 2560,
+    "height": 1440,
+    "module": "nodes",
+    "state": "loading"
+  },
+  {
+    "width": 2560,
+    "height": 1440,
+    "module": "nodes",
+    "state": "error"
+  },
+  {
+    "width": 2560,
+    "height": 1440,
+    "module": "nodes",
+    "state": "empty-search"
+  },
+  {
+    "width": 2560,
+    "height": 1440,
+    "module": "subscriptions",
+    "state": "default"
+  },
+  {
+    "width": 2560,
+    "height": 1440,
+    "module": "subscriptions",
+    "state": "update-progress"
+  },
+  {
+    "width": 2560,
+    "height": 1440,
+    "module": "routing",
+    "state": "default"
+  },
+  {
+    "width": 2560,
+    "height": 1440,
+    "module": "settings",
+    "state": "default"
+  },
+  {
+    "width": 2560,
+    "height": 1440,
+    "module": "settings",
+    "state": "dirty"
+  },
+  {
+    "width": 2560,
+    "height": 1440,
+    "module": "settings",
+    "state": "save-error-draft-retained"
+  },
+  {
+    "width": 2560,
+    "height": 1440,
+    "module": "dns",
+    "state": "default"
+  },
+  {
+    "width": 2560,
+    "height": 1440,
+    "module": "dns",
+    "state": "multiple-core-drafts"
+  },
+  {
+    "width": 2560,
+    "height": 1440,
+    "module": "dns",
+    "state": "cross-core-save-confirmation"
+  },
+  {
+    "width": 2560,
+    "height": 1440,
+    "module": "maintenance",
+    "state": "default"
+  },
+  {
+    "width": 2560,
+    "height": 1440,
+    "module": "logs",
+    "state": "default"
+  },
+  {
+    "width": 2560,
+    "height": 1440,
+    "module": "logs",
+    "state": "paused"
+  },
+  {
+    "width": 2560,
+    "height": 1440,
+    "module": "logs",
+    "state": "level-text-filter"
+  },
+  {
+    "width": 2560,
+    "height": 1440,
+    "module": "templates",
+    "state": "default"
+  },
+  {
+    "width": 2560,
+    "height": 1440,
+    "module": "templates",
+    "state": "keyboard-dirty"
+  },
+  {
+    "width": 2560,
+    "height": 1440,
+    "module": "runtime",
+    "state": "default"
+  }
+]

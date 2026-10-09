@@ -10,7 +10,7 @@ const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '.
 test('profile and subscription group context actions suppress native menus on consecutive right-clicks', async () => {
   const [nodesPage, app, flyout] = await Promise.all([
     readFile(path.join(sourceRoot, 'Components/Pages/NodesPage.vue'), 'utf8'),
-    readFile(path.join(sourceRoot, 'App.vue'), 'utf8'),
+    readFile(path.join(sourceRoot, 'Features/Profiles/NodeContextMenu.vue'), 'utf8'),
     readFile(path.join(sourceRoot, 'Components/FlyoutMenu.vue'), 'utf8'),
   ])
   assert.match(nodesPage, /@contextmenu\.stop\.prevent="actions\.openContext\(\$event, profile\)"/)

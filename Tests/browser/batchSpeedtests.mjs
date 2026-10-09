@@ -74,7 +74,7 @@ try {
     if (width <= 760) {
       const tools = page.locator('.mobile-node-tools')
       const trigger = tools.locator('.action-menu-trigger')
-      const add = page.locator('.nodes-page-toolbar .toolbar-main > .action-dropdown:not(.mobile-node-tools) .action-menu-trigger')
+      const add = page.locator('.nodes-page-toolbar .toolbar-main > .action-dropdown:not(.mobile-node-tools):not(.node-batch-actions) .action-menu-trigger')
       const toolsBounds = await trigger.boundingBox()
       const addBounds = await add.boundingBox()
       assert.ok(toolsBounds.x + toolsBounds.width <= addBounds.x, 'Tools belongs immediately before Add')
@@ -117,7 +117,7 @@ try {
       await checkbox('B').check()
       const title = await page.locator('.page-title').boundingBox()
       const actions = await page.locator('.nodes-page-toolbar .toolbar-main').boundingBox()
-      assert.ok(title.x + title.width <= actions.x, 'English title and utilities do not overlap')
+      assert.ok(title.y + title.height <= actions.y || title.x + title.width <= actions.x, 'English title and utilities do not overlap')
       assert.ok(await page.evaluate(width => document.documentElement.scrollWidth <= width, width))
     } else {
       assert.equal(await page.locator('.mobile-node-tools').isVisible(), false, 'desktop keeps its original toolbar')

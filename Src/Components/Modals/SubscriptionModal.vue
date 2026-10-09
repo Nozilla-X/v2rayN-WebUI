@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useModalFocus } from '../../Composables/useModalFocus'
+import UiDialog from '../UI/UiDialog.vue'
+import UiButton from '../UI/UiButton.vue'
+import UiIconButton from '../UI/UiIconButton.vue'
 import UiIcon from '../UiIcon.vue'
 import UiCheckbox from '../UiCheckbox.vue'
 import type { UiProps } from '../types'
@@ -10,8 +12,6 @@ const { t } = useI18n()
 const props = defineProps<UiProps>()
 const state = props.state
 const actions = props.actions
-const dialog = ref<HTMLElement | null>(null)
-const { onModalKeydown } = useModalFocus(dialog)
 const showProfilePicker = ref(false)
 const profilePickerTarget = ref<'prevProfile' | 'nextProfile'>('prevProfile')
 const profilePickerFilter = ref('')
@@ -36,10 +36,8 @@ function chooseProfile(profile: Record<string, any>) {
 </script>
 
 <template>
-  <div v-if="state.showSubscriptionForm" class="modal-shade" @click.self="state.showSubscriptionForm = false">
-    <form ref="dialog" class="modal-panel wide-modal modal-form" role="dialog" aria-modal="true" :aria-label="t(state.editingSubscriptionId ? 'subscriptions.editSubscription' : 'subscriptions.addSubscription')" tabindex="-1" @keydown="onModalKeydown" @submit.prevent="actions.saveSubscription">
-      <header class="modal-head"><h2>{{ t(state.editingSubscriptionId ? 'subscriptions.editSubscription' : 'subscriptions.addSubscription') }}</h2><button class="tool-button" type="button" :aria-label="t('common.close')" @click="state.showSubscriptionForm = false"><UiIcon name="close" /></button></header>
-      <div class="modal-content">
+  <UiDialog v-if="state.showSubscriptionForm" wide :label="t(state.editingSubscriptionId ? 'subscriptions.editSubscription' : 'subscriptions.addSubscription')" @close="state.showSubscriptionForm = false" @submit.prevent="actions.saveSubscription">
+    <template #header><header class="modal-head"><h2>{{ t(state.editingSubscriptionId ? 'subscriptions.editSubscription' : 'subscriptions.addSubscription') }}</h2><UiIconButton type="button" :aria-label="t('common.close')" @click="state.showSubscriptionForm = false"><UiIcon name="close" /></UiIconButton></header></template>
         <fieldset class="editor-section"><legend>{{ t('subscriptions.source') }}</legend>
           <div class="form-grid two-col">
             <label>{{ t('subscriptions.name') }}<input v-model="state.subscriptionForm.remarks" required /></label>
@@ -75,10 +73,8 @@ function chooseProfile(profile: Record<string, any>) {
         </fieldset>
 
         <fieldset class="editor-section"><legend>{{ t('subscriptions.memo') }}</legend><label>{{ t('subscriptions.memo') }}<textarea v-model="state.subscriptionForm.memo" /></label></fieldset>
-      </div>
-      <footer class="modal-actions"><button class="button" type="button" @click="state.showSubscriptionForm = false">{{ t('common.cancel') }}</button><button class="button primary" type="submit">{{ t('common.save') }}</button></footer>
-    </form>
-  </div>
+    <template #actions><footer class="modal-actions"><UiButton type="button" @click="state.showSubscriptionForm = false">{{ t('common.cancel') }}</UiButton><UiButton class="primary" type="submit">{{ t('common.save') }}</UiButton></footer></template>
+  </UiDialog>
   <div v-if="showProfilePicker" class="profile-picker-shade" @click.self="showProfilePicker = false" @keydown.esc.stop.prevent="showProfilePicker = false">
     <section class="profile-picker-panel" role="dialog" aria-modal="true" :aria-label="t('subscriptions.chooseProfile')">
       <header class="modal-head"><h2>{{ t('subscriptions.chooseProfile') }}</h2><button class="tool-button" type="button" :aria-label="t('common.close')" @click="showProfilePicker = false"><UiIcon name="close" /></button></header>

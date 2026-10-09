@@ -5,6 +5,9 @@ import ActionDropdown from '../ActionDropdown.vue'
 import UiIcon from '../UiIcon.vue'
 import UiCheckbox from '../UiCheckbox.vue'
 import type { UiProps } from '../types'
+import PageFeedback from '../UI/PageFeedback.vue'
+import { useDraftState } from '../../UI/useDraftState'
+import { codeEditor as vCodeEditor } from '../../UI/codeEditor'
 
 const { t } = useI18n()
 const props = defineProps<UiProps>()
@@ -13,6 +16,9 @@ const actions = props.actions
 const allRoutesSelected = computed(() => state.routes.length > 0 && state.selectedRouteIds.length === state.routes.length)
 const allRulesSelected = computed(() => state.routingRules.length > 0 && state.selectedRuleIds.length === state.routingRules.length)
 const ruleImportInput = ref<HTMLInputElement | null>(null)
+const { dirty, status, allowDiscard, run } = useDraftState('routing', () => ({ strategies: state.routingForm, rules: { id: state.selectedRoutingId, raw: state.rulesRaw } }), () => ({ strategies: state.routingForm, rules: state.routingRules }), path => path === '/api/settings/routing' ? ['strategies'] : path.endsWith('/rules') ? ['rules'] : [])
+async function selectRoute(id: string) { if (id === state.selectedRoutingId || await allowDiscard(t('polish.discardChanges'))) await run(() => actions.selectRoutingProfile(id)) }
+async function reloadRouting() { if (await allowDiscard(t('polish.discardChanges'))) await run(() => actions.loadRouting()) }
 function ruleSummary(rule: Record<string, any>) {
   return [...(rule.domain || []), ...(rule.ip || []), ...(rule.process || []), rule.port, rule.network, ...(rule.protocol || [])].filter(Boolean).join(', ') || '—'
 }
@@ -29,7 +35,9 @@ function fallbackRuleName(rule: Record<string, any>) {
          <button class="action-menu-item" role="menuitem" @click="actions.importRoutingProfiles">{{ t('routing.importProfiles') }}</button>
          <button class="action-menu-item danger" role="menuitem" :disabled="!state.selectedRouteIds.length || state.deletingSelectedRoutes" @click="actions.deleteSelectedRoutes">{{ t('common.deleteSelected', { count: state.selectedRouteIds.length }) }}</button>
        </ActionDropdown>
-     </div></div>
+      </div></div>
+    <PageFeedback scope="routing" />
+    <p v-if="dirty" class="draft-status dirty" role="status">{{ t('polish.unsaved') }}</p>
 
     <div class="routing-strategy-bar">
       <label>{{ t('routing.domainStrategy') }}<select v-model="state.routingForm.domainStrategy"><option v-for="strategy in state.routingOptions.routingBasicDomainStrategies || []" :key="strategy" :value="strategy">{{ strategy }}</option></select></label>
@@ -39,10 +47,10 @@ function fallbackRuleName(rule: Record<string, any>) {
 
     <div class="split-pane split-workspace routing-workspace">
       <section class="panel subpanel route-list-panel">
-        <div class="subpanel-heading"><div class="heading-check"><UiCheckbox :model-value="allRoutesSelected" :aria-label="t('common.selectAll')" @change="actions.toggleAllRoutes" /><h2>{{ t('routing.profiles') }}</h2><span class="count-tag">{{ state.routes.length }}</span></div><div class="row-actions"><button class="tool-button" :aria-label="t('common.selectAll')" :title="t('common.selectAll')" @click="actions.toggleAllRoutes"><UiIcon name="check-all" /></button><button class="tool-button" :aria-label="t('common.refresh')" :title="t('common.refresh')" @click="actions.loadRouting"><UiIcon name="refresh" /></button></div></div>
+        <div class="subpanel-heading"><div class="heading-check"><UiCheckbox :model-value="allRoutesSelected" :aria-label="t('common.selectAll')" @change="actions.toggleAllRoutes" /><h2>{{ t('routing.profiles') }}</h2><span class="count-tag">{{ state.routes.length }}</span></div><div class="row-actions"><button class="tool-button" :aria-label="t('common.selectAll')" :title="t('common.selectAll')" @click="actions.toggleAllRoutes"><UiIcon name="check-all" /></button><button class="tool-button" :aria-label="t('common.refresh')" :title="t('common.refresh')" @click="reloadRouting"><UiIcon name="refresh" /></button></div></div>
         <div v-for="route in state.routes" :key="route.id" :class="['route-row', { selected: route.id === state.selectedRoutingId, current: route.id === state.activeRoutingId }]">
           <UiCheckbox :model-value="state.selectedRouteIds.includes(route.id)" :aria-label="route.remarks" @change="state.selectedRouteIds = state.selectedRouteIds.includes(route.id) ? state.selectedRouteIds.filter((id: string) => id !== route.id) : [...state.selectedRouteIds, route.id]" @click.stop />
-          <button class="route-select" @click="actions.selectRoutingProfile(route.id)"><span class="route-info"><strong>{{ route.remarks }}</strong><small>{{ route.ruleNum }} · {{ route.enabled ? t('common.enabled') : t('common.disabled') }}</small></span><span v-if="route.id === state.activeRoutingId" class="current-label">{{ t('routing.default') }}</span></button>
+          <button class="route-select" :aria-pressed="route.id === state.selectedRoutingId" :title="route.remarks" @click="selectRoute(route.id)"><span class="route-info"><strong>{{ route.remarks }}</strong><small>{{ route.ruleNum }} · {{ route.enabled ? t('common.enabled') : t('common.disabled') }}</small></span><span v-if="route.id === state.activeRoutingId" class="current-label">{{ t('routing.default') }}</span></button>
           <div class="row-actions"><button class="tool-button" :aria-label="t('common.edit')" :title="t('common.edit')" @click="actions.openEditRoute(route)"><UiIcon name="edit" /></button><button class="tool-button danger-text" :aria-label="t('common.delete')" :title="t('common.delete')" @click="actions.deleteRoute(route)"><UiIcon name="close" /></button></div>
         </div>
         <p v-if="!state.routes.length" class="muted empty-inline">{{ t('routing.noRouting') }}</p>
@@ -96,9 +104,9 @@ function fallbackRuleName(rule: Record<string, any>) {
                <button class="action-menu-item danger" role="menuitem" :disabled="state.deletingSelectedRules || state.deletingRuleId === rule.id" @click="actions.removeRoutingRule(rule)">{{ t('common.delete') }}</button>
              </ActionDropdown>
           </div>
-          <p v-if="!state.routingRules.length" class="muted empty-inline">{{ t('common.empty') }}</p>
+          <p v-if="!state.routingRules.length" class="muted empty-inline">{{ status.reads ? t('common.loading') : t('common.empty') }}</p>
         </div>
-        <details class="advanced-editor routing-raw-editor"><summary>{{ t('routing.advancedJson') }}</summary><p class="field-hint">{{ t('routing.ruleJsonHint') }}</p><textarea v-model="state.rulesRaw" class="code-area rules-json" spellcheck="false"></textarea><div class="button-row"><button class="button compact" @click="actions.copyRoutingRules">{{ t('common.copy') }}</button><button class="button compact primary" :disabled="!state.selectedRoutingId" @click="actions.saveRoutingRules">{{ t('routing.saveRules') }}</button></div></details>
+        <details class="advanced-editor routing-raw-editor"><summary>{{ t('routing.advancedJson') }}</summary><p class="field-hint">{{ t('routing.ruleJsonHint') }} · {{ t('polish.editorKeyboard') }}</p><textarea v-code-editor="() => !status.writes && state.selectedRoutingId && actions.saveRoutingRules()" v-model="state.rulesRaw" class="code-area rules-json" :aria-label="t('routing.advancedJson')" spellcheck="false"></textarea><div class="button-row"><button class="button compact" @click="actions.copyRoutingRules">{{ t('common.copy') }}</button><button class="button compact primary" :disabled="!state.selectedRoutingId || Boolean(status.writes)" @click="actions.saveRoutingRules">{{ t('routing.saveRules') }}</button></div></details>
       </section>
     </div>
   </section>

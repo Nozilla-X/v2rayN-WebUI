@@ -1,24 +1,29 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { UiProps } from '../types'
 import UiIcon from '../UiIcon.vue'
 import UiCheckbox from '../UiCheckbox.vue'
 import ActionDropdown from '../ActionDropdown.vue'
 import SaveBar from '../SaveBar.vue'
+import WebUpdateSection from '../../Features/Maintenance/WebUpdateSection.vue'
+import PageFeedback from '../UI/PageFeedback.vue'
+import { usePageRequests } from '../../UI/useUiRequests'
 
 const { t } = useI18n()
 const props = defineProps<UiProps>()
 const state = props.state
 const actions = props.actions
 const activeTab = ref('updates')
-const webTargetType = computed(() => state.updateSettings.webTarget?.name === 'v2rayN.Web' ? 'v2rayN.Web' : 'v2rayN.WebAPI')
+const { run } = usePageRequests('maintenance')
+const refreshMaintenance = () => run(() => actions.loadMaintenance())
 </script>
 
 <template>
   <section class="page maintenance-page">
-    <div class="page-header page-toolbar"><div class="page-title"><h1>{{ t('maintenance.title') }}</h1></div><button class="button" @click="actions.loadMaintenance">{{ t('common.refresh') }}</button></div>
-    <nav class="section-tabs" :aria-label="t('maintenance.title')"><button :class="{ selected: activeTab === 'updates' }" @click="activeTab = 'updates'">{{ t('maintenance.updates') }}</button><button :class="{ selected: activeTab === 'backup' }" @click="activeTab = 'backup'">{{ t('maintenance.backupRestore') }}</button></nav>
+    <div class="page-header page-toolbar"><div class="page-title"><h1>{{ t('maintenance.title') }}</h1></div><button class="button" @click="refreshMaintenance">{{ t('common.refresh') }}</button></div>
+    <nav class="section-tabs" :aria-label="t('maintenance.title')"><button :aria-pressed="activeTab === 'updates'" :class="{ selected: activeTab === 'updates' }" @click="activeTab = 'updates'">{{ t('maintenance.updates') }}</button><button :aria-pressed="activeTab === 'backup'" :class="{ selected: activeTab === 'backup' }" @click="activeTab = 'backup'">{{ t('maintenance.backupRestore') }}</button></nav>
+    <PageFeedback scope="maintenance" />
 
     <section v-if="activeTab === 'updates'" class="settings-section">
       <div class="panel update-preferences">
@@ -40,41 +45,11 @@ const webTargetType = computed(() => state.updateSettings.webTarget?.name === 'v
         </div>
       </div>
 
-      <div class="form-section update-section web-app-update">
-        <div class="section-heading">
-          <div>
-            <h2>{{ t('maintenance.webApp') }}</h2>
-            <small v-if="state.updateSettings.webTarget">{{ t('maintenance.webCurrentVersion', { version: state.updateSettings.webTarget.version }) }}</small>
-            <small v-if="state.updateSettings.webTarget?.latestVersion">{{ t('maintenance.webLatestVersion', { version: state.updateSettings.webTarget.latestVersion }) }}</small>
-            <small v-if="state.updateSettings.webTarget">{{ t('maintenance.webBuildIdentity', {
-              commit: state.updateSettings.webTarget.commit,
-              buildDate: state.updateSettings.webTarget.buildDate,
-              rid: state.updateSettings.webTarget.rid,
-              deployment: state.updateSettings.webTarget.deployment,
-            }) }}</small>
-            <small v-if="state.updateSettings.webTarget?.installReasonKey" class="field-hint">{{ t(state.updateSettings.webTarget.installReasonKey) }}</small>
-          </div>
-          <span v-if="state.updateResults[webTargetType]?.updateAvailable" class="update-state">{{ t('maintenance.updateAvailable', { version: state.updateResults[webTargetType].latestVersion }) }}</span>
-          <span v-else-if="state.updateResults[webTargetType] && !state.updateResults[webTargetType].updateAvailable" class="muted">{{ t('maintenance.upToDateGeneric') }}</span>
-        </div>
-        <div class="update-core-row">
-          <label class="check-inline"><UiCheckbox v-model="state.updateSettings.webSelected" :disabled="!state.updateSettings.webTarget?.isSupported" />{{ t('maintenance.includeWebUpdate') }}</label>
-          <label v-if="state.updateSettings.webTarget" class="check-inline"><UiCheckbox :model-value="state.updateSettings.checkPreReleaseCoreTypes.includes(webTargetType)" @change="actions.setPreReleaseTarget(webTargetType, $event)" />{{ t('maintenance.preRelease') }}</label>
-          <span v-if="state.updateProgress[webTargetType] && !state.updateProgress[webTargetType].isComplete" class="update-state">{{ t(`maintenance.phase.${state.updateProgress[webTargetType].phase}`) }}</span>
-          <span v-else-if="state.updateProgress[webTargetType]?.isComplete" :class="state.updateProgress[webTargetType].success ? 'update-state' : 'danger-note'">{{ t(state.updateProgress[webTargetType].success ? 'maintenance.phase.completed' : 'maintenance.phase.failed') }}</span>
-        </div>
-        <p v-if="state.updateProgress[webTargetType]?.detail" class="field-hint update-detail">{{ state.updateProgress[webTargetType].detail }}</p>
-        <p v-if="state.updateProgress[webTargetType]?.isComplete && state.updateProgress[webTargetType].success === false && state.updateProgress[webTargetType].rollbackSucceeded !== null && state.updateProgress[webTargetType].rollbackSucceeded !== undefined" class="field-hint update-detail">{{ t(state.updateProgress[webTargetType].rollbackSucceeded ? 'maintenance.webRollbackSucceeded' : 'maintenance.webRollbackFailed') }}</p>
-        <p v-if="state.updateResults[webTargetType]?.detail" class="field-hint update-detail">{{ state.updateResults[webTargetType].detail }}</p>
-        <div class="button-row">
-          <button class="button" :disabled="!state.updateSettings.webTarget?.canCheck || state.operations.includes('core-update-batch') || state.operations.includes('web-update')" @click="actions.checkWebUpdate">{{ t('maintenance.checkWebUpdate') }}</button>
-          <button class="button primary" :disabled="!state.updateSettings.webSelected || !state.updateSettings.webTarget?.canInstall || state.operations.includes('core-update-batch') || state.operations.includes('web-update')" @click="actions.updateWeb">{{ t('maintenance.installWebUpdate') }}</button>
-        </div>
-      </div>
+      <WebUpdateSection :state="state" :actions="actions" />
 
       <div v-for="target in state.updateSettings.targets" :key="target.coreType" class="form-section update-section">
         <div class="section-heading">
-          <div><h2>{{ t(target.nameKey) }}</h2><small v-if="target.unsupportedReasonKey">{{ t(target.unsupportedReasonKey) }}</small></div>
+          <div><h2>{{ t(target.nameKey) }}</h2><small>{{ t('polish.targetCore') }}<template v-if="state.updateResults[target.coreType]?.version"> · {{ t('polish.latestVersion') }}: {{ state.updateResults[target.coreType].version }}</template></small><small v-if="target.unsupportedReasonKey">{{ t(target.unsupportedReasonKey) }}</small></div>
           <span v-if="state.updateResults[target.coreType]?.updateAvailable" class="update-state">{{ t('maintenance.updateAvailable', { version: state.updateResults[target.coreType].version }) }}</span>
           <span v-else-if="state.updateResults[target.coreType]?.isUpToDate" class="muted">{{ t('maintenance.upToDateGeneric') }}</span>
         </div>
@@ -85,6 +60,7 @@ const webTargetType = computed(() => state.updateSettings.webTarget?.name === 'v
           <span v-else-if="state.updateProgress[target.coreType]?.isComplete" :class="state.updateProgress[target.coreType].success ? 'update-state' : 'danger-note'">{{ t(state.updateProgress[target.coreType].success ? 'maintenance.phase.completed' : 'maintenance.phase.failed') }}</span>
         </div>
         <p v-if="state.updateProgress[target.coreType]?.detail" class="field-hint update-detail">{{ state.updateProgress[target.coreType].detail }}</p>
+        <p v-if="state.updateResults[target.coreType]?.detail" class="field-hint update-detail">{{ state.updateResults[target.coreType].detail }}</p>
         <div class="button-row">
           <button class="button" :disabled="!target.isSupported || !target.selected || state.operations.includes('core-update-batch') || state.operations.includes(`core-update-${String(target.coreType).toLowerCase()}`)" @click="actions.checkCoreUpdate(target.coreType)">{{ t('maintenance.checkOnly') }}</button>
           <button class="button primary" :disabled="!target.canInstall || !target.selected || state.operations.includes('core-update-batch') || state.operations.includes(`core-update-${String(target.coreType).toLowerCase()}`)" @click="actions.updateCore(target.coreType)">{{ t('maintenance.checkAndUpdate') }}</button>
@@ -92,9 +68,10 @@ const webTargetType = computed(() => state.updateSettings.webTarget?.name === 'v
       </div>
 
       <div class="form-section settings-subsection">
-        <div class="section-heading"><div><h2>{{ t('maintenance.geoFiles') }}</h2><small>{{ t('maintenance.geoUpdateHint') }}</small></div></div>
+        <div class="section-heading"><div><h2>{{ t('maintenance.geoFiles') }}</h2><small>{{ t('polish.targetGeo') }} · {{ t('maintenance.geoUpdateHint') }}</small></div></div>
         <div class="update-core-row"><label class="check-inline"><UiCheckbox v-model="state.updateSettings.geoFilesSelected" />{{ t('maintenance.includeGeoFiles') }}</label><span v-if="state.updateProgress.GeoFiles && !state.updateProgress.GeoFiles.isComplete" class="update-state">{{ t(`maintenance.phase.${state.updateProgress.GeoFiles.phase}`) }}</span></div>
         <p v-if="state.updateProgress.GeoFiles?.detail" class="field-hint update-detail">{{ state.updateProgress.GeoFiles.detail }}</p>
+        <p v-if="state.updateProgress.GeoFiles?.isComplete" class="field-hint" :class="state.updateProgress.GeoFiles.success ? 'update-state' : 'danger-note'" role="status">{{ t(state.updateProgress.GeoFiles.success ? 'maintenance.phase.completed' : 'maintenance.phase.failed') }}</p>
         <button class="button" :disabled="state.geoUpdateSubmitting || !state.updateSettings.geoFilesSelected || state.operations.includes('core-update-batch') || state.operations.includes('geo-update')" :aria-busy="state.geoUpdateSubmitting || state.operations.includes('geo-update')" @click="actions.updateGeo">{{ t('maintenance.updateGeo') }}</button>
       </div>
       <div class="form-section settings-subsection"><div class="section-heading"><div><h2>{{ t('maintenance.statistics') }}</h2><small>{{ t('maintenance.statistics') }} · {{ state.status?.statisticsEnabled ? t('common.enabled') : t('status.statisticsOff') }}</small></div><ActionDropdown class="mobile-statistics-menu" :label="t('common.more')" icon-only><button class="action-menu-item danger" role="menuitem" @click="actions.clearStatistics">{{ t('maintenance.clearStatistics') }}</button></ActionDropdown></div><button class="button danger desktop-statistics-action" @click="actions.clearStatistics">{{ t('maintenance.clearStatistics') }}</button></div>

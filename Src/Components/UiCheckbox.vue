@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const model = defineModel<boolean>({ default: false })
-const props = defineProps<{ disabled?: boolean; ariaLabel?: string }>()
+const props = defineProps<{ disabled?: boolean; ariaLabel?: string; indeterminate?: boolean }>()
 const emit = defineEmits<{ change: [checked: boolean] }>()
 
 function onChange(event: Event) {
@@ -16,6 +16,7 @@ function onChange(event: Event) {
     class="ui-checkbox"
     type="checkbox"
     :checked="model"
+    :indeterminate="props.indeterminate"
     :disabled="props.disabled"
     :aria-label="props.ariaLabel"
     @change="onChange"

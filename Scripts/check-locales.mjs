@@ -33,14 +33,17 @@ for (const [name, keys] of locales) {
 }
 
 const sourceRoot = path.join(webUiRoot, 'Src')
-const composablesRoot = path.join(sourceRoot, 'Composables')
-const composableFiles = (await readdir(composablesRoot)).filter((file) => file.endsWith('.ts'))
-const uiSources = [
-  ['App.vue', await readFile(path.join(sourceRoot, 'App.vue'), 'utf8')],
-  ...await Promise.all(composableFiles.map(async (file) => [
-    path.join('Composables', file), await readFile(path.join(composablesRoot, file), 'utf8'),
-  ])),
-]
+// UI strings now live in Shell/Features as well as App and the business Composables.
+async function collectSources(directory) {
+  const sources = []
+  for (const entry of await readdir(directory, { withFileTypes: true })) {
+    const file = path.join(directory, entry.name)
+    if (entry.isDirectory()) sources.push(...await collectSources(file))
+    else if (/\.(vue|ts|js|mjs)$/.test(entry.name)) sources.push([path.relative(sourceRoot, file), await readFile(file, 'utf8')])
+  }
+  return sources
+}
+const uiSources = await collectSources(sourceRoot)
 const uiKeys = new Set()
 for (const [source, content] of uiSources) {
   for (const match of content.matchAll(/\bt\(\s*['"]([\w.-]+)['"]\s*(?:,|\))/g)) {

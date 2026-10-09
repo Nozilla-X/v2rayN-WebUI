@@ -88,7 +88,7 @@ try {
             const button = await bar.locator('button').boundingBox()
             saveSizes.push([button.width, button.height])
             await bar.scrollIntoViewIfNeeded()
-            assert.ok((await bar.boundingBox()).y + (await bar.boundingBox()).height <= (await page.locator('.main-nav').boundingBox()).y + 1, 'save control stays above navigation')
+            assert.ok((await bar.boundingBox()).y + (await bar.boundingBox()).height <= (await page.locator('.main-nav').boundingBox()).y + 1, `${locale} ${width} ${id}: save control stays above navigation; bar=${JSON.stringify(await bar.boundingBox())}, nav=${JSON.stringify(await page.locator('.main-nav').boundingBox())}`)
             await screenshot(`${id}-save`)
             await page.evaluate(() => scrollTo(0, document.documentElement.scrollHeight))
             const bottomBounds = await bar.boundingBox()

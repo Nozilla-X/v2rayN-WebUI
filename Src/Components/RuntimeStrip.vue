@@ -21,17 +21,17 @@ function changeActiveRoute(event: Event) {
   <div class="runtime-main">
     <div class="runtime-health">
     <span :class="['status-led', { on: state.status?.coreRunning }]"></span>
-    <strong>{{ state.status?.coreRunning
+     <strong :title="t(`core.runtime.${state.status?.runtimeState || 'stopped'}`)">{{ state.status?.coreRunning
       ? (state.status.coreType || t('nodes.core'))
       : t(`core.runtime.${state.status?.runtimeState || 'stopped'}`) }}</strong>
-    <span v-if="state.status?.runtimeFailure" class="danger-note" :title="state.status.runtimeFailure">{{ t('status.runtimeFault') }}</span>
+     <span v-if="state.status?.runtimeFailure" class="danger-note runtime-failure" role="alert" :title="state.status.runtimeFailure">{{ t('status.runtimeFault') }}: {{ state.status.runtimeFailure }}</span>
     <span v-if="state.status?.sniffingEnabled" class="runtime-setting-status">{{ t('status.sniffing', { types: (state.status.destOverride || []).join(' / ') }) }}</span>
     <span v-if="state.status?.configuredProxyPort && state.status?.runningProxyPort && state.status.configuredProxyPort !== state.status.runningProxyPort" class="warning-note">
       {{ t('status.portMismatch', { configured: state.status.configuredProxyPort, running: state.status.runningProxyPort }) }}
     </span>
     </div>
     <span class="runtime-separator"></span>
-    <div class="runtime-node"><span>{{ t('nodes.current') }}:</span><b class="current-runtime-name">{{ state.currentProfile?.remarks || state.status?.currentProfileName || t('nodes.noneCurrent') }}</b></div>
+    <div class="runtime-node"><span>{{ t('nodes.current') }}:</span><b class="current-runtime-name" :title="state.currentProfile?.remarks || state.status?.currentProfileName">{{ state.currentProfile?.remarks || state.status?.currentProfileName || t('nodes.noneCurrent') }}</b></div>
     <span class="runtime-separator"></span>
     <div class="runtime-route"><label for="runtime-route" class="compact-select-label">{{ t('coreToolbar.route') }}</label>
     <select id="runtime-route" :value="state.activeRoutingId" class="compact-select route-select" @change="changeActiveRoute">

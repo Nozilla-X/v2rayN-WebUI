@@ -4,12 +4,24 @@ import { useI18n } from 'vue-i18n'
 import type { UiProps } from '../types'
 import UiCheckbox from '../UiCheckbox.vue'
 import SaveBar from '../SaveBar.vue'
+import PageFeedback from '../UI/PageFeedback.vue'
+import { useDraftState } from '../../UI/useDraftState'
+import { codeEditor as vCodeEditor } from '../../UI/codeEditor'
 
 const { t } = useI18n()
 const props = defineProps<UiProps>()
 const state = props.state
 const actions = props.actions
 const activeTab = ref('basic')
+const { dirty, dirtyKeys, status, allowDiscard, run } = useDraftState('dns', () => ({ simple: { form: state.simpleDnsForm, raw: state.simpleDnsAdvancedRaw }, ...Object.fromEntries(state.dnsProfiles.map((profile: Record<string, any>) => [String(profile.coreType).toLowerCase(), profile])) }), () => ({ simple: state.simpleDnsForm, ...Object.fromEntries(state.dnsProfiles.map((profile: Record<string, any>) => [String(profile.coreType).toLowerCase(), profile])) }), path => path.endsWith('/simple') ? ['simple'] : [])
+async function reloadDns() { if (await allowDiscard(t('polish.discardChanges'))) await run(() => actions.loadDns()) }
+async function saveProfile(profile: Record<string, any> | null) {
+  if (!profile || status.writes) return
+  // The existing save reloads every DNS configuration. Protect other unsaved tabs first.
+  const key = String(profile.coreType).toLowerCase()
+  if (dirtyKeys.value.some(id => id !== key) && !await allowDiscard(t('polish.otherDnsDrafts'))) return
+  await actions.saveDnsProfile(profile)
+}
 const activeCoreType = computed(() => activeTab.value === 'sing-box' ? 'sing_box' : activeTab.value)
 const activeDnsProfile = computed(() => state.dnsProfiles.find((profile: Record<string, any>) => String(profile.coreType).toLowerCase().replace('-', '_') === activeCoreType.value) || null)
 const isSimpleDnsEnabled = computed(() => {
@@ -26,8 +38,9 @@ const tabs = [
 
 <template>
   <section class="page dns-page">
-    <div class="page-header page-toolbar"><div class="page-title"><h1>{{ t('dns.title') }}</h1></div><button class="button" @click="actions.loadDns">{{ t('common.refresh') }}</button></div>
-    <nav class="section-tabs" :aria-label="t('dns.title')"><button v-for="tab in tabs" :key="tab.id" :class="{ selected: activeTab === tab.id }" @click="activeTab = tab.id">{{ t(tab.key) }}</button></nav>
+    <div class="page-header page-toolbar"><div class="page-title"><h1>{{ t('dns.title') }}</h1></div><button class="button" :disabled="Boolean(status.reads || status.writes)" @click="reloadDns">{{ t('common.refresh') }}</button></div>
+    <nav class="section-tabs" :aria-label="t('dns.title')"><button v-for="tab in tabs" :key="tab.id" :aria-pressed="activeTab === tab.id" :class="{ selected: activeTab === tab.id }" @click="activeTab = tab.id">{{ t(tab.key) }}</button></nav>
+    <PageFeedback scope="dns" />
 
     <section v-if="activeTab === 'basic'" class="settings-section form-section">
       <p v-if="!isSimpleDnsEnabled" class="inline-warning" role="status">{{ t('dns.customDnsConflict') }}</p>
@@ -41,7 +54,7 @@ const tabs = [
           <label>{{ t('dns.strategyProxyDial') }}<select v-model="state.simpleDnsForm.strategy4ProxyDial"><option v-for="value in state.dnsOptions.domainStrategies4Freedom" :key="value || 'none'" :value="value">{{ value || t('common.none') }}</option><option v-if="state.simpleDnsForm.strategy4ProxyDial && !state.dnsOptions.domainStrategies4Freedom.includes(state.simpleDnsForm.strategy4ProxyDial)" :value="state.simpleDnsForm.strategy4ProxyDial">{{ state.simpleDnsForm.strategy4ProxyDial }}</option></select></label>
         </div>
         <div class="settings-checks"><label class="check-inline"><UiCheckbox v-model="state.simpleDnsForm.parallelQuery" />{{ t('dns.parallelQuery') }}</label><label class="check-inline"><UiCheckbox v-model="state.simpleDnsForm.serveStale" />{{ t('dns.serveStale') }}</label><label class="check-inline"><UiCheckbox v-model="state.simpleDnsForm.enableHappyEyeballs" />{{ t('dns.happyEyeballs') }}</label></div>
-        <SaveBar @save="actions.saveSimpleDns" />
+        <SaveBar :busy="Boolean(status.writes)" :dirty="dirty" @save="actions.saveSimpleDns" />
       </fieldset>
     </section>
 
@@ -59,8 +72,8 @@ const tabs = [
           <label>{{ t('dns.directExpectedIPs') }}<input v-model="state.simpleDnsForm.directExpectedIPs" list="dns-expected-ips" /><datalist id="dns-expected-ips"><option v-for="value in state.dnsOptions.expectedIps" :key="value" :value="value" /></datalist></label>
           <label class="wide-field">{{ t('dns.hosts') }}<textarea v-model="state.simpleDnsForm.hosts" class="code-area" spellcheck="false" /></label>
         </div>
-        <details class="advanced-editor"><summary>{{ t('dns.jsonEditor') }}</summary><p class="field-hint">{{ t('dns.jsonCompatibilityHint') }}</p><textarea v-model="state.simpleDnsAdvancedRaw" class="code-area dns-code" spellcheck="false" /></details>
-        <SaveBar @save="actions.saveSimpleDns" />
+        <details class="advanced-editor"><summary>{{ t('dns.jsonEditor') }}</summary><p class="field-hint">{{ t('dns.jsonCompatibilityHint') }} · {{ t('polish.editorKeyboard') }}</p><textarea v-code-editor="() => !status.writes && actions.saveSimpleDns()" v-model="state.simpleDnsAdvancedRaw" class="code-area dns-code" :aria-label="t('dns.jsonEditor')" spellcheck="false" /></details>
+        <SaveBar :busy="Boolean(status.writes)" :dirty="dirty" @save="actions.saveSimpleDns" />
       </fieldset>
     </section>
 
@@ -76,8 +89,8 @@ const tabs = [
           <div class="dns-core-column">
             <label>{{ t('dns.remarks') }}<input v-model="activeDnsProfile.remarks" /></label>
             <label class="check-inline"><UiCheckbox v-model="activeDnsProfile.enabled" />{{ t('dns.enabled') }}</label>
-            <label>{{ t('dns.httpSocks') }}<textarea v-model="activeDnsProfile.normalDNS" class="code-area dns-code" spellcheck="false" /></label>
-            <label>{{ t('dns.tunDns') }}<textarea v-model="activeDnsProfile.tunDNS" class="code-area dns-code" spellcheck="false" /></label>
+            <label>{{ t('dns.httpSocks') }}<textarea v-code-editor="() => saveProfile(activeDnsProfile)" v-model="activeDnsProfile.normalDNS" class="code-area dns-code" spellcheck="false" /></label>
+            <label>{{ t('dns.tunDns') }}<textarea v-code-editor="() => saveProfile(activeDnsProfile)" v-model="activeDnsProfile.tunDNS" class="code-area dns-code" spellcheck="false" /></label>
           </div>
           <div class="dns-core-column">
             <label>{{ t(activeTab === 'xray' ? 'dns.domainStrategy' : 'dns.domainStrategy4Out') }}<select v-model="activeDnsProfile.domainStrategy4Freedom"><option v-for="value in (activeTab === 'xray' ? state.dnsOptions.domainStrategies4Freedom : state.dnsOptions.domainStrategies4Singbox)" :key="value || 'none'" :value="value">{{ value || t('common.none') }}</option><option v-if="activeDnsProfile.domainStrategy4Freedom && !(activeTab === 'xray' ? state.dnsOptions.domainStrategies4Freedom : state.dnsOptions.domainStrategies4Singbox).includes(activeDnsProfile.domainStrategy4Freedom)" :value="activeDnsProfile.domainStrategy4Freedom">{{ activeDnsProfile.domainStrategy4Freedom }}</option></select></label>
@@ -85,7 +98,8 @@ const tabs = [
             <label v-if="activeTab === 'xray'" class="check-inline"><UiCheckbox v-model="activeDnsProfile.useSystemHosts" />{{ t('dns.useSystemHosts') }}</label>
           </div>
         </div>
-        <SaveBar @save="actions.saveDnsProfile(activeDnsProfile)" />
+        <p class="field-hint">{{ t('polish.editorKeyboard') }}</p>
+        <SaveBar :busy="Boolean(status.writes)" :dirty="dirty" @save="saveProfile(activeDnsProfile)" />
       </template>
       <p v-else class="muted empty-inline">{{ t('dns.coreProfileUnavailable') }}</p>
     </section>

@@ -1,7 +1,13 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useModalFocus } from '../../Composables/useModalFocus'
+import UiDialog from '../UI/UiDialog.vue'
+import UiButton from '../UI/UiButton.vue'
+import UiIconButton from '../UI/UiIconButton.vue'
+import ProfileGroupSection from '../../Features/Profiles/ProfileGroupSection.vue'
+import ProfileTransportSection from '../../Features/Profiles/ProfileTransportSection.vue'
+import ProfileSecuritySection from '../../Features/Profiles/ProfileSecuritySection.vue'
+import { optionValues } from '../../Features/Profiles/editorOptionValues'
 import { shadowsocksSecurityOptions } from '../../profileEditorOptions'
 import UiIcon from '../UiIcon.vue'
 import UiCheckbox from '../UiCheckbox.vue'
@@ -11,8 +17,6 @@ const { t } = useI18n()
 const props = defineProps<UiProps & { coreTypeMappings: Record<string, any>[] }>()
 const state = props.state
 const actions = props.actions
-const dialog = ref<HTMLElement | null>(null)
-const { onModalKeydown } = useModalFocus(dialog)
 const protocol = computed(() => state.profileForm.configType)
 const isGroup = computed(() => ['PolicyGroup', 'ProxyChain'].includes(protocol.value))
 const isCustomConfig = computed(() => ['Custom', 'Outbound'].includes(protocol.value))
@@ -46,11 +50,6 @@ function parseObject(value: unknown): Record<string, any> {
 
 function removeKeys(target: Record<string, any>, keys: readonly string[]) {
   for (const key of keys) delete target[key]
-}
-
-function optionValues(values: readonly string[] = [], current: unknown): string[] {
-  const value = String(current ?? '')
-  return value && !values.includes(value) ? [value, ...values] : [...values]
 }
 
 function canonicalizeProtocolChange(configType: string) {
@@ -133,28 +132,23 @@ watch(() => [state.showProfileForm, protocol.value] as const, ([isOpen, configTy
   if (['Custom', 'Outbound'].includes(configType) && !state.profileForm.coreType) state.profileForm.coreType = state.editorOptions.coreTypes?.[0] || ''
   if (previous?.[0] && configType !== previous[1]) canonicalizeProtocolChange(configType)
 }, { immediate: true })
-const isTls = computed(() => ['tls', 'reality'].includes(String(state.profileForm.streamSecurity).toLowerCase()))
-const isReality = computed(() => String(state.profileForm.streamSecurity).toLowerCase() === 'reality')
 const supportsTransport = computed(() => !isCustomConfig.value && !['Hysteria2', 'TUIC', 'WireGuard', 'Anytls', 'Naive'].includes(protocol.value))
 const streamSecurityOptions = computed(() => optionValues((state.editorOptions.streamSecurityTypes || [])
   .filter((security: string) => security !== 'reality' || ['VLESS', 'Trojan', 'Anytls'].includes(protocol.value)), state.profileForm.streamSecurity))
-const fingerprintDisabled = computed(() => ['Hysteria2', 'TUIC', 'Naive'].includes(protocol.value))
-const alpnDisabled = computed(() => ['Hysteria2', 'Naive'].includes(protocol.value))
 const shadowsocksMappedCore = computed(() => props.coreTypeMappings.find((mapping) => String(mapping.configType).toLowerCase() === 'shadowsocks')?.coreType || state.editorOptions.coreTypes?.[0] || '')
 const shadowsocksMethods = computed(() => shadowsocksSecurityOptions(state.profileForm.coreType, shadowsocksMappedCore.value, state.editorOptions.shadowsocksSecurities || {}))
 const transportOptions = computed(() => state.editorOptions || {})
-const showRawHttpFields = computed(() => state.profileForm.network === 'raw' && state.profileForm.transportExtra.rawHeaderType === 'http')
 </script>
 
 <template>
-  <div v-if="state.showProfileForm" class="modal-shade" @click.self="state.showProfileForm = false">
-    <form ref="dialog" class="modal-panel wide-modal modal-form" role="dialog" aria-modal="true" :aria-label="t(state.editingProfileId ? 'nodes.editNode' : 'nodes.addNode')" tabindex="-1" @keydown="onModalKeydown" @submit.prevent="actions.saveProfile">
+  <UiDialog v-if="state.showProfileForm" wide :label="t(state.editingProfileId ? 'nodes.editNode' : 'nodes.addNode')" @close="state.showProfileForm = false" @submit.prevent="actions.saveProfile">
+    <template #header>
       <header class="modal-head">
         <div><h2>{{ t(state.editingProfileId ? 'nodes.editNode' : 'nodes.addNode') }}</h2><small>{{ t('nodes.protocolEditorHint') }}</small></div>
-        <button class="tool-button" type="button" :aria-label="t('common.close')" @click="state.showProfileForm = false"><UiIcon name="close" /></button>
+        <UiIconButton type="button" :aria-label="t('common.close')" @click="state.showProfileForm = false"><UiIcon name="close" /></UiIconButton>
       </header>
 
-      <div class="modal-content">
+    </template>
         <fieldset class="editor-section">
           <legend>{{ t('nodes.profileBase') }}</legend>
           <div class="form-grid three-col">
@@ -169,15 +163,7 @@ const showRawHttpFields = computed(() => state.profileForm.network === 'raw' && 
           </div>
         </fieldset>
 
-        <fieldset v-if="isGroup" class="editor-section">
-          <legend>{{ t(protocol === 'PolicyGroup' ? 'nodes.policyGroup' : 'nodes.proxyChain') }}</legend>
-          <div class="form-grid two-col">
-            <label v-if="protocol === 'PolicyGroup'">{{ t('nodes.groupStrategy') }}<select v-model="state.profileForm.protoExtra.multipleLoad"><option v-for="strategy in state.editorOptions.multipleLoadStrategies" :key="strategy" :value="strategy">{{ t(`nodes.strategy${strategy}`) }}</option></select></label>
-            <label>{{ t('nodes.groupSubscription') }}<select v-model="state.profileForm.protoExtra.subChildItems"><option value="">{{ t('common.none') }}</option><option v-for="group in state.groups" :key="group.id" :value="group.id">{{ group.name || t('common.allGroups') }}</option></select></label>
-            <label>{{ t('nodes.groupFilter') }}<input v-model="state.profileForm.protoExtra.filter" /></label>
-            <div class="wide-field group-member-editor"><strong>{{ t('nodes.groupMembers') }}</strong><small class="field-hint">{{ t('nodes.groupMembersHint') }}</small><div class="group-member-columns"><div class="group-profile-choices"><label v-for="item in state.profileCatalog" :key="item.indexId" class="group-profile-choice"><UiCheckbox :disabled="item.indexId === state.editingProfileId" :model-value="state.groupChildIds.includes(item.indexId)" @change="actions.toggleGroupChild(item.indexId)" /><span>{{ item.remarks }}<small>{{ item.configType }} · {{ item.address }}:{{ item.port }}</small></span></label></div><div class="group-member-order"><div v-for="(id, index) in state.groupChildIds" :key="id" class="group-member-row"><span>{{ state.profileCatalog.find((item: Record<string, any>) => item.indexId === id)?.remarks || id }}</span><button class="tool-button" type="button" :disabled="index === 0" :aria-label="t('nodes.moveMemberUp')" @click="actions.moveGroupChild(id, 'up')"><UiIcon name="arrow-up" /></button><button class="tool-button" type="button" :disabled="index === state.groupChildIds.length - 1" :aria-label="t('nodes.moveMemberDown')" @click="actions.moveGroupChild(id, 'down')"><UiIcon name="arrow-down" /></button><button class="tool-button danger-text" type="button" :aria-label="t('common.delete')" @click="actions.toggleGroupChild(id)"><UiIcon name="close" /></button></div><p v-if="!state.groupChildIds.length" class="muted">{{ t('common.empty') }}</p></div></div></div>
-          </div>
-        </fieldset>
+        <ProfileGroupSection v-if="isGroup" :state="state" :actions="actions" />
 
         <template v-else>
           <fieldset v-if="isCustomConfig" class="editor-section">
@@ -231,64 +217,8 @@ const showRawHttpFields = computed(() => state.profileForm.network === 'raw' && 
             </div>
           </fieldset>
 
-          <fieldset v-if="supportsTransport" class="editor-section">
-            <legend>{{ t('nodes.transport') }}</legend>
-            <div class="form-grid three-col">
-              <template v-if="state.profileForm.network === 'raw'">
-                <label>{{ t('nodes.rawHeaderType') }}<select v-model="state.profileForm.transportExtra.rawHeaderType"><option v-for="type in optionValues(transportOptions.rawHeaderTypes, state.profileForm.transportExtra.rawHeaderType)" :key="type" :value="type">{{ type }}</option></select></label>
-                <template v-if="showRawHttpFields">
-                  <label>{{ t('nodes.host') }}<input v-model="state.profileForm.transportExtra.host" /></label>
-                  <label>{{ t('nodes.path') }}<input v-model="state.profileForm.transportExtra.path" /></label>
-                </template>
-              </template>
-              <template v-if="state.profileForm.network === 'ws' || state.profileForm.network === 'httpupgrade'">
-                <label>{{ t('nodes.host') }}<input v-model="state.profileForm.transportExtra.host" /></label>
-                <label>{{ t('nodes.path') }}<input v-model="state.profileForm.transportExtra.path" /></label>
-              </template>
-              <template v-if="state.profileForm.network === 'grpc'">
-                <label>{{ t('nodes.grpcMode') }}<select v-model="state.profileForm.transportExtra.grpcMode"><option v-for="mode in optionValues(transportOptions.grpcModes, state.profileForm.transportExtra.grpcMode)" :key="mode" :value="mode">{{ mode }}</option></select></label>
-                <label>{{ t('nodes.grpcAuthority') }}<input v-model="state.profileForm.transportExtra.grpcAuthority" /></label>
-                <label>{{ t('nodes.grpcServiceName') }}<input v-model="state.profileForm.transportExtra.grpcServiceName" /></label>
-              </template>
-              <template v-if="state.profileForm.network === 'xhttp'">
-                <label>{{ t('nodes.xhttpMode') }}<select v-model="state.profileForm.transportExtra.xhttpMode"><option v-for="mode in optionValues(transportOptions.xhttpModes, state.profileForm.transportExtra.xhttpMode)" :key="mode" :value="mode">{{ mode }}</option></select></label>
-                <label>{{ t('nodes.host') }}<input v-model="state.profileForm.transportExtra.host" /></label>
-                <label>{{ t('nodes.path') }}<input v-model="state.profileForm.transportExtra.path" /></label>
-                <label class="wide-field">{{ t('nodes.xhttpExtra') }}<textarea v-model="state.profileForm.transportExtra.xhttpExtra" /></label>
-              </template>
-              <template v-if="state.profileForm.network === 'kcp'">
-                <label>{{ t('nodes.kcpHeaderType') }}<select v-model="state.profileForm.transportExtra.kcpHeaderType"><option v-for="type in optionValues(transportOptions.kcpHeaderTypes, state.profileForm.transportExtra.kcpHeaderType)" :key="type" :value="type">{{ type }}</option></select></label>
-                <label>{{ t('nodes.kcpSeed') }}<input v-model="state.profileForm.transportExtra.kcpSeed" /></label>
-                <label>{{ t('nodes.kcpMtu') }}<input v-model.number="state.profileForm.transportExtra.kcpMtu" type="number" min="0" /></label>
-              </template>
-            </div>
-          </fieldset>
-
-          <fieldset v-if="protocol !== 'WireGuard'" class="editor-section">
-            <legend>{{ t('nodes.tlsReality') }}</legend>
-            <div class="form-grid three-col">
-              <label>{{ t('nodes.streamSecurity') }}<select v-model="state.profileForm.streamSecurity"><option v-for="security in streamSecurityOptions" :key="security || 'none'" :value="security">{{ security === 'tls' ? 'TLS' : security === 'reality' ? 'Reality' : t('common.none') }}</option></select></label>
-              <template v-if="isTls">
-                <label>{{ t('nodes.sni') }}<input v-model="state.profileForm.sni" /></label>
-                <label>{{ t('nodes.alpn') }}<select v-model="state.profileForm.alpn" :disabled="alpnDisabled"><option v-for="alpn in optionValues(transportOptions.alpns, state.profileForm.alpn)" :key="alpn || 'none'" :value="alpn">{{ alpn || t('common.none') }}</option></select></label>
-                <label>{{ t('nodes.fingerprint') }}<select v-model="state.profileForm.fingerprint" :disabled="fingerprintDisabled"><option v-for="fingerprint in optionValues(transportOptions.fingerprints, state.profileForm.fingerprint)" :key="fingerprint || 'none'" :value="fingerprint">{{ fingerprint || t('common.none') }}</option></select></label>
-                <label class="check-inline"><UiCheckbox v-model="state.profileForm.allowInsecure" :disabled="protocol === 'Naive'" />{{ t('nodes.allowInsecure') }}</label>
-              </template>
-              <template v-if="isReality">
-                <label>{{ t('nodes.publicKey') }}<input v-model="state.profileForm.publicKey" /></label>
-                <label>{{ t('nodes.shortId') }}<input v-model="state.profileForm.shortId" /></label>
-                <label>{{ t('nodes.spiderX') }}<input v-model="state.profileForm.spiderX" /></label>
-                <label>{{ t('nodes.mldsa65Verify') }}<input v-model="state.profileForm.mldsa65Verify" /></label>
-              </template>
-              <template v-if="state.profileForm.streamSecurity === 'tls'">
-                <label>{{ t('nodes.cert') }}<textarea v-model="state.profileForm.cert" /></label>
-                <label>{{ t('nodes.certSha') }}<input v-model="state.profileForm.certSha" /></label>
-                <label>{{ t('nodes.echConfigList') }}<textarea v-model="state.profileForm.echConfigList" /></label>
-                <label>{{ t('nodes.verifyPeerCertByName') }}<input v-model="state.profileForm.verifyPeerCertByName" /></label>
-                <label>{{ t('nodes.finalmask') }}<input v-model="state.profileForm.finalmask" /></label>
-              </template>
-            </div>
-          </fieldset>
+          <ProfileTransportSection v-if="supportsTransport" :state="state" />
+          <ProfileSecuritySection v-if="protocol !== 'WireGuard'" :state="state" :stream-security-options="streamSecurityOptions" />
           </template>
         </template>
 
@@ -298,12 +228,11 @@ const showRawHttpFields = computed(() => state.profileForm.network === 'raw' && 
           <textarea v-model="state.profileAdvancedJson" class="code-area advanced-profile-json" spellcheck="false" />
         </details>
         <p v-if="state.profileModalError" class="inline-error" role="alert">{{ state.profileModalError }}</p>
-      </div>
-
+    <template #actions>
       <footer class="modal-actions">
-        <button class="button" type="button" @click="state.showProfileForm = false">{{ t('common.cancel') }}</button>
-        <button class="button primary" type="submit">{{ t('common.save') }}</button>
+        <UiButton type="button" @click="state.showProfileForm = false">{{ t('common.cancel') }}</UiButton>
+        <UiButton class="primary" type="submit">{{ t('common.save') }}</UiButton>
       </footer>
-    </form>
-  </div>
+    </template>
+  </UiDialog>
 </template>
