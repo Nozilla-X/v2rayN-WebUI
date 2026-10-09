@@ -309,7 +309,7 @@ body:has(.core-panel-shade) { overflow: hidden; }
 .profile-table, .data-table { width: 100%; border-collapse: collapse; white-space: nowrap; }
 .profile-table { min-width: 1330px; font-size: var(--font-label); }
 .profile-table th, .data-table th { position: sticky; top: 0; z-index: 1; height: var(--table-row-height); padding: var(--table-cell-padding); color: var(--text); border-bottom: 1px solid var(--border-strong); background: var(--surface-inset); text-align: left; font-weight: var(--weight-heading); }
-.profile-table td, .data-table td { height: var(--table-row-height); padding: var(--table-cell-padding); border-bottom: 1px solid var(--border-soft); color: var(--text); }
+.profile-table td, .data-table td { height: var(--table-row-height); padding: var(--table-cell-padding); border-bottom: 1px solid var(--border-soft); color: var(--text); vertical-align: middle; }
 .profile-table th:not(:last-child), .profile-table td:not(:last-child) { border-right: 1px solid var(--border-soft); }
 .profile-table tbody tr:nth-child(even), .data-table tbody tr:nth-child(even) { background: var(--table-row-alt); }
 .profile-table tbody tr:hover:not(.current):not(.selected), .data-table tbody tr:hover:not(.selected) { background: var(--table-row-hover); }

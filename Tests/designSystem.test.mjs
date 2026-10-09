@@ -32,6 +32,11 @@ test('same-scope selectors do not accumulate conflicting override blocks', () =>
   })
 })
 
+test('native table cells override the inline text bottom alignment', () => {
+  const cells = css.nodes.find(rule => rule.type === 'rule' && rule.selector === '.profile-table td, .data-table td')
+  assert.ok(cells.nodes.some(declaration => declaration.prop === 'vertical-align' && declaration.value === 'middle'))
+})
+
 test('all eight page views share the page header and have no private style blocks', async () => {
   const directory = new URL('../Src/Components/Pages/', import.meta.url)
   const files = (await readdir(directory)).filter(name => name.endsWith('.vue'))
