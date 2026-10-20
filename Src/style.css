@@ -450,8 +450,6 @@ body:has(.core-panel-shade) { overflow: hidden; }
 @media (max-width: 1120px) {
   .app-header { gap: 7px; padding: 0 7px; }
   .nav-tab { padding: 0 7px; }
-  .runtime-strip { align-items: flex-start; flex-direction: column; }
-  .core-actions { align-self: flex-end; }
 }
 
 /* Mid-width windows keep every destination visible: navigation drops to its own row

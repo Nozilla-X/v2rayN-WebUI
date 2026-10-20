@@ -46,7 +46,7 @@ Semantic aliases (e.g. Toast success/danger colors) resolve to the same feedback
 ## Responsive boundaries
 
 - 1360px: navigation may wrap onto its own row.
-- 1120px: runtime/update controls may stack; template options become two columns.
+- 1120px: template options become two columns; desktop Core status and actions stay on one row until the mobile layout takes over at 760px.
 - 960px: node group toolbar wraps.
 - 760px: touch scale, single-column forms, existing mobile cards and bottom navigation.
 - 460px: narrow-screen field and pagination adjustments.

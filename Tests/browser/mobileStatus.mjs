@@ -10,7 +10,7 @@ const output = process.env.SCREENSHOT_DIR
 if (output) await mkdir(output, { recursive: true })
 let checks = 0
 try {
-  for (const width of [360, 390, 430, 502, 760, 1440]) {
+  for (const width of [360, 390, 430, 502, 760, 761, 800, 1120, 1121, 1440]) {
     for (const [scenario, name] of [['short', 'Test-node-k3skg7b3'], ['long', '移动端长节点名称 / Hong Kong '.repeat(5)], ['empty', '']]) {
       for (const running of [true, false]) {
         const context = await browser.newContext({ viewport: { width, height: 844 }, isMobile: width <= 760, hasTouch: width <= 760, colorScheme: scenario === 'empty' ? 'light' : 'dark' })
@@ -140,6 +140,15 @@ try {
           return { pageWidth: document.documentElement.scrollWidth, statusInner: inner('.runtime-strip'), status: box('.runtime-main').width, actions: box('.core-actions').width, route: box('#runtime-route').width, connectionInner: inner('.connection-strip'), listeners: box('.listener-list').width, traffic: box('.traffic-list').width, title: box('.page-title').top, controls: [...document.querySelectorAll('.core-actions button')].map(el => ({ height: el.getBoundingClientRect().height, disabled: el.disabled })) }
         })
         assert.ok(layout.pageWidth <= width, `${width} ${scenario}: page overflow`)
+        if (width > 760 && width <= 1120) {
+          const rows = await page.evaluate(() => {
+            const main = document.querySelector('.runtime-main').getBoundingClientRect()
+            const actions = document.querySelector('.core-actions').getBoundingClientRect()
+            return { direction: getComputedStyle(document.querySelector('.runtime-strip')).flexDirection, overlapsVertically: main.top < actions.bottom && actions.top < main.bottom }
+          })
+          assert.equal(rows.direction, 'row', `${width} ${scenario}: intermediate Core status stays in the desktop row`)
+          assert.ok(rows.overlapsVertically, `${width} ${scenario}: Core actions do not drop below status`)
+        }
         if (width <= 760) {
           for (const group of ['status', 'actions']) assert.ok(Math.abs(layout[group] - layout.statusInner) < 1, `${width} ${scenario}: ${group} shrinks to content width`)
           assert.ok(Math.abs(layout.traffic - layout.connectionInner) < 1, `${width} ${scenario}: detailed traffic shrinks to content width`)
