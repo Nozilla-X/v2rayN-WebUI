@@ -103,6 +103,35 @@ try {
           assert.equal(await details.isVisible(), false, 'desktop does not gain a details column')
           for (const cell of await node.locator('.node-detail-cell').all()) assert.ok(await cell.isVisible(), 'desktop retains dense fields')
         }
+        if ([761, 800].includes(width) && scenario === 'short' && running) {
+          const toggle = page.locator('.node-search-toggle')
+          const input = page.locator('#nodes-filter')
+          const assertActionRow = async () => {
+            const tops = await page.locator('.group-toolbar .node-toolbar-action, .group-toolbar .search-box').evaluateAll(elements => elements
+              .filter(element => getComputedStyle(element).display !== 'none')
+              .map(element => element.getBoundingClientRect().top))
+            assert.ok(tops.length > 1 && Math.max(...tops) - Math.min(...tops) < 1, 'mid-width toolbar actions stay on one row')
+          }
+          assert.ok(await toggle.isVisible(), 'mid-width search is available as a compact button')
+          assert.equal(await toggle.getAttribute('aria-expanded'), 'false', 'mid-width search starts collapsed')
+          assert.equal(await input.isVisible(), false, 'the full-width filter does not consume toolbar space while collapsed')
+          await assertActionRow()
+          await toggle.click()
+          assert.equal(await toggle.getAttribute('aria-expanded'), 'true', 'search button exposes the expanded state')
+          await assertActionRow()
+          assert.ok(await input.evaluate(element => element === document.activeElement), 'opening search focuses the filter input')
+          await input.fill('Test-node')
+          const searchResponse = page.waitForResponse(response => new URL(response.url()).pathname === '/api/profiles')
+          await Promise.all([searchResponse, input.press('Enter')])
+          await input.fill('')
+          const clearResponse = page.waitForResponse(response => new URL(response.url()).pathname === '/api/profiles')
+          await Promise.all([clearResponse, input.press('Enter')])
+          await input.press('Escape')
+          assert.equal(await toggle.getAttribute('aria-expanded'), 'true', 'Escape does not close the tablet search')
+          await page.locator('.page-title h1').click()
+          assert.equal(await toggle.getAttribute('aria-expanded'), 'false', 'clicking outside collapses the compact search')
+          assert.equal(await input.isVisible(), false, 'outside click hides the filter input')
+        }
         await page.locator('.main-nav > .nav-tab').nth(2).click()
         await page.locator('.routing-page').waitFor()
         if (output && scenario === 'short' && running) await page.screenshot({ path: `${output}/${width}-routing.png` })

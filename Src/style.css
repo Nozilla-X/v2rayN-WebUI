@@ -466,6 +466,11 @@ body:has(.core-panel-shade) { overflow: hidden; }
   .nodes-page .group-toolbar .search-box { order: 5; }
 }
 
+@media (min-width: 761px) and (max-width: 960px) {
+  .nodes-page .group-toolbar .node-search-toggle { order: 6; }
+  .nodes-page .group-toolbar .search-box { flex: 0 1 310px; width: 310px; }
+}
+
 /* Dense, tabbed editor surfaces keep the desktop utility's information hierarchy. */
 button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible {
   outline: var(--focus-width) solid var(--focus);

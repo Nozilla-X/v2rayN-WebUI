@@ -207,6 +207,7 @@
     "count": "{count} 个节点",
     "group": "订阅分组",
     "filterPlaceholder": "过滤器，按回车执行",
+    "searchPlaceholder": "查找配置项",
     "regexHint": "别名筛选支持 ServiceLib 正则表达式",
     "type": "类型",
     "remarks": "别名",

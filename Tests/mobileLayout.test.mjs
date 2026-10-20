@@ -36,6 +36,20 @@ test('runtime retains all operations while mobile promotes the applicable primar
   assert.match(css, /\.current-runtime-name \{ max-width: none;[^}]*white-space: normal; overflow-wrap: anywhere/)
 })
 
+test('mid-width node search collapses behind a focused accessible button and keeps Enter filtering', async () => {
+  const [page, css] = await Promise.all([source('Components/Pages/NodesPage.vue'), source('style.css')])
+  assert.match(page, /matchMedia\('\(min-width: 761px\) and \(max-width: 960px\)'\)/)
+  assert.match(page, /:aria-expanded="compactSearchOpen" aria-controls="nodes-filter"/)
+  assert.match(page, /v-show="!compactSearch \|\| compactSearchOpen"/)
+  assert.match(page, /@keyup\.enter="reloadProfiles"/)
+  assert.match(page, /document\.addEventListener\('pointerdown', handleCompactSearchPointerDown\)/)
+  assert.match(page, /searchBox\.value\?\.contains\(target\) \|\| searchToggle\.value\?\.contains\(target\)/)
+  assert.doesNotMatch(page, /@keydown\.esc/)
+  assert.match(page, /nextTick\(\(\) => filterInput\.value\?\.focus\(\)\)/)
+  assert.match(css, /@media \(min-width: 761px\) and \(max-width: 960px\)[\s\S]*\.node-search-toggle \{ order: 6/)
+  assert.match(css, /\.nodes-page \.group-toolbar \.search-box \{ flex: 0 1 310px; width: 310px/)
+})
+
 test('mobile status grids explicitly fill the cards even with short or empty content', async () => {
   const css = await source('style.css')
   for (const selector of ['runtime-strip', 'connection-strip']) {

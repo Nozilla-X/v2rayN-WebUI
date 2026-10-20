@@ -48,6 +48,7 @@ Semantic aliases (e.g. Toast success/danger colors) resolve to the same feedback
 - 1360px: navigation may wrap onto its own row.
 - 1120px: template options become two columns; desktop Core status and actions stay on one row until the mobile layout takes over at 760px.
 - 960px: node group toolbar wraps.
+- 761–960px: node filter collapses behind a search button and expands on demand; Enter still applies the filter.
 - 760px: touch scale, single-column forms, existing mobile cards and bottom navigation.
 - 460px: narrow-screen field and pagination adjustments.
 

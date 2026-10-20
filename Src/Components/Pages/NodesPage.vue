@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ActionDropdown from '../ActionDropdown.vue'
 import UiIcon from '../UiIcon.vue'
@@ -15,6 +15,12 @@ const state = props.state
 const actions = props.actions
 const selectedSubscription = computed(() => state.subscriptions.find((item: Record<string, any>) => item.id === state.selectedGroup) || null)
 const autoFitColumns = ref(false)
+const compactSearchQuery = window.matchMedia('(min-width: 761px) and (max-width: 960px)')
+const compactSearch = ref(compactSearchQuery.matches)
+const compactSearchOpen = ref(Boolean(state.filter))
+const filterInput = ref<HTMLInputElement | null>(null)
+const searchBox = ref<HTMLElement | null>(null)
+const searchToggle = ref<HTMLButtonElement | null>(null)
 const showIpInfoColumn = computed(() => shouldRenderIpInfoColumn(state.showIpInfoColumn))
 const expandedProfiles = ref(new Set<string>())
 const { status, run } = usePageRequests('nodes')
@@ -22,6 +28,42 @@ const reloadProfiles = () => run(() => actions.loadProfiles())
 const tableWrap = ref<HTMLElement | null>(null)
 const currentVisible = computed(() => state.profiles.find((profile: Record<string, any>) => profile.isCurrent))
 const testing = computed(() => state.operations.includes('speedtest'))
+function updateCompactSearch() {
+  const wasCompact = compactSearch.value
+  compactSearch.value = compactSearchQuery.matches
+  if (compactSearch.value && !wasCompact) {
+    compactSearchOpen.value = Boolean(state.filter)
+    if (!compactSearchOpen.value && document.activeElement === filterInput.value) {
+      void nextTick(() => searchToggle.value?.focus())
+    }
+  } else if (!compactSearch.value) {
+    compactSearchOpen.value = false
+  }
+}
+function toggleCompactSearch() {
+  compactSearchOpen.value = !compactSearchOpen.value
+  if (compactSearchOpen.value) void nextTick(() => filterInput.value?.focus())
+  else closeCompactSearch(true)
+}
+function closeCompactSearch(returnFocus = false) {
+  if (!compactSearch.value) return
+  compactSearchOpen.value = false
+  if (returnFocus) void nextTick(() => searchToggle.value?.focus())
+}
+function handleCompactSearchPointerDown(event: PointerEvent) {
+  if (!compactSearch.value || !compactSearchOpen.value) return
+  const target = event.target
+  if (!(target instanceof Node) || searchBox.value?.contains(target) || searchToggle.value?.contains(target)) return
+  closeCompactSearch()
+}
+onMounted(() => {
+  compactSearchQuery.addEventListener('change', updateCompactSearch)
+  document.addEventListener('pointerdown', handleCompactSearchPointerDown)
+})
+onUnmounted(() => {
+  compactSearchQuery.removeEventListener('change', updateCompactSearch)
+  document.removeEventListener('pointerdown', handleCompactSearchPointerDown)
+})
 function locateCurrent() {
   const row = [...(tableWrap.value?.querySelectorAll<HTMLElement>('[data-profile-id]') || [])].find(item => item.dataset.profileId === currentVisible.value?.indexId)
   row?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
@@ -81,7 +123,8 @@ function preventRangeTextSelection(event: MouseEvent) {
     </div>
     <button class="tool-button node-toolbar-action" :disabled="!selectedSubscription" :aria-label="t('subscriptions.editSubscription')" :title="t('subscriptions.editSubscription')" @click="selectedSubscription && actions.openEditSubscription(selectedSubscription)"><UiIcon name="edit" /></button>
     <button class="tool-button node-toolbar-action" :aria-label="t('subscriptions.addSubscription')" :title="t('subscriptions.addSubscription')" @click="actions.openAddSubscription"><UiIcon name="plus" /></button>
-    <label class="search-box"><UiIcon name="search" /><input v-model="state.filter" :aria-label="t('nodes.filterPlaceholder')" aria-describedby="nodes-search-hint" :placeholder="t('nodes.filterPlaceholder')" @keyup.enter="reloadProfiles" /><button v-if="state.filter" class="clear-search" :aria-label="t('polish.clearSearch')" @click="state.filter = ''; reloadProfiles()"><UiIcon name="close" /></button></label>
+    <button v-if="compactSearch" ref="searchToggle" class="tool-button node-toolbar-action node-search-toggle" :class="{ selected: compactSearchOpen || Boolean(state.filter) }" type="button" :aria-label="t(compactSearchOpen ? 'common.close' : 'common.search')" :title="t(compactSearchOpen ? 'common.close' : 'common.search')" :aria-expanded="compactSearchOpen" aria-controls="nodes-filter" @click="toggleCompactSearch"><UiIcon :name="compactSearchOpen ? 'close' : 'search'" /></button>
+    <label ref="searchBox" v-show="!compactSearch || compactSearchOpen" class="search-box"><UiIcon name="search" /><input id="nodes-filter" ref="filterInput" v-model="state.filter" :aria-label="t('nodes.searchPlaceholder')" aria-describedby="nodes-search-hint" :placeholder="t('nodes.searchPlaceholder')" @keyup.enter="reloadProfiles" /><button v-if="state.filter" class="clear-search" :aria-label="t('polish.clearSearch')" @click="state.filter = ''; reloadProfiles()"><UiIcon name="close" /></button></label>
     <button class="tool-button node-toolbar-action node-autofit-action" :class="{ selected: autoFitColumns }" :aria-pressed="autoFitColumns" :aria-label="t('nodes.autoFitColumns')" :title="t('nodes.autoFitColumns')" @click="autoFitColumns = !autoFitColumns"><UiIcon name="fit" /></button>
     <button class="tool-button node-toolbar-action" :aria-label="t('nodes.fastRealping')" :title="t('nodes.fastRealping')" @click="actions.startSpeedTest('fastRealping')"><UiIcon name="bolt" /></button>
     <button class="tool-button node-toolbar-action" :aria-label="t('nodes.mixedtest')" :title="t('nodes.mixedtest')" @click="actions.startSpeedTest('mixedtest')"><UiIcon name="speed" /></button>

@@ -206,6 +206,7 @@
     "webOnlyActions": "Web-only actions",
     "group": "Subscription group",
     "filterPlaceholder": "Filter, press Enter to execute",
+    "searchPlaceholder": "Search profiles",
     "type": "Type",
     "remarks": "Remarks",
     "address": "Address",
