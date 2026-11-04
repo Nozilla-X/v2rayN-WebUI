@@ -16,13 +16,16 @@ export function useLogs(options: ApiServices & {
   const selectedLogKeys = ref<string[]>([])
   const logPageSize = 100
   let clearRevision = 0
+  let loadSequence = 0
   const logTotalPages = computed(() => Math.max(1, Math.ceil(logTotal.value / logPageSize)))
 
   async function loadLogs(page = 1) {
+    const sequence = ++loadSequence
     const requestRevision = clearRevision
+    const filter = logFilter.value.trim()
     try {
-      const result = await options.data(options.queryPath('/api/logs/page', { page, pageSize: logPageSize, filter: logFilter.value.trim() }))
-      if (requestRevision !== clearRevision) return
+      const result = await options.data(options.queryPath('/api/logs/page', { page, pageSize: logPageSize, filter }))
+      if (requestRevision !== clearRevision || sequence !== loadSequence) return
       logs.value = result?.items || []
       logPage.value = result?.page || 1
       logTotal.value = result?.total || 0
@@ -80,8 +83,10 @@ export function useLogs(options: ApiServices & {
   async function copyAllLogs() {
     try {
       const all: Dict[] = []
-      for (let page = 1; page <= logTotalPages.value; page += 1) {
-        const result = await options.data(options.queryPath('/api/logs/page', { page, pageSize: logPageSize, filter: logFilter.value.trim() }))
+      const filter = logFilter.value.trim()
+      const totalPages = logTotalPages.value
+      for (let page = 1; page <= totalPages; page += 1) {
+        const result = await options.data(options.queryPath('/api/logs/page', { page, pageSize: logPageSize, filter }))
         all.push(...(result?.items || []))
       }
       await copyLogs(all)
@@ -99,6 +104,7 @@ export function useLogs(options: ApiServices & {
 
   function clearLogsState(generation?: number) {
     clearRevision += 1
+    loadSequence += 1
     options.clearRealtimeQueue?.(generation)
     logs.value = typeof generation === 'number'
       ? logs.value.filter((entry) => typeof entry.generation === 'number' && entry.generation >= generation)

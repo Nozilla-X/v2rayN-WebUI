@@ -45,6 +45,11 @@ export function useEvents(options: {
   let minimumLogGeneration = 0
   let geoUpdateActive = false
   const operationsRefresh = createEventRefresh(options.loadOperations)
+  const profileDataRefresh = createEventRefresh(async () => {
+    await options.loadGroups()
+    await options.loadProfiles()
+    await options.loadSubscriptions()
+  })
   const updatePhases = new Map<string, string>()
   const pendingUpdateProgress = new Map<string, Dict>()
   let updateProgressTimer: ReturnType<typeof setTimeout> | undefined
@@ -238,7 +243,7 @@ export function useEvents(options: {
         if (eventName === 'profiles-changed' || eventName === 'subscription-progress') {
           if (eventName === 'subscription-progress') options.onSubscriptionProgress?.(JSON.parse((event as MessageEvent).data))
           operationsRefresh.request()
-          void options.loadGroups().then(options.loadProfiles).then(options.loadSubscriptions).catch(() => {})
+          profileDataRefresh.request()
         }
         if (eventName === 'settings-changed' || eventName === 'core-state') {
           void Promise.all([options.loadStatus(), options.loadRouting()]).catch(() => {})
@@ -281,6 +286,7 @@ export function useEvents(options: {
   function closeEvents() {
     connectionGeneration += 1
     operationsRefresh.clear()
+    profileDataRefresh.clear()
     geoUpdateActive = false
     clearTimeout(updateProgressTimer)
     updateProgressTimer = undefined
