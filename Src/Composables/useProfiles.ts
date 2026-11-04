@@ -1,7 +1,7 @@
 import { computed, reactive, ref, type Ref } from 'vue'
 import type { ApiError, ApiServices, Dict, ErrorHandler, Notice, Translate } from './types'
 import { canonicalNetwork } from '../profileEditorOptions'
-import { normalizeProfileProtocolExtra, normalizeProfileTransportExtra } from './profilePayloads.ts'
+import { mergeFormEdits, normalizeProfileProtocolExtra, normalizeProfileTransportExtra } from './profilePayloads.ts'
 import { normalizeNullableNumbers } from './settingsPayloads.ts'
 import { mergeSpeedTestResult as mergeSpeedTestResultIntoRows } from './speedtestResults.ts'
 import { planSelectedMoves, planSelectedPositionMoves } from './movementOrder.ts'
@@ -522,28 +522,6 @@ export function useProfiles(options: ApiServices & {
 
   function cloneObject(value: unknown): Dict {
     return JSON.parse(JSON.stringify(value || {}))
-  }
-
-  function isRecord(value: unknown): value is Dict {
-    return Boolean(value && typeof value === 'object' && !Array.isArray(value))
-  }
-
-  function mergeFormEdits(advanced: Dict, current: Dict, initial: Dict): Dict {
-    const merged = { ...advanced }
-    const keys = new Set([...Object.keys(current), ...Object.keys(initial)])
-    for (const key of keys) {
-      const hasCurrent = Object.prototype.hasOwnProperty.call(current, key)
-      const hasInitial = Object.prototype.hasOwnProperty.call(initial, key)
-      if (hasCurrent === hasInitial && JSON.stringify(current[key]) === JSON.stringify(initial[key])) continue
-      if (!hasCurrent) {
-        delete merged[key]
-      } else if (isRecord(current[key]) && isRecord(initial[key])) {
-        merged[key] = mergeFormEdits(isRecord(merged[key]) ? merged[key] : {}, current[key], initial[key])
-      } else {
-        merged[key] = current[key]
-      }
-    }
-    return merged
   }
 
   function parseList(value: unknown): string[] {
