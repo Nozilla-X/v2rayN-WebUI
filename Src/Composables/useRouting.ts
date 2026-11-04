@@ -134,7 +134,10 @@ export function useRouting(options: ApiServices & {
       selectedRouteIds.value = []
       options.showNotice(t('common.deleted'))
       await loadRouting()
-    } catch (error) { options.showError(error) }
+    } catch (error) {
+      try { await loadRouting() } catch { /* Keep the original mutation error visible. */ }
+      options.showError(error)
+    }
     finally { deletingSelectedRoutes.value = false }
   }
 
