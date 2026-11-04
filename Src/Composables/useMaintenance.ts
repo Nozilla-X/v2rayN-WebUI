@@ -238,8 +238,8 @@ export function useMaintenance(options: ApiServices & {
     const input = event.target as HTMLInputElement
     const file = input.files?.[0]
     if (!file) return
-    if (!await options.confirm(t('maintenance.restoreConfirm'))) return
     try {
+      if (!await options.confirm(t('maintenance.restoreConfirm'))) return
       const formData = new FormData()
       formData.set('file', file)
       const result = await options.request('/api/backup/restore', { method: 'POST', body: formData })
