@@ -23,9 +23,12 @@ export function useSubscriptions(options: ApiServices & {
   const convertTargets = ref<string[]>([])
   const showSubscriptionForm = ref(false)
   const editingSubscriptionId = ref('')
+  let subscriptionsLoadSequence = 0
 
   async function loadSubscriptions() {
-    subscriptions.value = await options.data('/api/subscriptions') || []
+    const sequence = ++subscriptionsLoadSequence
+    const loaded = await options.data('/api/subscriptions') || []
+    if (sequence === subscriptionsLoadSequence) subscriptions.value = loaded
   }
 
   async function loadEditorOptions() {
@@ -132,6 +135,7 @@ export function useSubscriptions(options: ApiServices & {
   }
 
   function reset() {
+    subscriptionsLoadSequence += 1
     subscriptions.value = []
     subscriptionForm.value = {}
     profileOptions.value = []
