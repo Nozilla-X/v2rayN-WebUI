@@ -1,10 +1,10 @@
 import { computed, reactive, ref, type Ref } from 'vue'
 import type { ApiError, ApiServices, Dict, ErrorHandler, Notice, Translate } from './types'
 import { canonicalNetwork } from '../profileEditorOptions'
-import { normalizeProfileProtocolExtra, normalizeProfileTransportExtra } from './profilePayloads.ts'
+import { mergeFormEdits, normalizeProfileProtocolExtra, normalizeProfileTransportExtra } from './profilePayloads.ts'
 import { normalizeNullableNumbers } from './settingsPayloads.ts'
 import { mergeSpeedTestResult as mergeSpeedTestResultIntoRows } from './speedtestResults.ts'
-import { planSelectedMoves } from './movementOrder.ts'
+import { planSelectedMoves, planSelectedPositionMoves } from './movementOrder.ts'
 
 const groupIncompatibleProfileFields = [
   'address', 'port', 'password', 'username', 'network', 'headerType', 'requestHost', 'path',
@@ -42,6 +42,8 @@ export function useProfiles(options: ApiServices & {
   const importForm = ref<Dict>({ content: '', subscriptionId: '', isSubscription: false })
   const profileForm = ref<Dict>({})
   const profileAdvancedJson = ref('')
+  let initialProtoExtra: Dict = {}
+  let initialTransportExtra: Dict = {}
   const editorOptions = ref<Dict>({})
   const profileCatalog = ref<Dict[]>([])
   const groupChildIds = ref<string[]>([])
@@ -62,7 +64,6 @@ export function useProfiles(options: ApiServices & {
 
   // The backend owns filtering so its ServiceLib regex semantics are preserved.
   const filteredProfiles = computed(() => profiles.value)
-  const selectedProfiles = computed(() => profiles.value.filter((profile) => selectedIds.value.includes(profile.indexId)))
   const allVisibleSelected = computed(() => filteredProfiles.value.length > 0 && filteredProfiles.value.every((profile) => selectedIds.value.includes(profile.indexId)))
 
   async function loadEditorOptions() {
@@ -291,8 +292,13 @@ export function useProfiles(options: ApiServices & {
     const position = Number(String(value).trim())
     if (!Number.isInteger(position) || position < 1) return options.showNotice(t('errors.invalidInput'), 'error')
     try {
-      for (const profile of selectedProfiles.value) {
-        await options.request('/api/profiles/move', { method: 'POST', body: { profileId: profile.indexId, direction: 'position', position: position - 1 } })
+      const groupId = selectedGroup.value
+      const ids = [...selectedIds.value]
+      const rows: Dict[] = await options.data(options.queryPath('/api/profiles', { subscriptionId: groupId })) || []
+      if (groupId !== selectedGroup.value) return
+      const moves = planSelectedPositionMoves(rows.map((profile) => profile.indexId), ids, position - 1)
+      for (const move of moves) {
+        await options.request('/api/profiles/move', { method: 'POST', body: { profileId: move.id, direction: 'position', position: move.position } })
       }
       await loadProfiles()
     } catch (error) { options.showError(error) }
@@ -376,12 +382,14 @@ export function useProfiles(options: ApiServices & {
       },
       transportExtra: { rawHeaderType: editorOptions.value.rawHeaderTypes?.[0], xhttpMode: editorOptions.value.defaultXhttpMode, kcpHeaderType: editorOptions.value.rawHeaderTypes?.[0], grpcMode: editorOptions.value.defaultGrpcMode },
     }
+    initialProtoExtra = cloneObject(profileForm.value.protoExtra)
+    initialTransportExtra = cloneObject(profileForm.value.transportExtra)
     groupChildIds.value = []
     profileAdvancedJson.value = JSON.stringify({
       indexId: '', configType: 'VMess', coreType: 'Xray', subid: '', isSub: false,
       remarks: '', address: '', port: 0, password: '', username: '', network: editorOptions.value.defaultNetwork, streamSecurity: editorOptions.value.defaultStreamSecurity, displayLog: true, preSocksPort: null,
       allowInsecure: '', sni: '', alpn: '', fingerprint: '', publicKey: '', shortId: '', spiderX: '',
-      protoExtra: '{}', transportExtra: '{}',
+      protoExtra: JSON.stringify(profileForm.value.protoExtra), transportExtra: JSON.stringify(profileForm.value.transportExtra),
     }, null, 2)
     showProfileForm.value = true
   }
@@ -408,8 +416,14 @@ export function useProfiles(options: ApiServices & {
         protoExtra: { ...protoExtra, childItems: parseList(protoExtra.childItems) },
         transportExtra,
       }
+      initialProtoExtra = cloneObject(profileForm.value.protoExtra)
+      initialTransportExtra = cloneObject(profileForm.value.transportExtra)
       groupChildIds.value = parseList(protoExtra.childItems)
-      profileAdvancedJson.value = JSON.stringify(details, null, 2)
+      const advancedDetails = {
+        ...details,
+        protoExtra: typeof details.protoExtra === 'string' ? JSON.stringify(protoExtra) : protoExtra,
+      }
+      profileAdvancedJson.value = JSON.stringify(advancedDetails, null, 2)
       showProfileForm.value = true
     } catch (error) { options.showError(error) }
   }
@@ -418,11 +432,11 @@ export function useProfiles(options: ApiServices & {
     try {
       const advanced = JSON.parse(profileAdvancedJson.value || '{}')
       const protoExtra = normalizeNullableNumbers(
-        { ...parseObject(advanced.protoExtra), ...profileForm.value.protoExtra },
+        mergeFormEdits(parseObject(advanced.protoExtra), profileForm.value.protoExtra || {}, initialProtoExtra),
         ['upMbps', 'downMbps', 'wgMtu', 'insecureConcurrency'],
       )
       const transportExtra = normalizeProfileTransportExtra(
-        { ...parseObject(advanced.transportExtra), ...profileForm.value.transportExtra },
+        mergeFormEdits(parseObject(advanced.transportExtra), profileForm.value.transportExtra || {}, initialTransportExtra),
       )
       const isGroupProfile = ['PolicyGroup', 'ProxyChain'].includes(profileForm.value.configType)
       const isCustomFileProfile = ['Custom', 'Outbound'].includes(profileForm.value.configType)
@@ -506,6 +520,10 @@ export function useProfiles(options: ApiServices & {
     } catch { return {} }
   }
 
+  function cloneObject(value: unknown): Dict {
+    return JSON.parse(JSON.stringify(value || {}))
+  }
+
   function parseList(value: unknown): string[] {
     if (Array.isArray(value)) return value.map(String).filter(Boolean)
     return typeof value === 'string' ? value.split(',').map((item) => item.trim()).filter(Boolean) : []
@@ -577,6 +595,8 @@ export function useProfiles(options: ApiServices & {
     importForm.value = { content: '', subscriptionId: '', isSubscription: false }
     profileForm.value = {}
     profileAdvancedJson.value = ''
+    initialProtoExtra = {}
+    initialTransportExtra = {}
     editorOptions.value = {}
     protocolTypes.value = []
     coreTypes.value = []

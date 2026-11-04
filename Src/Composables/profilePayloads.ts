@@ -22,6 +22,30 @@ function positiveIntString(value: unknown): string | null {
   return number != null && Number.isInteger(number) && number > 0 ? String(number) : null
 }
 
+function isRecord(value: unknown): value is Dict {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value))
+}
+
+// The form owns only the fields the user actually changed since loading; other
+// JSON-edited compatibility fields keep the advanced editor's value.
+export function mergeFormEdits(advanced: Dict, current: Dict, initial: Dict): Dict {
+  const merged = { ...advanced }
+  const keys = new Set([...Object.keys(current), ...Object.keys(initial)])
+  for (const key of keys) {
+    const hasCurrent = Object.prototype.hasOwnProperty.call(current, key)
+    const hasInitial = Object.prototype.hasOwnProperty.call(initial, key)
+    if (hasCurrent === hasInitial && JSON.stringify(current[key]) === JSON.stringify(initial[key])) continue
+    if (!hasCurrent) {
+      delete merged[key]
+    } else if (isRecord(current[key]) && isRecord(initial[key])) {
+      merged[key] = mergeFormEdits(isRecord(merged[key]) ? merged[key] : {}, current[key], initial[key])
+    } else {
+      merged[key] = current[key]
+    }
+  }
+  return merged
+}
+
 export function normalizeProfileProtocolExtra(value: Dict, configType: string): Dict {
   const extra: Dict = { ...value }
   for (const field of nullableTextFields) {
