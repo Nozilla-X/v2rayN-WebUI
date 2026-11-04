@@ -42,15 +42,19 @@ export function useRouting(options: ApiServices & {
   const currentRoute = computed(() => routes.value.find((route) => route.isActive) || null)
   const selectedRoute = computed(() => routes.value.find((route) => route.id === selectedRoutingId.value) || null)
 
-  async function loadRouting() {
+  async function loadRouting(loadOptions: { preserveRuleDraft?: boolean } = {}) {
+    const previousSelectedId = selectedRoutingId.value
     routes.value = await options.data('/api/settings/routing-profiles') || []
     selectedRouteIds.value = selectedRouteIds.value.filter((id) => routes.value.some((route) => route.id === id))
     activeRoutingId.value = routes.value.find((item) => item.isActive)?.id || ''
     if (!routes.value.some((item) => item.id === selectedRoutingId.value)) {
       selectedRoutingId.value = activeRoutingId.value || routes.value[0]?.id || ''
     }
-    if (selectedRoutingId.value) await loadRules(selectedRoutingId.value)
-    else {
+    if (selectedRoutingId.value) {
+      const hasUnsavedRuleDraft = rulesRaw.value !== JSON.stringify(routingRules.value, null, 2)
+      const preserveDraft = loadOptions.preserveRuleDraft && previousSelectedId === selectedRoutingId.value && hasUnsavedRuleDraft
+      if (!preserveDraft) await loadRules(selectedRoutingId.value)
+    } else {
       routingRules.value = []
       rulesRaw.value = '[]'
     }

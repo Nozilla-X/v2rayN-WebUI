@@ -110,7 +110,7 @@ const events = useEvents({
   request: api.request, resolveUrl: api.resolveUrl, t, showNotice, matchesLogFilter: logs.matchesLogFilter,
   networkFailureMessage: () => t(networkFailureKey(backend.base.value)),
   loadGroups: profiles.loadGroups, loadProfiles: profiles.loadProfiles, loadSubscriptions: subscriptions.loadSubscriptions,
-  loadStatus: runtime.loadStatus, loadRouting: routing.loadRouting, loadOperations: runtime.loadOperations,
+  loadStatus: runtime.loadStatus, loadRouting: () => routing.loadRouting({ preserveRuleDraft: true }), loadOperations: runtime.loadOperations,
   onCoreUpdateProgress: maintenance.recordCoreUpdateProgress,
   onCoreUpdateBatchComplete: maintenance.notifyCoreUpdateBatchComplete,
   onGeoUpdateComplete: maintenance.notifyGeoUpdateComplete,
