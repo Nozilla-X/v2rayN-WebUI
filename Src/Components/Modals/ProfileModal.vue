@@ -9,6 +9,7 @@ import ProfileTransportSection from '../../Features/Profiles/ProfileTransportSec
 import ProfileSecuritySection from '../../Features/Profiles/ProfileSecuritySection.vue'
 import { optionValues } from '../../Features/Profiles/editorOptionValues'
 import { shadowsocksSecurityOptions } from '../../profileEditorOptions'
+import { reconcileProfileExtraKeys } from '../../Composables/profilePayloads.ts'
 import UiIcon from '../UiIcon.vue'
 import UiCheckbox from '../UiCheckbox.vue'
 import type { UiProps } from '../types'
@@ -57,7 +58,12 @@ function canonicalizeProtocolChange(configType: string) {
   let advanced: Record<string, any>
   try { advanced = parseObject(JSON.parse(state.profileAdvancedJson || '{}')) } catch { return }
   const protocolExtra = form.protoExtra || (form.protoExtra = {})
-  const advancedProtocolExtra = parseObject(advanced.protoExtra)
+  const rawAdvancedProtocolExtra = parseObject(advanced.protoExtra)
+  const advancedProtocolExtra = reconcileProfileExtraKeys(rawAdvancedProtocolExtra, 'protocol', {
+    advanced: rawAdvancedProtocolExtra,
+    current: rawAdvancedProtocolExtra,
+    initial: rawAdvancedProtocolExtra,
+  })
   if (!groupConfigTypes.includes(configType)) {
     removeKeys(protocolExtra, groupProtocolExtraFields)
     removeKeys(advancedProtocolExtra, groupProtocolExtraFields)
@@ -101,7 +107,12 @@ function canonicalizeProtocolChange(configType: string) {
     form.network = state.editorOptions.defaultNetwork
     removeKeys(form.transportExtra || {}, transportExtraFields)
     advanced.network = state.editorOptions.defaultNetwork
-    const advancedTransportExtra = parseObject(advanced.transportExtra)
+    const rawAdvancedTransportExtra = parseObject(advanced.transportExtra)
+    const advancedTransportExtra = reconcileProfileExtraKeys(rawAdvancedTransportExtra, 'transport', {
+      advanced: rawAdvancedTransportExtra,
+      current: rawAdvancedTransportExtra,
+      initial: rawAdvancedTransportExtra,
+    })
     removeKeys(advancedTransportExtra, transportExtraFields)
     advanced.transportExtra = typeof advanced.transportExtra === 'string' ? JSON.stringify(advancedTransportExtra) : advancedTransportExtra
     removeKeys(advanced, ['headerType', 'requestHost', 'path', 'extra'])
