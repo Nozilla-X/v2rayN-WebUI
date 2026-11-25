@@ -24,7 +24,7 @@ const isCustomConfig = computed(() => ['Custom', 'Outbound'].includes(protocol.v
 const groupConfigTypes = ['PolicyGroup', 'ProxyChain']
 const singboxOnlyConfigTypes = computed(() => state.editorOptions.singboxOnlyConfigTypes || [])
 const realityConfigTypes = ['VLESS', 'Trojan', 'Anytls']
-const transportlessConfigTypes = ['Custom', 'Outbound', 'Hysteria2', 'TUIC', 'WireGuard', 'Anytls', 'Naive', ...groupConfigTypes]
+const transportlessConfigTypes = ['Custom', 'Outbound', 'Hysteria2', 'TUIC', 'WireGuard', 'Anytls', 'Naive', 'MASQUE', ...groupConfigTypes]
 const groupProtocolExtraFields = ['groupType', 'childItems', 'subChildItems', 'filter', 'multipleLoad']
 const protocolExtraOwners: Record<string, string[]> = {
   alterId: ['VMess'], vmessSecurity: ['VMess'], flow: ['VLESS', 'Trojan'], vlessEncryption: ['VLESS'],
@@ -32,6 +32,8 @@ const protocolExtraOwners: Record<string, string[]> = {
   wgPublicKey: ['WireGuard'], wgPresharedKey: ['WireGuard'], wgInterfaceAddress: ['WireGuard'],
   wgReserved: ['WireGuard'], wgMtu: ['WireGuard'], wgDns: ['WireGuard'],
   isSingboxEndpoint: ['Outbound'],
+  masquePath: ['MASQUE'], masqueHeaders: ['MASQUE'],
+  warpPublicKey: ['MASQUE'], warpPrivateKey: ['MASQUE'], warpAddress: ['MASQUE'],
   salamanderPass: ['Hysteria2'], upMbps: ['Hysteria2'], downMbps: ['Hysteria2'], ports: ['Hysteria2'],
   hopInterval: ['Hysteria2'], hy2RealmUrl: ['Hysteria2'], geckoMinPacketSize: ['Hysteria2'], geckoMaxPacketSize: ['Hysteria2'],
   congestionControl: ['TUIC', 'Naive'], insecureConcurrency: ['Anytls', 'Naive'], naiveQuic: ['Naive'],
@@ -143,7 +145,9 @@ watch(() => [state.showProfileForm, protocol.value] as const, ([isOpen, configTy
   if (['Custom', 'Outbound'].includes(configType) && !state.profileForm.coreType) state.profileForm.coreType = state.editorOptions.coreTypes?.[0] || ''
   if (previous?.[0] && configType !== previous[1]) canonicalizeProtocolChange(configType)
 }, { immediate: true })
-const supportsTransport = computed(() => !isCustomConfig.value && !['Hysteria2', 'TUIC', 'WireGuard', 'Anytls', 'Naive'].includes(protocol.value))
+const supportsTransport = computed(() => !isCustomConfig.value && !['Hysteria2', 'TUIC', 'WireGuard', 'Anytls', 'Naive', 'MASQUE'].includes(protocol.value))
+const showMasqueWarp = computed(() => protocol.value === 'MASQUE'
+  && String(state.profileForm.coreType || props.coreTypeMappings.find((mapping) => String(mapping.configType).toLowerCase() === 'masque')?.coreType || state.editorOptions.coreTypes?.[0] || '').toLowerCase() === 'xray')
 const streamSecurityOptions = computed(() => optionValues((state.editorOptions.streamSecurityTypes || [])
   .filter((security: string) => security !== 'reality' || ['VLESS', 'Trojan', 'Anytls'].includes(protocol.value)), state.profileForm.streamSecurity))
 const shadowsocksMappedCore = computed(() => props.coreTypeMappings.find((mapping) => String(mapping.configType).toLowerCase() === 'shadowsocks')?.coreType || state.editorOptions.coreTypes?.[0] || '')
@@ -167,7 +171,7 @@ const transportOptions = computed(() => state.editorOptions || {})
               <label>{{ t('nodes.coreType') }}<select v-model="state.profileForm.coreType" :disabled="singboxOnlyConfigTypes.includes(protocol)"><option value="">{{ t('common.none') }}</option><option v-if="state.profileForm.coreType && !state.coreTypes.includes(state.profileForm.coreType)" :value="state.profileForm.coreType">{{ state.profileForm.coreType }}</option><option v-for="core in state.coreTypes" :key="core" :value="core">{{ core === 'sing_box' ? 'sing-box' : core }}</option></select></label>
             <label>{{ t('nodes.remarks') }}<input v-model="state.profileForm.remarks" required /></label>
             <template v-if="!isGroup">
-              <label>{{ t(isCustomConfig ? 'nodes.customConfigPath' : 'nodes.address') }}<input v-model="state.profileForm.address" required autocomplete="off" :placeholder="isCustomConfig ? t('nodes.customConfigPathHint') : undefined" /></label>
+              <label>{{ t(isCustomConfig ? 'nodes.customConfigPath' : 'nodes.address') }}<input v-model="state.profileForm.address" required autocomplete="off" :placeholder="isCustomConfig ? t(protocol === 'Outbound' ? 'nodes.customOutboundPathHint' : 'nodes.customConfigPathHint') : undefined" /></label>
               <label v-if="!isCustomConfig">{{ t('nodes.port') }}<input v-model.number="state.profileForm.port" type="number" min="1" max="65535" required /></label>
               <label v-if="supportsTransport">{{ t('nodes.network') }}<select v-model="state.profileForm.network"><option v-for="network in state.editorOptions.networks" :key="network" :value="network">{{ network }}</option></select></label>
             </template>
@@ -190,10 +194,17 @@ const transportOptions = computed(() => state.editorOptions || {})
           <fieldset class="editor-section">
             <legend>{{ t('nodes.authentication') }}</legend>
             <div class="form-grid three-col">
-              <label v-if="!['HTTP', 'SOCKS', 'Naive', 'WireGuard'].includes(protocol)">{{ t(protocol === 'VMess' || protocol === 'VLESS' ? 'nodes.uuid' : 'nodes.password') }}<input v-model="state.profileForm.password" :required="['VMess', 'VLESS', 'Shadowsocks', 'Trojan', 'Hysteria2', 'TUIC', 'Anytls'].includes(protocol)" autocomplete="off" /></label>
-              <label v-if="['HTTP', 'SOCKS', 'Naive'].includes(protocol)">{{ t('nodes.username') }}<input v-model="state.profileForm.username" autocomplete="off" /></label>
+              <label v-if="!['HTTP', 'SOCKS', 'Naive', 'WireGuard', 'MASQUE'].includes(protocol)">{{ t(protocol === 'VMess' || protocol === 'VLESS' ? 'nodes.uuid' : 'nodes.password') }}<input v-model="state.profileForm.password" :required="['VMess', 'VLESS', 'Shadowsocks', 'Trojan', 'Hysteria2', 'TUIC', 'Anytls'].includes(protocol)" autocomplete="off" /></label>
+              <label v-if="['HTTP', 'SOCKS', 'Naive', 'MASQUE'].includes(protocol)">{{ t('nodes.username') }}<input v-model="state.profileForm.username" autocomplete="off" /></label>
               <label v-if="protocol === 'TUIC'">{{ t('nodes.uuid') }}<input v-model="state.profileForm.username" required autocomplete="off" /></label>
-              <label v-if="['HTTP', 'SOCKS', 'Naive'].includes(protocol)">{{ t('nodes.password') }}<input v-model="state.profileForm.password" :required="protocol === 'Naive'" autocomplete="off" /></label>
+              <label v-if="['HTTP', 'SOCKS', 'Naive', 'MASQUE'].includes(protocol)">{{ t('nodes.password') }}<input v-model="state.profileForm.password" :required="protocol === 'Naive'" autocomplete="off" /></label>
+              <label v-if="protocol === 'MASQUE'">{{ t('nodes.masquePath') }}<input v-model="state.profileForm.protoExtra.masquePath" autocomplete="off" /></label>
+              <label v-if="protocol === 'MASQUE'" class="wide-field">{{ t('nodes.masqueHeaders') }}<textarea v-model="state.profileForm.protoExtra.masqueHeaders" class="code-area" rows="3" spellcheck="false" placeholder="Header: Value" /><small class="field-hint">{{ t('nodes.masqueHeadersHint') }}</small></label>
+              <details v-if="protocol === 'MASQUE' && showMasqueWarp" class="wide-field secondary-fields"><summary>{{ t('nodes.warpSettings') }}</summary><small class="field-hint">{{ t('nodes.warpHint') }}</small>
+                <label>{{ t('nodes.warpPrivateKey') }}<input v-model="state.profileForm.protoExtra.warpPrivateKey" autocomplete="off" /></label>
+                <label>{{ t('nodes.warpPublicKey') }}<input v-model="state.profileForm.protoExtra.warpPublicKey" autocomplete="off" /></label>
+                <label>{{ t('nodes.warpAddress') }}<input v-model="state.profileForm.protoExtra.warpAddress" autocomplete="off" placeholder="IPv4/32, IPv6/128" /></label>
+              </details>
               <label v-if="protocol === 'VMess'">{{ t('nodes.alterId') }}<input v-model="state.profileForm.protoExtra.alterId" /></label>
               <label v-if="protocol === 'VMess'">{{ t('nodes.security') }}<select v-model="state.profileForm.protoExtra.vmessSecurity"><option v-for="security in optionValues(transportOptions.vmessSecurities, state.profileForm.protoExtra.vmessSecurity)" :key="security" :value="security">{{ security }}</option></select></label>
               <label v-if="['VLESS', 'Trojan'].includes(protocol)">{{ t('nodes.flow') }}<select v-model="state.profileForm.protoExtra.flow"><option v-for="flow in optionValues(transportOptions.flows, state.profileForm.protoExtra.flow)" :key="flow || 'none'" :value="flow">{{ flow || t('common.none') }}</option></select></label>

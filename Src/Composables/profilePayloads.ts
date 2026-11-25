@@ -5,7 +5,7 @@ const nullableTextFields = [
   'ports', 'flow', 'vlessEncryption', 'ssMethod', 'wgPublicKey', 'wgPresharedKey',
   'wgInterfaceAddress', 'wgReserved', 'wgDns', 'salamanderPass', 'hopInterval',
   'hy2RealmUrl', 'congestionControl', 'groupType', 'childItems', 'subChildItems',
-  'filter', 'multipleLoad',
+  'filter', 'multipleLoad', 'masquePath', 'masqueHeaders', 'warpPublicKey', 'warpPrivateKey', 'warpAddress',
 ]
 
 const nullableTransportTextFields = [
@@ -23,7 +23,8 @@ const protocolExtraKeys = [
   'vlessEncryption', 'ssMethod', 'wgPublicKey', 'wgPresharedKey', 'wgInterfaceAddress',
   'wgReserved', 'wgMtu', 'wgDns', 'salamanderPass', 'upMbps', 'downMbps', 'ports',
   'hopInterval', 'hy2RealmUrl', 'geckoMinPacketSize', 'geckoMaxPacketSize',
-  'insecureConcurrency', 'naiveQuic', 'masquePath', 'masqueHeaders', 'groupType',
+  'insecureConcurrency', 'naiveQuic', 'masquePath', 'masqueHeaders',
+  'warpPublicKey', 'warpPrivateKey', 'warpAddress', 'groupType',
   'childItems', 'subChildItems', 'filter', 'multipleLoad', 'isSingboxEndpoint',
 ] as const
 

@@ -60,6 +60,7 @@ function chooseProfile(profile: Record<string, any>) {
             <label>{{ t('subscriptions.userAgent') }}<input v-model="state.subscriptionForm.userAgent" /></label>
             <label class="wide-field">{{ t('subscriptions.requestHeaders') }}<textarea v-model="state.subscriptionForm.requestHeaders" class="code-area" spellcheck="false" /><small class="field-hint">{{ t('subscriptions.requestHeadersTip') }}</small></label>
             <label>{{ t('subscriptions.sort') }}<input v-model.number="state.subscriptionForm.sort" type="number" /></label>
+            <label class="wide-field">{{ t('subscriptions.preResolver') }}<input v-model="state.subscriptionForm.preResolver" :list="'subscription-pre-resolvers'" autocomplete="off" /><datalist id="subscription-pre-resolvers"><option v-for="address in state.preResolveAddresses" :key="address" :value="address" /></datalist><small class="field-hint">{{ t('subscriptions.preResolverTip') }}</small></label>
           </div>
         </fieldset>
 
